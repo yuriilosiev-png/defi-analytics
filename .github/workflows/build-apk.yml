@@ -74,6 +74,8 @@ jobs:
           mkdir -p app/src/main/assets
           cp index.html app/src/main/assets/index.html
           cp privacy-policy.html app/src/main/assets/privacy-policy.html
+          # версия вшитой веб-части = время сборки; OTA принимается только если новее
+          date +%s > app/src/main/assets/web_version.txt
 
       # Debug-APK собираем всегда: для быстрой проверки, ключ не нужен
       - name: Build debug APK

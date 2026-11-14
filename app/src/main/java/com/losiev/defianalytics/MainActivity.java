@@ -20,6 +20,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
@@ -58,15 +63,34 @@ public class MainActivity extends ComponentActivity {
     /** Заполняется на UI-потоке, читается из потока JS-моста. */
     private volatile boolean pageTrusted = false;
 
+    // Обновление веб-части без переустановки (подписанные файлы, см. WebUpdater)
+    private WebUpdater updater;
+    private final ExecutorService otaExec = Executors.newSingleThreadExecutor();
+    private volatile boolean otaPending = false;   // новая версия скачана, ждёт перезагрузки страницы
+    private long lastOtaCheck = 0, stoppedAt = 0;
+
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
+        updater = new WebUpdater(this);
+        final WebViewAssetLoader.PathHandler bundled = new WebViewAssetLoader.AssetsPathHandler(this);
         final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
                 .setDomain(APP_HOST)
-                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .addPathHandler("/assets/", path -> {
+                    // index.html: проверенная OTA-версия, если есть; иначе вшитая в APK
+                    if ("index.html".equals(path)) {
+                        File f = updater.verifiedFile();
+                        if (f != null) {
+                            try {
+                                return new WebResourceResponse("text/html", "utf-8", new FileInputStream(f));
+                            } catch (Exception ignored) { /* упадём на вшитую */ }
+                        }
+                    }
+                    return bundled.handle(path);
+                })
                 .build();
 
         webView = new WebView(this);
@@ -155,6 +179,16 @@ public class MainActivity extends ComponentActivity {
         if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
             webView.loadUrl(START_URL);
         }
+        checkWebUpdate();
+    }
+
+    /** Фоновая проверка обновления веб-части (не чаще раза в 30 минут). */
+    private void checkWebUpdate() {
+        if (updater == null || !updater.enabled()) return;
+        long now = System.currentTimeMillis();
+        if (now - lastOtaCheck < 30 * 60 * 1000L) return;
+        lastOtaCheck = now;
+        otaExec.execute(() -> { if (updater.checkAndStage()) otaPending = true; });
     }
 
     // ───────────────────────── навигация ─────────────────────────
@@ -249,6 +283,12 @@ public class MainActivity extends ComponentActivity {
     protected void onResume() {
         super.onResume();
         if (webView != null) webView.onResume();
+        // Новая версия страницы скачана и приложение было свёрнуто > 1 мин — применяем
+        if (otaPending && stoppedAt > 0 && System.currentTimeMillis() - stoppedAt > 60000L && webView != null) {
+            otaPending = false;
+            webView.loadUrl(START_URL);
+        }
+        checkWebUpdate();
         // Если пользователь свернул приложение посреди обновления — Play просит продолжить
         final AppUpdateManager mgr = AppUpdateManagerFactory.create(this);
         mgr.getAppUpdateInfo().addOnSuccessListener(info -> {
@@ -261,6 +301,12 @@ public class MainActivity extends ComponentActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onStop() {
+        stoppedAt = System.currentTimeMillis();
+        super.onStop();
     }
 
     @Override
@@ -277,6 +323,7 @@ public class MainActivity extends ComponentActivity {
 
     @Override
     protected void onDestroy() {
+        otaExec.shutdown();
         if (webView != null) {
             ViewGroup parent = (ViewGroup) webView.getParent();
             if (parent != null) parent.removeView(webView);

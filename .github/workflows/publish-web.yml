@@ -1,0 +1,82 @@
+name: Publish web (Pages + signed update)
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'index.html'
+      - 'version.json'
+      - 'privacy-policy.html'
+      - 'manifest.json'
+      - 'sw.js'
+      - 'icon-*.png'
+      - '.github/workflows/publish-web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check JS syntax
+        run: |
+          python3 - <<'PY'
+          import re
+          c = open('index.html', encoding='utf-8').read()
+          b = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', c, re.S)
+          open('/tmp/inline.js', 'w', encoding='utf-8').write('\n;\n'.join(b))
+          PY
+          node --check /tmp/inline.js
+
+      - name: Assemble site
+        run: |
+          mkdir -p site/web
+          cp index.html manifest.json sw.js privacy-policy.html version.json icon-*.png site/
+          touch site/.nojekyll
+
+      # Подписываем index.html: приложение примет обновление только с валидной подписью
+      - name: Sign web update
+        env:
+          WEB_SIGN_KEY_ENC: ${{ secrets.WEB_SIGN_KEY_ENC }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          if [ -z "$WEB_SIGN_KEY_ENC" ] || [ -z "$STORE_PASSWORD" ]; then
+            echo "::notice::WEB_SIGN_KEY_ENC не задан — обновление без переустановки не публикуется"
+            exit 0
+          fi
+          printf '%s' "$WEB_SIGN_KEY_ENC" | base64 -d > "$RUNNER_TEMP/web.enc"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -pass env:STORE_PASSWORD \
+            -in "$RUNNER_TEMP/web.enc" -out "$RUNNER_TEMP/web.pem"
+          cp index.html site/web/index.html
+          V=$(date +%s)
+          SHA=$(sha256sum site/web/index.html | cut -d' ' -f1)
+          printf 'defi-web|%s|%s' "$V" "$SHA" > "$RUNNER_TEMP/msg"
+          openssl dgst -sha256 -sign "$RUNNER_TEMP/web.pem" -out "$RUNNER_TEMP/sig.bin" "$RUNNER_TEMP/msg"
+          SIG=$(base64 -w0 "$RUNNER_TEMP/sig.bin")
+          printf '{"v":%s,"sha256":"%s","sig":"%s"}\n' "$V" "$SHA" "$SIG" > site/web/latest.json
+          shred -u "$RUNNER_TEMP/web.pem" "$RUNNER_TEMP/web.enc" 2>/dev/null || true
+          echo "Опубликована версия $V"
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.d.outputs.page_url }}
+    steps:
+      - id: d
+        uses: actions/deploy-pages@v4

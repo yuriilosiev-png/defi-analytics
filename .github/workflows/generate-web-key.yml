@@ -1,0 +1,34 @@
+name: Generate web-update signing key (run once)
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate ECDSA key pair
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          if [ "${#STORE_PASSWORD}" -lt 12 ]; then
+            echo "::error::Сначала создай секрет STORE_PASSWORD (минимум 12 символов)"
+            exit 1
+          fi
+          openssl ecparam -name prime256v1 -genkey -noout -out "$RUNNER_TEMP/web.pem"
+          echo "=== 1) ПУБЛИЧНЫЙ ключ (не секрет) — отправь его в чат Claude ==="
+          echo "-----PUB-----"
+          openssl ec -in "$RUNNER_TEMP/web.pem" -pubout -outform DER 2>/dev/null | base64 -w0
+          echo
+          echo "-----END-----"
+          openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -pass env:STORE_PASSWORD \
+            -in "$RUNNER_TEMP/web.pem" -out "$RUNNER_TEMP/web.enc"
+          shred -u "$RUNNER_TEMP/web.pem"
+          echo
+          echo "=== 2) Приватный ключ, зашифрован паролем STORE_PASSWORD — в секрет WEB_SIGN_KEY_ENC ==="
+          echo "-----BEGIN-----"
+          base64 -w0 "$RUNNER_TEMP/web.enc"
+          echo
+          echo "-----END-----"
