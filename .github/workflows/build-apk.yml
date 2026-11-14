@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # нужно, чтобы выложить debug-APK в Releases
 
 concurrency:
   group: build-apk-${{ github.ref }}
@@ -124,6 +124,17 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      # Debug-APK выкладываем в Releases: оттуда его можно скачать прямо на телефоне
+      - name: Publish debug APK to Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/*.apk "$RUNNER_TEMP/DeFiAnalytics-debug.apk"
+          gh release delete debug-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create debug-latest "$RUNNER_TEMP/DeFiAnalytics-debug.apk" \
+            --prerelease --target "$GITHUB_SHA" --title "Debug build" \
+            --notes "Тестовая сборка (debug), коммит ${GITHUB_SHA::7}. Для Google Play нужна release-сборка."
 
       - name: Upload release APK
         if: steps.ks.outputs.has == 'true'
