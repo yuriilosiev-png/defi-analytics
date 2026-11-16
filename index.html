@@ -675,6 +675,128 @@ html, body { overflow-x: hidden; max-width: 100%; }
 @keyframes walletPulse{0%,100%{opacity:1}50%{opacity:0.5}}
 
 </style>
+<style id="hx-style">
+/* ═══════════ ГЛАВНАЯ v2 — яркий «космос» ═══════════ */
+#screen-home{
+  background:
+    radial-gradient(1.4px 1.4px at 9% 7%, rgba(255,255,255,.75), transparent 60%),
+    radial-gradient(1px 1px at 31% 15%, rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(1.6px 1.6px at 62% 5%, rgba(255,255,255,.8), transparent 60%),
+    radial-gradient(1px 1px at 84% 19%, rgba(255,255,255,.6), transparent 60%),
+    radial-gradient(1.2px 1.2px at 47% 26%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(1.4px 1.4px at 93% 33%, rgba(255,255,255,.7), transparent 60%),
+    radial-gradient(1px 1px at 18% 38%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(130% 55% at 105% 6%, rgba(124,58,237,.42), transparent 62%),
+    radial-gradient(100% 45% at -10% 24%, rgba(0,229,255,.24), transparent 62%),
+    radial-gradient(120% 40% at 50% 108%, rgba(16,185,129,.30), transparent 62%),
+    #050813;
+  background-repeat:no-repeat;
+}
+#screen-home .hx-amt{transition:filter .2s}
+#screen-home.hx-hide .hx-amt{filter:blur(9px)}
+
+/* верх: тикер + флаг */
+.hx-top{display:flex;align-items:center;gap:8px;padding:calc(10px + var(--safe-t)) 12px 6px}
+.hx-ticker{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;padding:2px 0}
+.hx-ticker::-webkit-scrollbar{display:none}
+.hx-pill{display:flex;align-items:center;gap:8px;flex-shrink:0;padding:7px 10px;border-radius:16px;
+  background:linear-gradient(160deg,rgba(24,36,70,.75),rgba(14,18,44,.75));border:1px solid rgba(255,170,60,.28);
+  box-shadow:0 0 14px rgba(80,120,255,.10) inset}
+.hx-pill.p-eth{border-color:rgba(98,126,234,.5)}
+.hx-pill.p-sol{border-color:rgba(153,69,255,.5)}
+.hx-pill.p-gen{border-color:rgba(120,160,255,.28)}
+.hx-ci{width:30px;height:30px;flex-shrink:0;display:flex}
+.hx-pi{display:flex;flex-direction:column;line-height:1.15}
+.hx-pi b{font-size:12px;font-weight:800;color:#fff;letter-spacing:.3px}
+.hx-pi span{font-size:11px;color:#cbd5e1;font-family:'Space Mono',monospace}
+.hx-pm{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.hx-pm svg{width:44px;height:16px}
+.hx-pm em{font-style:normal;font-size:10px;font-weight:800;font-family:'Space Mono',monospace}
+.hx-pm em.pos{color:#22f09a}.hx-pm em.neg{color:#ff5a6a}.hx-pm em.neu{color:var(--muted2)}
+.hx-top .lang-flag{flex-shrink:0}
+
+/* hero */
+.hx-hero{position:relative;margin:6px 14px 12px;padding:18px 18px 14px;border-radius:26px;overflow:hidden;
+  background:linear-gradient(150deg,rgba(14,26,60,.72),rgba(10,12,34,.55));
+  border:1px solid rgba(110,150,255,.28);box-shadow:0 10px 40px rgba(0,0,0,.45),0 0 40px rgba(80,90,255,.10) inset}
+.hx-coin{position:absolute;right:-26px;top:-18px;width:210px;height:210px;pointer-events:none;
+  animation:hxFloat 7s ease-in-out infinite;filter:drop-shadow(0 0 26px rgba(255,160,40,.35))}
+@keyframes hxFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(2deg)}}
+.hx-hero-top{display:flex;align-items:center;gap:8px;position:relative}
+.hx-hero-label{font-size:17px;color:#c3cbe0;font-weight:600}
+.hx-eye{background:none;border:none;color:#aab4cc;padding:4px;display:flex;cursor:pointer;touch-action:manipulation}
+.hx-hero .hero-value{position:relative;font-family:'Syne',sans-serif;font-size:clamp(42px,14vw,58px);font-weight:800;
+  letter-spacing:-1px;margin:6px 0 8px;color:#fff;text-shadow:0 2px 18px rgba(0,229,255,.25);font-variant-numeric:tabular-nums}
+.hx-hero .hero-delta{position:relative;font-size:15px;padding:3px 0;background:none;border-radius:0;gap:8px}
+.hx-hero .hero-delta.pos{color:#22f09a;background:none}.hx-hero .hero-delta.neg{color:#ff5a6a;background:none}
+.hx-hero .hero-delta.neu{color:#94a3b8;background:none}
+.hx-range{position:relative;display:flex;gap:2px;margin-top:14px;padding:4px;border-radius:26px;
+  background:rgba(8,14,36,.7);border:1px solid rgba(110,150,255,.25)}
+.hx-range button{flex:1;border:none;background:none;color:#aab4cc;font:700 14px 'Syne',sans-serif;padding:9px 0;border-radius:22px;cursor:pointer;touch-action:manipulation}
+.hx-range button.on{color:#04140c;background:linear-gradient(135deg,#2cf5a0,#12c97a);box-shadow:0 0 18px rgba(34,240,154,.55)}
+
+/* плитки */
+.hx-tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;padding:0 14px;margin-bottom:12px}
+.hx-tile{position:relative;border-radius:20px;padding:12px 11px 11px;min-width:0;overflow:hidden}
+.hx-tile .qm-label{font-size:12px;color:#d4dbec;font-family:'Syne',sans-serif;text-transform:none;letter-spacing:0;margin:8px 0 3px;font-weight:600}
+.hx-tile .qm-value{font-family:'Syne',sans-serif;font-size:clamp(17px,5.2vw,22px);font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.hx-tile .qm-sub{font-family:'Syne',sans-serif;font-size:10px;color:#9fb0d0;margin-top:3px}
+.hx-tile .hx-ti{width:30px;height:30px}
+.hx-t1{background:linear-gradient(150deg,rgba(24,70,170,.6),rgba(10,22,66,.7));border:1px solid rgba(70,150,255,.6);box-shadow:0 0 22px rgba(50,120,255,.22)}
+.hx-t2{background:linear-gradient(150deg,rgba(14,90,70,.55),rgba(8,30,34,.7));border:1px solid rgba(34,240,154,.5);box-shadow:0 0 22px rgba(34,240,154,.16)}
+.hx-t3{background:linear-gradient(150deg,rgba(90,40,170,.6),rgba(26,14,66,.7));border:1px solid rgba(160,100,255,.6);box-shadow:0 0 22px rgba(140,80,255,.22)}
+
+/* карточки */
+.hx-card,#screen-home .hf-block{margin:0 14px 12px;border-radius:22px;padding:14px 16px;
+  background:linear-gradient(160deg,rgba(16,34,56,.75),rgba(10,14,36,.75));
+  border:1px solid rgba(34,240,154,.28);box-shadow:0 8px 28px rgba(0,0,0,.4),0 0 30px rgba(34,240,154,.06) inset}
+#screen-home .hf-block{border-color:rgba(0,229,255,.3)}
+.hx-head{display:flex;align-items:center;gap:10px}
+.hx-head .hx-hi{width:26px;height:26px;flex-shrink:0}
+.hx-head .hx-ht{font-size:17px;color:#d4dbec;font-weight:600;flex:1}
+.hx-pnl-val{font-family:'Syne',sans-serif;font-size:clamp(28px,9vw,38px);font-weight:800;font-variant-numeric:tabular-nums}
+.hx-net{font-size:11px;color:#9fb0d0;margin-top:2px;font-family:'Space Mono',monospace}
+.hx-chart{position:relative;height:84px;margin:10px 0 8px}
+.hx-chart.sm{height:56px;margin:2px 0 8px}
+.hx-chart svg{width:100%;height:100%;display:block;overflow:visible}
+.hx-chart .hx-dot{position:absolute;right:-3px;width:11px;height:11px;border-radius:50%;margin-top:-5px;border:2px solid #fff;box-shadow:0 0 10px currentColor}
+.hx-empty{height:100%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#7d8aa8;text-align:center}
+.hx-zone{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:12px;font-size:13px;font-weight:700}
+.hx-zone.pos{color:#22f09a;background:rgba(34,240,154,.10);border:1px solid rgba(34,240,154,.5)}
+.hx-zone.neg{color:#ff6b7a;background:rgba(255,90,106,.10);border:1px solid rgba(255,90,106,.5)}
+.hx-zone.neu{color:#9fb0d0;background:rgba(120,140,180,.10);border:1px solid rgba(120,140,180,.35)}
+
+/* HF-карточка */
+#screen-home .hf-label{font-family:'Syne',sans-serif;font-size:17px;text-transform:none;color:#d4dbec;font-weight:600;letter-spacing:0}
+#screen-home .hf-value{font-family:'Syne',sans-serif;font-size:34px;font-weight:800}
+#screen-home .hf-bar-wrap{height:10px;border-radius:6px;background:rgba(255,255,255,.07)}
+#screen-home .hf-bar{border-radius:6px;box-shadow:0 0 14px currentColor}
+
+/* доход / ROI / кошелёк */
+#screen-home .income-card,#screen-home .roi-box{background:linear-gradient(160deg,rgba(18,30,60,.7),rgba(10,14,36,.7));
+  border:1px solid rgba(110,150,255,.22);border-radius:18px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+#screen-home .income-value{font-family:'Syne',sans-serif;font-weight:800;font-size:20px}
+#screen-home .wallet-banner{border-radius:22px;border:1px solid rgba(124,58,237,.45);background:linear-gradient(160deg,rgba(40,24,90,.55),rgba(10,14,36,.7));box-shadow:0 0 30px rgba(124,58,237,.15)}
+
+/* быстрые действия */
+.hx-qa{margin:0 14px 12px;padding:12px 12px 14px;border-radius:22px;background:linear-gradient(160deg,rgba(40,24,90,.5),rgba(10,14,36,.7));
+  border:1px solid rgba(160,100,255,.4)}
+.hx-qa-t{display:flex;align-items:center;gap:8px;font-size:16px;color:#e2e8f7;font-weight:700;margin-bottom:10px}
+.hx-qa-g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hx-qa-g button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:14px;background:rgba(8,14,36,.7);
+  border:1px solid rgba(110,150,255,.25);color:#e2e8f7;font:700 12px 'Syne',sans-serif;cursor:pointer;touch-action:manipulation}
+.hx-qa-g button:active{transform:scale(.96)}
+.hx-qa-g svg{width:26px;height:26px}
+
+/* нижнее меню */
+.tabbar{background:rgba(8,12,30,.86)!important;border-top:1px solid rgba(110,150,255,.28)!important;border-radius:22px 22px 0 0;
+  box-shadow:0 -8px 30px rgba(0,0,0,.5),0 -1px 22px rgba(34,240,154,.10)}
+.tab-icon{width:34px!important;height:30px!important;border-radius:12px!important;color:#7d8aa8}
+.tab-icon svg{width:22px;height:22px}
+.tab-label{color:#7d8aa8!important}
+.tab.active .tab-label{color:#22f09a!important}
+.tab.active .tab-icon{background:rgba(34,240,154,.14)!important;color:#22f09a!important;box-shadow:0 0 16px rgba(34,240,154,.30)}
+</style>
 </head>
 <body>
 <script>
@@ -701,8 +823,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <!-- ─── ЭКРАН 1: ГЛАВНАЯ ─── -->
   <div class="screen active" id="screen-home">
 
+    <!-- Тикер v2 -->
+    <div class="hx-top">
+      <div class="hx-ticker" id="hx-ticker"></div>
+      <div class="lang-flag" id="lang-flag" onclick="toggleLang()">🇷🇺</div>
+    </div>
+    <!-- Прежний тикер: скрыт, обновляется как раньше -->
     <!-- Тикер -->
-    <div style="position:relative;border-bottom:1px solid var(--border)">
+    <div style="display:none">
       <div class="ticker-bar" id="ticker-bar" style="padding-right:52px">
         <div class="tick"><div class="live-dot"></div><span class="tick-name">BTC</span><span class="tick-val" id="t_btc">...</span></div>
         <div class="tick"><span class="tick-name">ETH</span><span class="tick-val" id="t_eth">...</span></div>
@@ -714,32 +842,56 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <div class="tick" style="border-color:rgba(192,192,192,0.3)"><span class="tick-name" style="color:#c0c0c0">XAG</span><span class="tick-val" id="t_silver" style="color:#c0c0c0">⏳</span></div>
       </div>
       <div style="position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;padding-right:8px;background:linear-gradient(to right,transparent,var(--bg) 28%)">
-        <div class="lang-flag" id="lang-flag" onclick="toggleLang()">🇷🇺</div>
+        
       </div>
     </div>
 
-    <!-- Hero: общая стоимость портфеля -->
-    <div class="hero">
-      <div class="hero-label" id="lbl-portfolio">Стоимость портфеля</div>
-      <div class="hero-value" id="home_total">$0</div>
-      <div id="home_delta" class="hero-delta neu">—</div>
+
+    <!-- Hero v2: баланс -->
+    <div class="hx-hero">
+      <div class="hx-coin" aria-hidden="true"><svg viewBox="0 0 220 220" width="210" height="210">
+        <defs>
+          <radialGradient id="hxcg" cx="38%" cy="30%" r="80%"><stop offset="0" stop-color="#fff1b0"/><stop offset=".35" stop-color="#ffb52e"/><stop offset=".75" stop-color="#d9770a"/><stop offset="1" stop-color="#8a4300"/></radialGradient>
+          <linearGradient id="hxorb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00e5ff"/><stop offset=".5" stop-color="#7c3aed"/><stop offset="1" stop-color="#22f09a"/></linearGradient>
+        </defs>
+        <ellipse cx="112" cy="116" rx="104" ry="34" fill="none" stroke="url(#hxorb)" stroke-width="3" opacity=".85" transform="rotate(-24 112 116)"/>
+        <circle cx="110" cy="108" r="62" fill="url(#hxcg)"/>
+        <circle cx="110" cy="108" r="52" fill="none" stroke="#fff3c4" stroke-width="2.5" opacity=".65"/>
+        <circle cx="110" cy="108" r="46" fill="none" stroke="#a85a00" stroke-width="1.5" stroke-dasharray="3 4" opacity=".6"/>
+        <text x="110" y="132" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="76" fill="#fff6d6" stroke="#b86500" stroke-width="2">B</text>
+        <path d="M98 66v14M120 66v14M98 136v14M120 136v14" stroke="#fff6d6" stroke-width="6" stroke-linecap="round"/>
+        <path d="M18 128 Q112 170 206 96" fill="none" stroke="url(#hxorb)" stroke-width="3.5" stroke-linecap="round" opacity=".95" transform="rotate(-24 112 116)"/>
+      </svg></div>
+      <div class="hx-hero-top">
+        <span class="hx-hero-label" id="lbl-portfolio">Стоимость портфеля</span>
+        <button class="hx-eye" onclick="hxToggleHide()" aria-label="Скрыть суммы"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"width="22" height="22"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <div class="hero-value hx-amt" id="home_total">$0</div>
+      <div id="home_delta" class="hero-delta neu hx-amt">—</div>
+      <div class="hx-range" id="hx-range">
+        <button data-r="1D" onclick="hxSetRange('1D')">1D</button>
+        <button data-r="1W" onclick="hxSetRange('1W')">1W</button>
+        <button data-r="1M" onclick="hxSetRange('1M')">1M</button>
+        <button data-r="3M" onclick="hxSetRange('3M')">3M</button>
+        <button data-r="1Y" onclick="hxSetRange('1Y')">1Y</button>
+      </div>
     </div>
 
-    <!-- Быстрые метрики -->
-    <div class="quick-metrics">
-      <div class="qm-card">
+    <!-- Плитки: залог / займ / пулы -->
+    <div class="hx-tiles">
+      <div class="hx-tile hx-t1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"class="hx-ti" style="color:#6fb6ff"><path d="M3 7a2 2 0 0 1 2-2h12v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3"/><path d="M21 9h-5a2.5 2.5 0 0 0 0 5h5z" fill="rgba(120,190,255,.35)"/></svg>
         <div class="qm-label" id="lbl-collateral">Залог</div>
-        <div class="qm-value" id="qm_collateral">—</div>
+        <div class="qm-value hx-amt" id="qm_collateral">—</div>
         <div class="qm-sub" id="lbl-collateral-sub">Aave</div>
       </div>
-      <div class="qm-card">
+      <div class="hx-tile hx-t2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"class="hx-ti" style="color:#ffb454"><path d="M7 7l10 10"/><path d="M17 8v9H8"/><circle cx="12" cy="12" r="10"/></svg>
         <div class="qm-label" id="lbl-loan">Займ</div>
-        <div class="qm-value" id="qm_loan" style="color:var(--orange)">—</div>
+        <div class="qm-value hx-amt" id="qm_loan" style="color:var(--orange)">—</div>
         <div class="qm-sub" id="lbl-loan-sub">Активный</div>
       </div>
-      <div class="qm-card">
+      <div class="hx-tile hx-t3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"class="hx-ti" style="color:#22f09a"><path d="M3 20h18"/><rect x="5" y="12" width="3.5" height="8" rx="1" fill="rgba(34,240,154,.3)"/><rect x="10.5" y="8" width="3.5" height="12" rx="1" fill="rgba(34,240,154,.3)"/><rect x="16" y="4" width="3.5" height="16" rx="1" fill="rgba(34,240,154,.3)"/></svg>
         <div class="qm-label" id="lbl-pools">Пулы</div>
-        <div class="qm-value" id="qm_pools" style="color:var(--green)">—</div>
+        <div class="qm-value hx-amt" id="qm_pools" style="color:var(--green)">—</div>
         <div class="qm-sub" id="lbl-pools-sub">Баланс</div>
       </div>
     </div>
@@ -750,12 +902,21 @@ html, body { overflow-x: hidden; max-width: 100%; }
       <div id="alerts_list"></div>
     </div>
 
+    <!-- Общий P&L -->
+    <div class="hx-card" id="hx-pnl">
+      <div class="hx-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"class="hx-hi" style="color:#22f09a"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="hx-ht" id="hx-pnl-title">Общий P&amp;L</span><span class="hx-pnl-val hx-amt" id="hx-pnl-val">—</span></div>
+      <div class="hx-net hx-amt" id="hx-pnl-net"></div>
+      <div class="hx-chart hx-amt" id="hx-pnl-chart"></div>
+      <div class="hx-zone neu hx-amt" id="hx-pnl-zone">—</div>
+    </div>
+
     <!-- HF блок -->
     <div class="hf-block">
       <div class="hf-top">
         <span class="hf-label" id="lbl-hf">Health Factor</span>
         <span class="hf-value" id="home_hf" style="color:var(--muted2)">—</span>
       </div>
+      <div class="hx-chart sm" id="hx-hf-chart" style="display:none"></div>
       <div class="hf-bar-wrap">
         <div class="hf-bar" id="home_hf_bar" style="width:0%;background:var(--muted)"></div>
       </div>
@@ -799,6 +960,17 @@ html, body { overflow-x: hidden; max-width: 100%; }
       <div class="roi-box"><div class="roi-lbl" id="lbl-roi-mo">ROI/мес</div><div class="roi-val" id="roi_month" style="color:var(--muted2)">—</div></div>
       <div class="roi-box"><div class="roi-lbl" id="lbl-roi-yr">ROI/год</div><div class="roi-val" id="roi_year" style="color:var(--muted2)">—</div></div>
       <div class="roi-box"><div class="roi-lbl" id="lbl-roi-dep">Доход/деп</div><div class="roi-val" id="roi_dep" style="color:var(--muted2)">—</div></div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="hx-qa">
+      <div class="hx-qa-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"width="20" height="20" style="color:#b48cff"><path d="M13 2L4 14h7l-1 8 9-12h-7z" fill="rgba(160,100,255,.35)"/></svg><span id="hx-qa-title">Быстрые действия</span></div>
+      <div class="hx-qa-g">
+        <button onclick="hxQA('refresh')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"style="color:#22f09a"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg><span id="hx-qa-refresh">Обновить</span></button>
+        <button onclick="hxQA('wallet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"style="color:#6fb6ff"><path d="M3 7a2 2 0 0 1 2-2h12v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3"/><path d="M21 9h-5a2.5 2.5 0 0 0 0 5h5z"/></svg><span id="hx-qa-wallet">Кошелёк</span></button>
+        <button onclick="hxQA('positions')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"style="color:#b48cff"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span id="hx-qa-pos">Позиции</span></button>
+        <button onclick="hxQA('strategy')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"style="color:#ffb454"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span id="hx-qa-strat">Стратегия</span></button>
+      </div>
     </div>
 
     <!-- ─── WALLET CONNECT BANNER ─── -->
@@ -1537,33 +1709,33 @@ html, body { overflow-x: hidden; max-width: 100%; }
 <!-- ═══════════════════════════════ TAB BAR ═══════════════════════════════ -->
 <nav class="tabbar">
   <div class="tab active" onclick="switchTab('home')" id="tab-home">
-    <div class="tab-icon">🏠</div>
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></div>
     <span class="tab-label">Главная</span>
   </div>
   <div class="tab" onclick="switchTab('positions')" id="tab-positions">
     <div class="tab-icon">
-      📊
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
       <div class="tab-badge" id="badge-positions"></div>
     </div>
     <span class="tab-label">Позиции</span>
   </div>
   <div class="tab" onclick="switchTab('journal')" id="tab-journal">
-    <div class="tab-icon">📓</div>
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg></div>
     <span class="tab-label">Журнал</span>
   </div>
   <div class="tab" onclick="switchTab('strategy')" id="tab-strategy">
     <div class="tab-icon">
-      ⚡
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
       <div class="tab-badge" id="badge-strategy"></div>
     </div>
     <span class="tab-label">Стратегия</span>
   </div>
   <div class="tab" onclick="switchTab('contact')" id="tab-contact">
-    <div class="tab-icon">✈️</div>
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3L2 11l7 3 3 7 3-5 7-13z"/><path d="M9 14l13-11"/></svg></div>
     <span class="tab-label">Связь</span>
   </div>
   <div class="tab" onclick="switchTab('docs')" id="tab-docs">
-    <div class="tab-icon">📚</div>
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 21a2 2 0 0 1 2-2h12"/></svg></div>
     <span class="tab-label" id="lbl-tab-docs">Инструкция</span>
   </div>
 </nav>
@@ -2742,6 +2914,7 @@ function updateTickerDisplay(){
     // Insert before the padding spacer (last item)
     bar.appendChild(div);
   });
+  try{ hxRenderTicker(); }catch(e){}
 }
 
 // ─── TABS ───
@@ -9644,6 +9817,242 @@ function updLater(){
   updHide();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// ГЛАВНАЯ v2: тикер с иконками и 24ч-изменением, баланс с диапазонами,
+// P&L-график и график Health Factor по собственной истории (defi_hx_hist)
+// ═══════════════════════════════════════════════════════════════
+var HX_RANGES = {'1D':1,'1W':7,'1M':30,'3M':90,'1Y':365};
+var _hxRange = '1M', _hxChg = {}, _hxChgTs = 0, _hxSid = 0, _hxTimer = null;
+try{ var _r = localStorage.getItem('defi_hx_range'); if(_r && HX_RANGES[_r]) _hxRange = _r; }catch(e){}
+
+function hxL(ru,en){ return (typeof lang!=='undefined' && lang==='en') ? en : ru; }
+function hxUsd(n){ return '$' + Math.round(Math.abs(n)).toLocaleString('en-US'); }
+function hxSgn(n){ return n>=0 ? '+' : '−'; }
+
+// ── иконки монет (собственные упрощённые значки) ──
+function hxCoin(sym, color){
+  var s = String(sym||'').toUpperCase(), g = '';
+  var base = function(fill, inner){ return '<svg viewBox="0 0 32 32" width="30" height="30"><circle cx="16" cy="16" r="15" fill="'+fill+'"/>'+inner+'</svg>'; };
+  if(s==='BTC') return base('#f7931a','<text x="16" y="22.5" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="19" fill="#fff">B</text><path d="M13 7v3M17.5 7v3M13 22v3M17.5 22v3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>');
+  if(s==='ETH') return base('url(#hxe)','<defs><linearGradient id="hxe" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fa3ff"/><stop offset="1" stop-color="#4b32c8"/></linearGradient></defs><path d="M16 5l7 11-7 4-7-4z" fill="#fff" opacity=".95"/><path d="M16 21.5l7-4.2-7 9.7-7-9.7z" fill="#fff" opacity=".75"/>');
+  if(s==='SOL') return base('#0b0b1a','<defs><linearGradient id="hxs" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9945ff"/><stop offset="1" stop-color="#19fb9b"/></linearGradient></defs><path d="M9 10h14l-2.5 3H6.5zM6.5 14.5h14L23 17.5H9zM9 19h14l-2.5 3H6.5z" fill="url(#hxs)"/>');
+  if(s==='BNB') return base('#f0b90b','<path d="M16 7l3 3-3 3-3-3zM9 14l2.5 2.5L9 19l-2.5-2.5zM23 14l2.5 2.5L23 19l-2.5-2.5zM16 21l3 3-3 3-3-3zM16 14l2.5 2.5L16 19l-2.5-2.5z" fill="#fff" transform="translate(0,-2)"/>');
+  if(s==='XRP') return base('#23292f','<path d="M9 10c3 4 4 5 7 5s4-1 7-5M9 22c3-4 4-5 7-5s4 1 7 5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>');
+  if(s==='AVAX') return base('#e84142','<path d="M16 8l8 14h-5l-3-5.5L13 22H8z" fill="#fff"/>');
+  if(s==='GOLD'||s==='PAXG'||s==='XAU') return base('#e6b422','<text x="16" y="21" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="12" fill="#fff">Au</text>');
+  if(s==='XAG'||s==='SILVER') return base('#aeb6c2','<text x="16" y="21" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="12" fill="#fff">Ag</text>');
+  return base(color||'#475569','<text x="16" y="21" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="13" fill="#fff">'+s.charAt(0)+'</text>');
+}
+
+// ── график-линия (SVG) ──
+function hxSpark(vals, color, withDot, w, h){
+  w = w||100; h = h||40;
+  if(!vals || vals.length < 2) return '';
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+  if(mx - mn < 1e-9){ mn -= 1; mx += 1; }
+  var pad = 3, n = vals.length, id = 'hxg' + (++_hxSid);
+  var pts = vals.map(function(v,i){
+    return [ (i/(n-1))*w, pad + (1-(v-mn)/(mx-mn))*(h-2*pad) ];
+  });
+  // сглаживание: кривые Безье через средние точки
+  var d = 'M'+pts[0][0].toFixed(1)+' '+pts[0][1].toFixed(1);
+  for(var i=1;i<n;i++){
+    var cx = (pts[i-1][0]+pts[i][0])/2;
+    d += ' C'+cx.toFixed(1)+' '+pts[i-1][1].toFixed(1)+' '+cx.toFixed(1)+' '+pts[i][1].toFixed(1)+' '+pts[i][0].toFixed(1)+' '+pts[i][1].toFixed(1);
+  }
+  var area = d + ' L'+w+' '+h+' L0 '+h+' Z';
+  var svg = '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0" stop-color="'+color+'" stop-opacity=".38"/><stop offset="1" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'+
+    (withDot ? '<path d="'+area+'" fill="url(#'+id+')"/>' : '')+
+    '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+(withDot?2.2:1.6)+'" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px '+color+')"/></svg>';
+  if(withDot){
+    svg += '<i class="hx-dot" style="top:'+(pts[n-1][1]/h*100).toFixed(1)+'%;background:'+color+';color:'+color+'"></i>';
+  }
+  return svg;
+}
+
+// ── тикер ──
+function hxFetchChg(ids){
+  if(Date.now() - _hxChgTs < 5*60*1000 || !ids.length) return;
+  _hxChgTs = Date.now();
+  fetchT('https://api.coingecko.com/api/v3/simple/price?ids='+ids.join(',')+'&vs_currencies=usd&include_24hr_change=true', 8000)
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(j){
+      Object.keys(j||{}).forEach(function(k){
+        if(j[k] && typeof j[k].usd_24h_change === 'number') _hxChg[k] = j[k].usd_24h_change;
+      });
+      hxRenderTicker(true);
+    })
+    .catch(function(){ _hxChgTs = Date.now() - 4*60*1000; });   // повтор через ~минуту
+}
+function hxHistChange(cgId){          // запасной вариант: из своей истории цен
+  try{
+    var a = JSON.parse(localStorage.getItem('defi_phist_'+cgId)||'[]');
+    if(!Array.isArray(a) || a.length < 6) return null;
+    var f = a[0].price, l = a[a.length-1].price;
+    return f > 0 ? (l-f)/f*100 : null;
+  }catch(e){ return null; }
+}
+function hxRenderTicker(noFetch){
+  var box = document.getElementById('hx-ticker'); if(!box) return;
+  var seen = {}, items = [];
+  var order = [['BTC','bitcoin'],['ETH','ethereum'],['SOL','solana'],['BNB','binancecoin'],['XRP','ripple'],['AVAX','avalanche-2'],['GOLD','pax-gold']];
+  order.forEach(function(o){ if(livePrices[o[1]]>0){ seen[o[1]]=1; items.push({n:o[0],id:o[1],p:livePrices[o[1]],c:null}); } });
+  if(typeof ASSET_CATALOG!=='undefined') ASSET_CATALOG.forEach(function(a){
+    if(a.cgId && livePrices[a.cgId]>0 && !seen[a.cgId]){ seen[a.cgId]=1; items.push({n:a.name,id:a.cgId,p:livePrices[a.cgId],c:a.color}); }
+  });
+  if(livePrices.silver>0) items.push({n:'XAG',id:null,p:livePrices.silver,c:null});
+  if(!items.length) return;
+  if(!noFetch) hxFetchChg(items.map(function(i){return i.id;}).filter(Boolean).slice(0,25));
+  box.innerHTML = items.map(function(it){
+    var ch = it.id ? (_hxChg[it.id] !== undefined ? _hxChg[it.id] : hxHistChange(it.id)) : null;
+    var cls = ch===null ? 'neu' : ch>=0 ? 'pos' : 'neg';
+    var col = ch===null ? '#94a3b8' : ch>=0 ? '#22f09a' : '#ff5a6a';
+    var sp = '';
+    if(it.id){
+      try{
+        var h = JSON.parse(localStorage.getItem('defi_phist_'+it.id)||'[]');
+        if(Array.isArray(h) && h.length>=6) sp = hxSpark(h.map(function(x){return x.price;}), col, false, 44, 16);
+      }catch(e){}
+    }
+    var pc = it.n==='ETH'?' p-eth':it.n==='SOL'?' p-sol':(it.n==='BTC'?'':' p-gen');
+    return '<div class="hx-pill'+pc+'"><div class="hx-ci">'+hxCoin(it.n,it.c)+'</div>'+
+      '<div class="hx-pi"><b>'+it.n+'</b><span>'+fmtPrice(it.p)+'</span></div>'+
+      '<div class="hx-pm">'+sp+'<em class="'+cls+'">'+(ch===null?'':(ch>=0?'+':'−')+Math.abs(ch).toFixed(1)+'%')+'</em></div></div>';
+  }).join('');
+}
+
+// ── история (общая, не привязана к сохранённому кошельку) ──
+function hxNum(id){
+  var e = document.getElementById(id); if(!e) return 0;
+  var v = parseFloat((e.textContent||'').replace(/[^0-9.\-]/g,'')); return isFinite(v) ? v : 0;
+}
+function hxHist(){
+  try{ var a = JSON.parse(localStorage.getItem('defi_hx_hist')||'[]'); return Array.isArray(a) ? a : []; }catch(e){ return []; }
+}
+function hxState(){
+  var total = hxNum('home_total');
+  var le = document.getElementById('loan');
+  var loan = le ? (parseFloat(le.value)||0) : 0;
+  var he = document.getElementById('home_hf');
+  var hf = he ? (parseFloat((he.textContent||'').replace(',','.'))||0) : 0;   // «∞» и «—» → 0
+  return {total:total, loan:loan, hf:hf};
+}
+function hxRecord(st){
+  if(!(st.total > 0.5)) return;
+  try{
+    var a = hxHist(), last = a[a.length-1], now = Date.now();
+    if(last && now - last.ts < 30*60*1000) return;
+    a.push({ts:now, t:+st.total.toFixed(2), l:+st.loan.toFixed(2), h:+st.hf.toFixed(3)});
+    if(a.length > 1200) a = a.filter(function(p,i){ return i%2===0 || i > a.length/2; });
+    localStorage.setItem('defi_hx_hist', JSON.stringify(a));
+  }catch(e){}
+}
+
+// ── обновление главной ──
+function hxUpdateHome(){
+  var st = hxState();
+  hxRecord(st);
+  var net = st.total - st.loan;
+  var hist = hxHist(), now = Date.now(), days = HX_RANGES[_hxRange], from = now - days*864e5;
+  // стартовая точка: последняя не новее начала диапазона, иначе самая ранняя
+  var base = null, partial = false;
+  for(var i=0;i<hist.length;i++){ if(hist[i].ts <= from) base = hist[i]; else break; }
+  if(!base && hist.length){ base = hist[0]; partial = true; }
+  var seriesNet = [], seriesHF = [];
+  hist.forEach(function(p){ if(p.ts >= from || p===base){ seriesNet.push(p.t - p.l); if(p.h > 0) seriesHF.push(p.h); } });
+  if(st.total > 0) seriesNet.push(net);
+  if(st.hf > 0) seriesHF.push(st.hf);
+
+  // hero: Δ по чистой стоимости (портфель − займ)
+  var dEl = document.getElementById('home_delta');
+  var baseNet = base ? base.t - base.l : 0;
+  var d = base && st.total > 0 ? net - baseNet : null;
+  var pct = (d !== null && Math.abs(baseNet) > 0.01) ? d/Math.abs(baseNet)*100 : 0;
+  if(dEl){
+    if(d === null || (hist.length < 2 && Math.abs(d) < 0.005)){
+      dEl.className = 'hero-delta neu hx-amt'; dEl.textContent = hxL('история копится…','history is building…');
+    } else {
+      dEl.className = 'hero-delta hx-amt ' + (d>=0?'pos':'neg');
+      dEl.textContent = (d>=0?'▲ ':'▼ ') + hxSgn(d) + Math.abs(pct).toFixed(1) + '%   (' + hxSgn(d) + hxUsd(d) + ')';
+    }
+  }
+
+  // P&L-карточка
+  var pv = document.getElementById('hx-pnl-val'), nt = document.getElementById('hx-pnl-net'),
+      ch = document.getElementById('hx-pnl-chart'), zn = document.getElementById('hx-pnl-zone');
+  var pos = d === null || d >= 0, col = pos ? '#22f09a' : '#ff5a6a';
+  if(pv){
+    if(d === null){ pv.textContent = '—'; pv.style.color = '#94a3b8'; }
+    else { pv.textContent = hxSgn(d) + hxUsd(d); pv.style.color = col; }
+  }
+  if(nt){
+    nt.textContent = st.total > 0
+      ? hxL('Чистая стоимость ','Net value ') + hxUsd(net) + ' = ' + hxUsd(st.total) + ' − ' + hxL('займ ','loan ') + hxUsd(st.loan)
+      : '';
+  }
+  if(ch){
+    ch.innerHTML = seriesNet.length >= 2 ? hxSpark(seriesNet, col, true, 300, 84)
+      : '<div class="hx-empty">'+hxL('График появится, когда накопится история (точка раз в 30 мин)','Chart appears once history builds up (a point every 30 min)')+'</div>';
+  }
+  if(zn){
+    if(d === null){ zn.className = 'hx-zone neu'; zn.textContent = hxL('Нет данных за период','No data for this period'); }
+    else {
+      var span = base ? Math.max(1, Math.round((now - base.ts)/864e5)) : 0;
+      zn.className = 'hx-zone ' + (d>=0?'pos':'neg');
+      zn.textContent = (d>=0 ? '✓ '+hxL('Зона прибыли','Profit zone') : '▼ '+hxL('Просадка','Drawdown')) + ' — ' + hxSgn(d) + hxUsd(d) + ' (' + Math.abs(pct).toFixed(1) + '%)' +
+        (partial ? ' · ' + hxL('за '+span+' дн.', span+'d') : '');
+    }
+  }
+
+  // график Health Factor
+  var hc = document.getElementById('hx-hf-chart');
+  if(hc){
+    var hcol = st.hf >= 2 ? '#22f09a' : st.hf >= 1.6 ? '#00e5ff' : st.hf >= 1.4 ? '#f59e0b' : st.hf > 0 ? '#ff5a6a' : '#94a3b8';
+    hc.innerHTML = seriesHF.length >= 2 ? hxSpark(seriesHF, hcol, true, 300, 56) : '';
+    hc.style.display = seriesHF.length >= 2 ? '' : 'none';
+  }
+}
+
+function hxSetRange(k){
+  if(!HX_RANGES[k]) return;
+  _hxRange = k;
+  try{ localStorage.setItem('defi_hx_range', k); }catch(e){}
+  document.querySelectorAll('#hx-range button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-r')===k); });
+  hxUpdateHome();
+}
+function hxToggleHide(){
+  var s = document.getElementById('screen-home'); if(!s) return;
+  var on = s.classList.toggle('hx-hide');
+  try{ localStorage.setItem('defi_hx_hide', on?'1':'0'); }catch(e){}
+}
+function hxQA(a){
+  if(a==='refresh'){ try{ _hxChgTs = 0; fetchPrices(); }catch(e){} try{ renderAll(); }catch(e){} }
+  else if(a==='wallet'){ var w = document.querySelector('#screen-home .wallet-banner'); if(w) w.scrollIntoView({behavior:'smooth',block:'start'}); }
+  else if(a==='positions'){ switchTab('positions'); }
+  else if(a==='strategy'){ switchTab('strategy'); }
+}
+function hxApplyLang(){
+  var m = {'hx-pnl-title':['Общий P&L','Total P&L'], 'hx-qa-title':['Быстрые действия','Quick actions'],
+           'hx-qa-refresh':['Обновить','Refresh'], 'hx-qa-wallet':['Кошелёк','Wallet'],
+           'hx-qa-pos':['Позиции','Positions'], 'hx-qa-strat':['Стратегия','Strategy']};
+  Object.keys(m).forEach(function(id){ var e = document.getElementById(id); if(e) e.textContent = hxL(m[id][0], m[id][1]); });
+}
+function hxInit(){
+  try{ if(localStorage.getItem('defi_hx_hide')==='1') document.getElementById('screen-home').classList.add('hx-hide'); }catch(e){}
+  document.querySelectorAll('#hx-range button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-r')===_hxRange); });
+  // обновляем главную при любом изменении суммы портфеля / HF
+  var sched = function(){ if(_hxTimer) return; _hxTimer = setTimeout(function(){ _hxTimer = null; try{ hxUpdateHome(); }catch(e){} }, 350); };
+  ['home_total','home_hf'].forEach(function(id){
+    var e = document.getElementById(id);
+    if(e) new MutationObserver(sched).observe(e, {childList:true, characterData:true, subtree:true});
+  });
+  var tl = window.toggleLang;
+  if(typeof tl === 'function') window.toggleLang = function(){ var r = tl.apply(this, arguments); try{ hxApplyLang(); hxUpdateHome(); hxRenderTicker(true); }catch(e){} return r; };
+  hxApplyLang(); hxRenderTicker(); hxUpdateHome();
+  setInterval(function(){ try{ hxUpdateHome(); }catch(e){} }, 60000);
+}
+
 // ─── INIT ───
 window.onload = function(){
   // Не посылаем алерты пока страница скрыта — сбрасываем при возврате
@@ -9693,6 +10102,7 @@ window.onload = function(){
   setTimeout(lpInitCanvas, 200);
   // Load Telegram config
   setTimeout(tgLoadConfig, 100);
+  try{ hxInit(); }catch(e){ console.warn("[hx] init", e); }
   // Проверка обновления приложения (только в APK)
   setTimeout(updCheck, 4000);
   // Загружаем историю цен для HF-прогноза
