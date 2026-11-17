@@ -803,6 +803,88 @@ html, body { overflow-x: hidden; max-width: 100%; }
 .tab.active .tab-label{color:#22f09a!important}
 .tab.active .tab-icon{background:rgba(34,240,154,.14)!important;color:#22f09a!important;box-shadow:0 0 16px rgba(34,240,154,.30)}
 </style>
+<style id="hxp-style">
+/* ═══════════ ПОЗИЦИИ v2 — в стиле главной ═══════════ */
+#screen-positions{
+  background:
+    radial-gradient(1.4px 1.4px at 12% 6%, rgba(255,255,255,.7), transparent 60%),
+    radial-gradient(1px 1px at 38% 12%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(1.6px 1.6px at 71% 4%, rgba(255,255,255,.8), transparent 60%),
+    radial-gradient(1.2px 1.2px at 90% 24%, rgba(255,255,255,.6), transparent 60%),
+    radial-gradient(1px 1px at 6% 33%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(1.4px 1.4px at 55% 41%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(120% 50% at 110% 14%, rgba(37,99,235,.40), transparent 62%),
+    radial-gradient(90% 45% at -12% 40%, rgba(124,58,237,.30), transparent 62%),
+    radial-gradient(120% 40% at 40% 108%, rgba(16,185,129,.22), transparent 62%),
+    #050813;
+  background-repeat:no-repeat;
+}
+#screen-positions.hx-hide .hx-amt{filter:blur(9px)}
+#screen-positions .screen-header{position:relative;background:none;border:none;padding:calc(18px + var(--safe-t)) 16px 6px;align-items:flex-start}
+#screen-positions .screen-title{font-family:var(--hx-font);font-size:clamp(30px,9.5vw,38px);font-weight:800;letter-spacing:-.5px;color:#fff;line-height:1.1}
+.hxp-sub{font-family:var(--hx-font);font-size:14px;color:#9fb0d0;margin-top:4px}
+.hxp-head-l{display:flex;flex-direction:column}
+#screen-positions #btn-settings{width:auto!important;padding:10px 16px!important;font-size:14px!important;font-weight:700;font-family:var(--hx-font);
+  color:#fff;border-radius:16px;background:linear-gradient(135deg,rgba(124,58,237,.35),rgba(37,99,235,.25));
+  border:1.5px solid rgba(150,110,255,.75);box-shadow:0 0 18px rgba(124,58,237,.35)}
+
+/* hero «Общий баланс» */
+.hxp-hero{position:relative;margin:8px 14px 12px;padding:16px 18px 14px;border-radius:24px;overflow:hidden;font-family:var(--hx-font);
+  background:linear-gradient(150deg,rgba(10,24,64,.8),rgba(8,10,30,.6));
+  border:1.5px solid transparent;
+  background-clip:padding-box;box-shadow:0 10px 36px rgba(0,0,0,.45),0 0 0 1.5px rgba(255,170,60,.55),0 0 26px rgba(255,150,40,.18)}
+.hxp-art{position:absolute;right:0;top:0;width:62%;height:100%;pointer-events:none}
+.hxp-hero-l{position:relative;z-index:2}
+.hxp-lbl{display:flex;align-items:center;gap:8px;font-size:15px;color:#c3cbe0;font-weight:600}
+.hxp-val{font-size:clamp(32px,10vw,44px);font-weight:800;color:#fff;letter-spacing:-.5px;margin:10px 0 6px;font-variant-numeric:tabular-nums;text-shadow:0 2px 18px rgba(0,229,255,.25)}
+.hxp-delta{font-size:15px;font-weight:700}
+.hxp-delta.pos{color:#22f09a}.hxp-delta.neg{color:#ff5a6a}.hxp-delta.neu{color:#94a3b8}
+
+/* протоколы-плитки */
+.hxp-protos{margin:0 14px 12px}
+#screen-positions .proto-grid{gap:10px;margin:0}
+#screen-positions .proto-btn{position:relative;display:grid;grid-template-columns:38px 1fr;align-items:center;column-gap:10px;text-align:left;padding:12px 10px;border-radius:20px;border-width:1.5px;font-family:var(--hx-font);overflow:hidden}
+#screen-positions .proto-btn .p-logo{grid-row:1/3;width:38px;height:38px;margin:0;display:flex;align-items:center;justify-content:center;font-size:0}
+#screen-positions .proto-btn .p-logo svg{width:34px;height:34px}
+#screen-positions .proto-btn .p-name{font-size:16px;font-weight:700;color:#fff;align-self:end}
+#screen-positions .proto-btn .p-desc{font-family:var(--hx-font)!important;font-size:11px;color:#c3cbe0;margin:2px 0 0;align-self:start}
+#screen-positions .proto-btn[data-proto=aave]{background:linear-gradient(150deg,rgba(14,80,120,.55),rgba(8,22,50,.75));border-color:rgba(34,211,238,.55);box-shadow:0 0 18px rgba(34,211,238,.18)}
+#screen-positions .proto-btn[data-proto=compound]{background:linear-gradient(150deg,rgba(10,100,70,.55),rgba(6,30,30,.75));border-color:rgba(34,240,154,.5);box-shadow:0 0 18px rgba(34,240,154,.15)}
+#screen-positions .proto-btn[data-proto=euler]{background:linear-gradient(150deg,rgba(150,70,20,.55),rgba(40,18,10,.75));border-color:rgba(255,160,60,.55);box-shadow:0 0 18px rgba(255,150,40,.16)}
+#screen-positions .proto-btn[data-proto=morpho]{background:linear-gradient(150deg,rgba(60,50,170,.6),rgba(18,14,60,.75));border-color:rgba(130,120,255,.6);box-shadow:0 0 18px rgba(110,100,255,.2)}
+#screen-positions .proto-btn.selected{outline:2px solid #22f09a;outline-offset:-2px;box-shadow:0 0 22px rgba(34,240,154,.45)}
+#screen-positions .proto-btn.selected::after{content:'✓';position:absolute;right:9px;top:7px;font-size:12px;font-weight:800;color:#22f09a}
+
+/* карточки */
+#screen-positions .positions-wrap{padding:0 14px 16px;gap:12px}
+#screen-positions .card{border-radius:22px;background:linear-gradient(160deg,rgba(16,26,56,.78),rgba(10,12,34,.78));
+  border:1px solid rgba(110,150,255,.26);box-shadow:0 8px 28px rgba(0,0,0,.4);font-family:var(--hx-font)}
+#screen-positions .card-title{font-family:var(--hx-font);font-size:17px;font-weight:700;color:#e2e8f7}
+#screen-positions .card-badge{font-family:var(--hx-font);font-size:13px;font-weight:800;padding:6px 12px;border-radius:14px;background:rgba(10,18,44,.8);border:1px solid rgba(110,150,255,.35);color:#e2e8f7}
+#screen-positions .card-icon{width:34px;height:34px;border-radius:12px;font-size:17px}
+#screen-positions .input-row{background:rgba(6,10,28,.75);border:1px solid rgba(110,150,255,.28);border-radius:14px}
+#screen-positions #pos_collateral_list > div[style*="surface2"]{background:linear-gradient(160deg,rgba(18,30,62,.8),rgba(10,14,36,.8))!important;border-color:rgba(110,150,255,.3)!important;border-radius:16px!important}
+
+/* кнопка «Сохранить» */
+#screen-positions #btn-save-positions{display:flex;align-items:center;justify-content:center;gap:10px;padding:15px!important;border-radius:20px!important;font-family:var(--hx-font);font-size:18px!important;font-weight:700;
+  background:linear-gradient(100deg,#6d28d9,#4338ca 55%,#0ea5e9)!important;border:1px solid rgba(190,170,255,.55)!important;box-shadow:0 0 28px rgba(109,40,217,.55),inset 0 1px 0 rgba(255,255,255,.25)}
+
+/* пулы */
+#screen-positions .pool-item{position:relative;display:grid;grid-template-columns:58px 1fr;column-gap:12px;align-items:center;padding:14px 14px 12px;border-radius:22px;
+  background:linear-gradient(160deg,rgba(24,20,70,.8),rgba(10,10,34,.85));border:1.5px solid rgba(130,100,255,.5);box-shadow:0 0 20px rgba(110,80,255,.16)}
+#screen-positions .pool-item[data-type=uniswap]{border-color:rgba(255,60,170,.5);box-shadow:0 0 20px rgba(255,50,160,.16);background:linear-gradient(160deg,rgba(60,14,60,.7),rgba(12,8,30,.85))}
+#screen-positions .pool-item[data-type=gmx_glv],#screen-positions .pool-item[data-type=gmx_glp]{border-color:rgba(60,140,255,.55);box-shadow:0 0 20px rgba(50,120,255,.18);background:linear-gradient(160deg,rgba(16,30,80,.75),rgba(8,10,32,.85))}
+#screen-positions .pool-item-top{display:contents}
+#screen-positions .pool-item-top > span:first-child{grid-row:1/3;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px!important;
+  background:radial-gradient(circle at 35% 30%,#1b2250,#080b20);border:1.5px solid rgba(160,140,255,.7);box-shadow:0 0 14px rgba(120,100,255,.4)}
+#screen-positions .pool-item-name{font-family:var(--hx-font);font-size:19px;font-weight:800;color:#fff;align-self:end;padding-right:64px}
+#screen-positions .pool-item-top > span:last-child{position:absolute;right:14px;top:14px;padding:5px 12px;border-radius:14px;background:rgba(124,58,237,.3);border:1px solid rgba(160,120,255,.5);color:#fff!important;font-family:var(--hx-font)!important;font-size:13px!important;font-weight:800}
+#screen-positions .pool-item-stats{grid-column:2;margin-top:6px;display:grid;grid-template-columns:auto auto auto;gap:4px 10px;justify-content:start}
+#screen-positions .pis label{font-family:var(--hx-font);font-size:10px;letter-spacing:.3px;color:#9fb0d0}
+#screen-positions .pis span{font-family:var(--hx-font)!important;font-size:15px;white-space:nowrap;font-weight:800;font-variant-numeric:tabular-nums}
+#screen-positions .pool-item > div:not(.pool-item-top):not(.pool-item-stats){grid-column:1/3}
+#screen-positions .empty-state .empty-sub{color:#9fb0d0}
+</style>
 </head>
 <body>
 <script>
@@ -1022,8 +1104,50 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <!-- ─── ЭКРАН 2: ПОЗИЦИИ ─── -->
   <div class="screen" id="screen-positions">
     <div class="screen-header">
-      <span class="screen-title" id="sh-positions">Позиции</span>
-      <button class="btn-secondary" style="width:auto;padding:6px 14px;font-size:12px" id="btn-settings" onclick="goToSettings()">⚙️ Настройки</button>
+      <div class="hxp-head-l"><span class="screen-title" id="sh-positions">Позиции</span><span class="hxp-sub" id="hxp-sub">Ваш крипто-портфель</span></div>
+      <button class="btn-secondary" id="btn-settings" onclick="goToSettings()">⚙️ Настройки</button>
+    </div>
+
+    <!-- Hero v2: общий баланс (дублирует главную) -->
+    <div class="hxp-hero">
+      <svg class="hxp-art" viewBox="0 0 220 150" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+        <defs>
+          <radialGradient id="hxpl" cx="70%" cy="85%" r="75%"><stop offset="0" stop-color="#0b2a6b"/><stop offset=".6" stop-color="#0a1c4d"/><stop offset="1" stop-color="#050d2a"/></radialGradient>
+          <linearGradient id="hxar" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#16a34a"/><stop offset="1" stop-color="#4ade80"/></linearGradient>
+          <filter id="hxgl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>
+        </defs>
+        <circle cx="205" cy="200" r="150" fill="url(#hxpl)"/>
+        <circle cx="205" cy="200" r="150" fill="none" stroke="#38bdf8" stroke-width="3" opacity=".9" filter="url(#hxgl)"/>
+        <circle cx="205" cy="200" r="150" fill="none" stroke="#7dd3fc" stroke-width="1.3"/>
+        <g fill="#ffd27a" opacity=".85"><circle cx="150" cy="78" r="1.2"/><circle cx="162" cy="72" r="1"/><circle cx="170" cy="84" r="1.3"/><circle cx="182" cy="66" r="1"/><circle cx="190" cy="80" r="1.4"/><circle cx="198" cy="70" r="1"/><circle cx="176" cy="96" r="1"/><circle cx="208" cy="86" r="1.2"/><circle cx="160" cy="92" r="1"/></g>
+        <path d="M120 128 L142 108 L156 118 L184 84 L198 94 L214 56" fill="none" stroke="#22f09a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity=".55" filter="url(#hxgl)"/>
+        <path d="M120 128 L142 108 L156 118 L184 84 L198 94 L214 56" fill="none" stroke="url(#hxar)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M200 52 L218 48 L214 66 Z" fill="#4ade80"/>
+      </svg>
+      <div class="hxp-hero-l">
+        <div class="hxp-lbl"><span id="hxp-lbl">Общий баланс</span>
+          <button class="hx-eye" onclick="hxToggleHide()" aria-label="Скрыть суммы"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+        <div class="hxp-val hx-amt" id="hxp-total">$0</div>
+        <div class="hxp-delta neu hx-amt" id="hxp-delta">—</div>
+      </div>
+    </div>
+
+    <!-- Протоколы -->
+    <div class="hxp-protos">
+      <div class="proto-grid" id="proto_grid">
+        <div class="proto-btn selected" data-proto="aave" onclick="selectProto('aave')">
+          <div class="p-logo"><svg viewBox="0 0 34 34"><path d="M5 31V16a12 12 0 0 1 24 0v15l-4.5-3.2-3.5 3.2-3.5-3.2-3.5 3.2-3.5-3.2z" fill="#fff"/><circle cx="13" cy="16" r="2.4" fill="#5b21b6"/><circle cx="21" cy="16" r="2.4" fill="#5b21b6"/></svg></div><div class="p-name">Aave</div><div class="p-desc">v3 · Multi-chain</div>
+        </div>
+        <div class="proto-btn" data-proto="compound" onclick="selectProto('compound')">
+          <div class="p-logo"><svg viewBox="0 0 34 34"><path d="M5 11l14-6 10 4-14 6zM5 19l14-6 10 4-14 6zM5 27l14-6 10 4-14 6z" fill="#2dd4a0"/></svg></div><div class="p-name">Compound</div><div class="p-desc">v3 · Ethereum</div>
+        </div>
+        <div class="proto-btn" data-proto="euler" onclick="selectProto('euler')">
+          <div class="p-logo"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="11" fill="none" stroke="#ffb454" stroke-width="3"/><path d="M17 6a11 11 0 0 1 0 22M6 17h11" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div><div class="p-name">Euler</div><div class="p-desc">v2 · Ethereum</div>
+        </div>
+        <div class="proto-btn" data-proto="morpho" onclick="selectProto('morpho')">
+          <div class="p-logo"><svg viewBox="0 0 34 34"><path d="M17 17C9 5 2 8 3 17c1 8 9 9 14 0zM17 17c8-12 15-9 14 0-1 8-9 9-14 0z" fill="#8b8bff"/></svg></div><div class="p-name">Morpho</div><div class="p-desc">Blue · ETH</div>
+        </div>
+      </div>
     </div>
 
     <div class="positions-wrap">
@@ -1034,23 +1158,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
           <div class="card-icon" style="background:rgba(217,119,6,0.15)">🏦</div>
           <span class="card-title" id="lbl-aave-collateral">Залог Aave</span>
           <span class="card-badge" id="pos_aave_total">$0</span>
-        </div>
-        <!-- Protocol selector -->
-        <div class="card-body">
-          <div class="proto-grid" id="proto_grid">
-            <div class="proto-btn selected" data-proto="aave" onclick="selectProto('aave')">
-              <div class="p-logo">🏦</div><div class="p-name">Aave</div><div class="p-desc">v3 · Multi-chain</div>
-            </div>
-            <div class="proto-btn" data-proto="compound" onclick="selectProto('compound')">
-              <div class="p-logo">🔵</div><div class="p-name">Compound</div><div class="p-desc">v3 · Ethereum</div>
-            </div>
-            <div class="proto-btn" data-proto="euler" onclick="selectProto('euler')">
-              <div class="p-logo">🌀</div><div class="p-name">Euler</div><div class="p-desc">v2 · Ethereum</div>
-            </div>
-            <div class="proto-btn" data-proto="morpho" onclick="selectProto('morpho')">
-              <div class="p-logo">🦋</div><div class="p-name">Morpho</div><div class="p-desc">Blue · ETH</div>
-            </div>
-          </div>
         </div>
         <div class="card-body" id="pos_collateral_list">
           <div class="empty-state" style="padding:20px 0">
@@ -1089,7 +1196,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
           </div>
           <button id="btn-save-positions" onclick="savePosBtn(this)"
             style="width:100%;margin-top:12px;padding:12px;background:linear-gradient(135deg,var(--accent2),#4f46e5);border:none;border-radius:12px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">
-            💾 <span id="btn-save-pos-lbl">Сохранить</span>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h12v4"/><path d="M3 7v10a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3"/><path d="M21 9h-5a2.5 2.5 0 0 0 0 5h5z" fill="rgba(255,255,255,.3)"/></svg> <span id="btn-save-pos-lbl">Сохранить</span>
           </button>
         </div>
       </div>
@@ -4043,7 +4150,7 @@ function renderPositions(){
           }
         }
 
-        html += `<div class="pool-item" style="margin-bottom:8px">
+        html += `<div class="pool-item" data-type="${p.type||'custom'}" style="margin-bottom:8px">
           <div class="pool-item-top">
             <span style="font-size:16px">${typeIcon}</span>
             <span class="pool-item-name">${p.name}</span>
@@ -10052,6 +10159,7 @@ function hxSetRange(k){
 function hxToggleHide(){
   var s = document.getElementById('screen-home'); if(!s) return;
   var on = s.classList.toggle('hx-hide');
+  var sp = document.getElementById('screen-positions'); if(sp) sp.classList.toggle('hx-hide', on);
   try{ localStorage.setItem('defi_hx_hide', on?'1':'0'); }catch(e){}
 }
 function hxQA(a){
@@ -10063,11 +10171,12 @@ function hxQA(a){
 function hxApplyLang(){
   var m = {'hx-pnl-title':['Общий P&L','Total P&L'], 'hx-qa-title':['Быстрые действия','Quick actions'],
            'hx-qa-refresh':['Обновить','Refresh'], 'hx-qa-wallet':['Кошелёк','Wallet'],
-           'hx-qa-pos':['Позиции','Positions'], 'hx-qa-strat':['Стратегия','Strategy']};
+           'hx-qa-pos':['Позиции','Positions'], 'hx-qa-strat':['Стратегия','Strategy'],
+           'hxp-sub':['Ваш крипто-портфель','Your crypto portfolio'], 'hxp-lbl':['Общий баланс','Total balance']};
   Object.keys(m).forEach(function(id){ var e = document.getElementById(id); if(e) e.textContent = hxL(m[id][0], m[id][1]); });
 }
 function hxInit(){
-  try{ if(localStorage.getItem('defi_hx_hide')==='1') document.getElementById('screen-home').classList.add('hx-hide'); }catch(e){}
+  try{ if(localStorage.getItem('defi_hx_hide')==='1'){ document.getElementById('screen-home').classList.add('hx-hide'); var _sp=document.getElementById('screen-positions'); if(_sp) _sp.classList.add('hx-hide'); } }catch(e){}
   document.querySelectorAll('#hx-range button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-r')===_hxRange); });
   // обновляем главную при любом изменении суммы портфеля / HF
   var sched = function(){ if(_hxTimer) return; _hxTimer = setTimeout(function(){ _hxTimer = null; try{ hxUpdateHome(); }catch(e){} }, 350); };
@@ -10077,7 +10186,18 @@ function hxInit(){
   });
   var tl = window.toggleLang;
   if(typeof tl === 'function') window.toggleLang = function(){ var r = tl.apply(this, arguments); try{ hxApplyLang(); hxUpdateHome(); hxRenderTicker(true); }catch(e){} return r; };
-  hxApplyLang(); hxRenderTicker(); hxUpdateHome();
+  // «Общий баланс» на экране Позиции повторяет главную
+  var syncPos = function(){
+    var t = document.getElementById('home_total'), d = document.getElementById('home_delta');
+    var pt = document.getElementById('hxp-total'), pd = document.getElementById('hxp-delta');
+    if(t && pt) pt.textContent = t.textContent;
+    if(d && pd){ pd.textContent = d.textContent; pd.className = 'hxp-delta hx-amt ' + (/pos/.test(d.className)?'pos':/neg/.test(d.className)?'neg':'neu'); }
+  };
+  ['home_total','home_delta'].forEach(function(id){
+    var e = document.getElementById(id);
+    if(e) new MutationObserver(syncPos).observe(e, {childList:true, characterData:true, subtree:true, attributes:true, attributeFilter:['class']});
+  });
+  hxApplyLang(); hxRenderTicker(); hxUpdateHome(); syncPos();
   setInterval(function(){ try{ hxUpdateHome(); }catch(e){} }, 60000);
 }
 
