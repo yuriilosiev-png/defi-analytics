@@ -890,6 +890,78 @@ html, body { overflow-x: hidden; max-width: 100%; }
 #screen-positions .pool-item > div:not(.pool-item-top):not(.pool-item-stats){grid-column:1/3}
 #screen-positions .empty-state .empty-sub{color:#9fb0d0}
 </style>
+<style id="hxj-style">
+/* ═══════════ ЖУРНАЛ v2 — в стиле главной/позиций ═══════════ */
+#screen-journal{
+  background:
+    radial-gradient(1.4px 1.4px at 10% 8%, rgba(255,255,255,.7), transparent 60%),
+    radial-gradient(1px 1px at 34% 16%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(1.6px 1.6px at 78% 6%, rgba(255,255,255,.8), transparent 60%),
+    radial-gradient(1.2px 1.2px at 92% 30%, rgba(255,255,255,.6), transparent 60%),
+    radial-gradient(1px 1px at 5% 46%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(1.4px 1.4px at 60% 62%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(110% 38% at 105% 6%, rgba(124,58,237,.34), transparent 62%),
+    radial-gradient(90% 40% at -10% 30%, rgba(37,99,235,.30), transparent 62%),
+    radial-gradient(70% 34% at -8% 98%, rgba(34,211,238,.30), transparent 62%),
+    radial-gradient(70% 34% at 108% 96%, rgba(79,70,229,.34), transparent 62%),
+    #050813;
+  background-repeat:no-repeat;font-family:var(--hx-font)}
+#screen-journal .screen-header{position:relative;background:none;border:none;padding:calc(18px + var(--safe-t)) 16px 8px;align-items:flex-start;overflow:visible}
+#screen-journal .screen-title{position:relative;z-index:2;font-family:var(--hx-font);font-size:clamp(30px,9.5vw,38px);font-weight:800;letter-spacing:-.5px;line-height:1.1;
+  background:linear-gradient(100deg,#fff 30%,#7dd3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+#screen-journal .hxp-head-l{position:relative;z-index:2;max-width:62%}
+#screen-journal .hxp-sub{font-size:14px;line-height:1.35;color:#9fb0d0}
+.hxj-candles{position:absolute;right:0;top:calc(4px + var(--safe-t));width:66%;height:128px;pointer-events:none;z-index:0}
+#screen-journal #btn-add-entry{position:relative;z-index:2;width:auto!important;display:flex;align-items:center;gap:8px;padding:11px 18px!important;font-size:16px!important;font-weight:700;font-family:var(--hx-font);color:#fff;
+  border-radius:20px;background:linear-gradient(160deg,rgba(8,30,60,.9),rgba(6,14,34,.9))!important;border:1.5px solid rgba(34,211,238,.85)!important;box-shadow:0 0 18px rgba(34,211,238,.45),inset 0 0 12px rgba(34,211,238,.15)}
+#screen-journal #btn-add-entry::before{content:"";width:22px;height:22px;background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjJkM2VlIiBzdHJva2Utd2lkdGg9IjIuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgM3YxMU03LjUgMTBsNC41IDQuNUwxNi41IDEwTTQgMTV2NGEyIDIgMCAwMDIgMmgxMmEyIDIgMCAwMDItMnYtNCIvPjwvc3ZnPg==") center/contain no-repeat}
+#screen-journal .journal-wrap{padding:4px 14px 18px;gap:14px}
+/* месяц */
+#screen-journal .jrn-month-nav{background:none;border:none;padding:0;gap:10px;justify-content:stretch;position:relative;z-index:2}
+#screen-journal .jrn-nav-btn{width:46px;height:46px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:15px;color:#fff;
+  background:linear-gradient(160deg,rgba(20,40,110,.7),rgba(8,12,40,.85));border:1.5px solid rgba(90,130,255,.6);box-shadow:0 0 14px rgba(70,110,255,.3)}
+#screen-journal .jrn-month-lbl{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;height:46px;border-radius:23px;font-size:19px;font-weight:700;color:#fff;font-family:var(--hx-font);
+  background:linear-gradient(160deg,rgba(8,36,70,.8),rgba(6,14,38,.85));border:1.5px solid rgba(34,211,238,.6);box-shadow:0 0 16px rgba(34,211,238,.28),inset 0 0 14px rgba(34,211,238,.08)}
+#screen-journal .jrn-month-lbl::before{content:"";width:24px;height:24px;background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2RkM2ZjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMy41IiB5PSI1IiB3aWR0aD0iMTciIGhlaWdodD0iMTUuNSIgcng9IjMiLz48cGF0aCBkPSJNOCAzdjRNMTYgM3Y0TTMuNSAxMGgxNyIvPjxnIGZpbGw9IiM3ZGQzZmMiIHN0cm9rZT0ibm9uZSI+PGNpcmNsZSBjeD0iOCIgY3k9IjEzLjUiIHI9IjEiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEzLjUiIHI9IjEiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjEzLjUiIHI9IjEiLz48Y2lyY2xlIGN4PSI4IiBjeT0iMTciIHI9IjEiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjE3IiByPSIxIi8+PC9nPjwvc3ZnPg==") center/contain no-repeat}
+/* годовая статистика */
+#jrn_year_stats > div{background:linear-gradient(160deg,rgba(40,30,110,.5),rgba(10,10,34,.7))!important;border:1px solid rgba(140,110,255,.45)!important;border-radius:18px!important}
+/* плитки */
+#screen-journal .journal-summary{gap:12px}
+#screen-journal .js-card{position:relative;overflow:hidden;display:grid;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:10px;align-items:start;padding:16px 14px 14px;min-height:92px;border-radius:22px;border-width:1.5px;border-style:solid;container-type:inline-size}
+#screen-journal .js-card .hxj-ic{grid-row:1/3;width:42px;height:42px;margin-top:2px;filter:drop-shadow(0 0 8px currentColor)}
+#screen-journal .js-label{grid-column:2;font-family:var(--hx-font);font-size:14px;letter-spacing:0;text-transform:none;color:#d6def0;margin:2px 0 4px;font-weight:600}
+#screen-journal .js-value{grid-column:2;position:relative;z-index:2;font-family:var(--hx-font);font-size:28px;font-weight:800;line-height:1.1;letter-spacing:-.3px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible;min-width:0;text-shadow:0 0 14px rgba(255,255,255,.12)}
+.hxj-wave{position:absolute;right:0;bottom:0;width:62%;height:52%;pointer-events:none;z-index:1}
+.jt-blue{color:#60a5fa;background:linear-gradient(150deg,rgba(20,50,150,.6),rgba(8,14,50,.85));border-color:rgba(70,130,255,.7)!important;box-shadow:0 0 20px rgba(59,130,246,.3)}
+.jt-green{color:#22f09a;background:linear-gradient(150deg,rgba(10,110,80,.6),rgba(6,32,32,.85));border-color:rgba(34,240,154,.65)!important;box-shadow:0 0 20px rgba(34,240,154,.25)}
+.jt-orange{color:#ffa81f;background:linear-gradient(150deg,rgba(150,80,10,.6),rgba(40,20,10,.85));border-color:rgba(255,160,40,.7)!important;box-shadow:0 0 20px rgba(255,150,30,.25)}
+.jt-purple{color:#c084fc;background:linear-gradient(150deg,rgba(90,40,170,.65),rgba(18,10,50,.85));border-color:rgba(168,85,247,.7)!important;box-shadow:0 0 20px rgba(168,85,247,.3)}
+#jrn_total_earned{color:#22f09a!important}#jrn_total_out{color:#ffa81f!important}
+/* P&L-баннер */
+#screen-journal .chart-placeholder{position:relative;overflow:hidden;flex-direction:row;gap:6px;min-height:150px;padding:14px 16px 14px 10px;border-radius:24px;text-align:left;align-items:center;justify-content:flex-start;
+  background:linear-gradient(150deg,rgba(40,60,200,.45),rgba(14,18,70,.75) 55%,rgba(10,50,80,.6));border:1.5px solid rgba(90,130,255,.75);box-shadow:0 0 26px rgba(70,110,255,.35),inset 0 0 30px rgba(60,100,255,.12)}
+.hxj-pl-art{flex:0 0 46%;width:46%;height:auto;max-height:130px;filter:drop-shadow(0 0 14px rgba(34,211,238,.35))}
+.hxj-pl-txt{position:relative;z-index:2;flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+#screen-journal .chart-placeholder .empty-title{font-family:var(--hx-font);font-size:19px;font-weight:800;color:#fff;line-height:1.25}
+#screen-journal .chart-placeholder-text{font-family:var(--hx-font);font-size:15px;line-height:1.35;color:#b6c3e0}
+#screen-journal #chart_wrap{background:linear-gradient(160deg,rgba(16,26,70,.7),rgba(8,12,36,.8))!important;border:1.5px solid rgba(90,130,255,.6)!important;border-radius:24px!important;box-shadow:0 0 22px rgba(70,110,255,.28)}
+/* история портфеля */
+#portfolio-history-section > div:first-child{padding:14px 16px!important;border-radius:20px!important;background:linear-gradient(160deg,rgba(18,24,74,.75),rgba(8,10,34,.8))!important;border:1.5px solid rgba(110,100,255,.55)!important;box-shadow:0 0 18px rgba(100,90,255,.2)}
+#portfolio-history-section #lbl-pf-history-title{font-family:var(--hx-font);font-size:17px!important;font-weight:700;color:#fff}
+.hxj-hist-ic{display:flex}
+#portfolio-history-section #pf-chart-wrap{background:rgba(10,14,40,.7)!important;border-color:rgba(110,150,255,.3)!important;border-radius:18px!important}
+/* записи */
+#screen-journal .jrn-entry-card{border-radius:18px;padding:13px 14px;background:linear-gradient(160deg,rgba(18,28,66,.75),rgba(8,10,32,.8));border:1px solid rgba(110,150,255,.3);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+#screen-journal .jec-type,#screen-journal .jec-amount{font-family:var(--hx-font)}
+/* пустое состояние */
+#screen-journal #jrn_entries_list .empty-state{padding:6px 10px 6px;gap:8px}
+#screen-journal #jrn_entries_list .empty-icon{font-size:0;width:min(62%,230px);aspect-ratio:300/170;background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMTcwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM2ZDdjZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyYTNiYjAiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iciIgeDE9IjAiIHgyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMyMmQzZWUiIHN0b3Atb3BhY2l0eT0iMCIvPjxzdG9wIG9mZnNldD0iLjUiIHN0b3AtY29sb3I9IiMzOGJkZjgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNhODU1ZjciIHN0b3Atb3BhY2l0eT0iLjIiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iYiIgeDE9IjAiIHkxPSIxIiB4Mj0iMCIgeTI9IjAiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2MwMjZkMyIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzIyZDNlZSIvPjwvbGluZWFyR3JhZGllbnQ+PGZpbHRlciBpZD0iZyI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iNCIvPjwvZmlsdGVyPjwvZGVmcz4KPGVsbGlwc2UgY3g9IjE1MCIgY3k9IjEwNCIgcng9IjE0MCIgcnk9IjM2IiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iNiIgb3BhY2l0eT0iLjUiIGZpbHRlcj0idXJsKCNnKSIgdHJhbnNmb3JtPSJyb3RhdGUoLTggMTUwIDEwNCkiLz48ZWxsaXBzZSBjeD0iMTUwIiBjeT0iMTA0IiByeD0iMTQwIiByeT0iMzYiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNyKSIgc3Ryb2tlLXdpZHRoPSIyLjIiIHRyYW5zZm9ybT0icm90YXRlKC04IDE1MCAxMDQpIi8+CjxnIHRyYW5zZm9ybT0icm90YXRlKC04IDE0MCA4MCkiPjxyZWN0IHg9IjEwMCIgeT0iMTQiIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMDIiIHJ4PSIxMCIgZmlsbD0idXJsKCNhKSIgc3Ryb2tlPSIjYTViNGZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPjxwYXRoIGQ9Ik0xNTggMTQgTDE4MCAzNiBMMTU4IDM2WiIgZmlsbD0iI2M3ZDJmZSIgb3BhY2l0eT0iLjgiLz48ZyBzdHJva2U9IiNkYmU0ZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIuOSI+PHBhdGggZD0iTTExNCA0NGgzNE0xMTQgNTZoNDRNMTE0IDY4aDI2Ii8+PC9nPjxnIGZpbGw9InVybCgjYikiPjxyZWN0IHg9IjExNCIgeT0iOTIiIHdpZHRoPSI5IiBoZWlnaHQ9IjE0IiByeD0iMS41Ii8+PHJlY3QgeD0iMTI4IiB5PSI4NCIgd2lkdGg9IjkiIGhlaWdodD0iMjIiIHJ4PSIxLjUiLz48cmVjdCB4PSIxNDIiIHk9Ijc2IiB3aWR0aD0iOSIgaGVpZ2h0PSIzMCIgcng9IjEuNSIvPjwvZz48L2c+CjxjaXJjbGUgY3g9IjE4NCIgY3k9IjkyIiByPSIyMiIgZmlsbD0icmdiYSg4MCwxNDAsMjU1LC4yMikiIHN0cm9rZT0iI2JjZDBmZiIgc3Ryb2tlLXdpZHRoPSI1Ii8+PHBhdGggZD0iTTIwMCAxMDggTDIyMiAxMzAiIHN0cm9rZT0iIzIyZDNlZSIgc3Ryb2tlLXdpZHRoPSI5IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48ZyBmaWxsPSJ1cmwoI2IpIj48cmVjdCB4PSIxNzQiIHk9IjkyIiB3aWR0aD0iNiIgaGVpZ2h0PSIxMCIgcng9IjEiLz48cmVjdCB4PSIxODMiIHk9Ijg0IiB3aWR0aD0iNiIgaGVpZ2h0PSIxOCIgcng9IjEiLz48cmVjdCB4PSIxOTIiIHk9Ijc4IiB3aWR0aD0iNiIgaGVpZ2h0PSIyNCIgcng9IjEiLz48L2c+PC9zdmc+") center/contain no-repeat;filter:drop-shadow(0 0 18px rgba(80,140,255,.35))}
+#screen-journal #jrn_entries_list .empty-title{font-family:var(--hx-font);font-size:22px;font-weight:800;color:#fff}
+#screen-journal #jrn_entries_list .empty-sub{font-family:var(--hx-font);font-size:15px;color:#9fb0d0}
+.hxj-empty-btn{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;width:min(78%,300px);padding:14px 20px;border-radius:24px;font-family:var(--hx-font);font-size:18px;font-weight:700;color:#fff;cursor:pointer;touch-action:manipulation;
+  background:linear-gradient(100deg,rgba(6,70,80,.9),rgba(30,30,110,.9) 60%,rgba(90,40,170,.85));border:1.5px solid rgba(34,240,200,.85);box-shadow:0 0 22px rgba(34,240,200,.4),inset 0 0 16px rgba(34,211,238,.15)}
+.hxj-empty-btn svg{color:#22d3ee}
+</style>
 </head>
 <body>
 <script>
@@ -1223,8 +1295,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <!-- ─── ЭКРАН 3: ЖУРНАЛ ─── -->
   <div class="screen" id="screen-journal">
     <div class="screen-header">
-      <span class="screen-title" id="sh-journal">Журнал</span>
-      <button class="btn-secondary" style="width:auto;padding:6px 14px;font-size:12px" id="btn-add-entry" onclick="openAddEntry()">+ Запись</button>
+      <svg class="hxj-candles" viewBox="0 0 260 130" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><defs><linearGradient id="hxjcv" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c3aed" stop-opacity="0"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient><filter id="hxjgl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter><linearGradient id="hxjfd" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".35" stop-color="#fff"/></linearGradient><mask id="hxjmk"><rect width="260" height="130" fill="url(#hxjfd)"/></mask></defs><g mask="url(#hxjmk)"><g filter="url(#hxjgl)" opacity=".7"><line x1="14" y1="78" x2="14" y2="112" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="10" y="96" width="8" height="27" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="30" y1="70" x2="30" y2="104" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="26" y="88" width="8" height="27" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="46" y1="84" x2="46" y2="116" stroke="#8b5cf6" stroke-width="1.4" opacity=".8"/><rect x="42" y="100" width="8" height="26" rx="1.5" fill="#8b5cf6" opacity=".85"/><line x1="62" y1="60" x2="62" y2="98" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="58" y="84" width="8" height="29" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="78" y1="52" x2="78" y2="92" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="74" y="74" width="8" height="30" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="94" y1="58" x2="94" y2="96" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="90" y="80" width="8" height="29" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="110" y1="36" x2="110" y2="76" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="106" y="60" width="8" height="30" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="126" y1="42" x2="126" y2="82" stroke="#8b5cf6" stroke-width="1.4" opacity=".8"/><rect x="122" y="66" width="8" height="30" rx="1.5" fill="#8b5cf6" opacity=".85"/><line x1="142" y1="24" x2="142" y2="62" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="138" y="48" width="8" height="29" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="158" y1="30" x2="158" y2="70" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="154" y="54" width="8" height="30" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="174" y1="12" x2="174" y2="50" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="170" y="36" width="8" height="29" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="190" y1="20" x2="190" y2="58" stroke="#8b5cf6" stroke-width="1.4" opacity=".8"/><rect x="186" y="42" width="8" height="29" rx="1.5" fill="#8b5cf6" opacity=".85"/><line x1="206" y1="4" x2="206" y2="40" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="202" y="24" width="8" height="28" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="222" y1="10" x2="222" y2="44" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="218" y="30" width="8" height="27" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="238" y1="0" x2="238" y2="30" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="234" y="16" width="8" height="25" rx="1.5" fill="#22d3ee" opacity=".85"/></g><line x1="14" y1="78" x2="14" y2="112" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="10" y="96" width="8" height="27" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="30" y1="70" x2="30" y2="104" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="26" y="88" width="8" height="27" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="46" y1="84" x2="46" y2="116" stroke="#8b5cf6" stroke-width="1.4" opacity=".8"/><rect x="42" y="100" width="8" height="26" rx="1.5" fill="#8b5cf6" opacity=".85"/><line x1="62" y1="60" x2="62" y2="98" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="58" y="84" width="8" height="29" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="78" y1="52" x2="78" y2="92" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="74" y="74" width="8" height="30" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="94" y1="58" x2="94" y2="96" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="90" y="80" width="8" height="29" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="110" y1="36" x2="110" y2="76" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="106" y="60" width="8" height="30" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="126" y1="42" x2="126" y2="82" stroke="#8b5cf6" stroke-width="1.4" opacity=".8"/><rect x="122" y="66" width="8" height="30" rx="1.5" fill="#8b5cf6" opacity=".85"/><line x1="142" y1="24" x2="142" y2="62" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="138" y="48" width="8" height="29" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="158" y1="30" x2="158" y2="70" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="154" y="54" width="8" height="30" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="174" y1="12" x2="174" y2="50" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="170" y="36" width="8" height="29" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="190" y1="20" x2="190" y2="58" stroke="#8b5cf6" stroke-width="1.4" opacity=".8"/><rect x="186" y="42" width="8" height="29" rx="1.5" fill="#8b5cf6" opacity=".85"/><line x1="206" y1="4" x2="206" y2="40" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="202" y="24" width="8" height="28" rx="1.5" fill="#22d3ee" opacity=".85"/><line x1="222" y1="10" x2="222" y2="44" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/><rect x="218" y="30" width="8" height="27" rx="1.5" fill="#3b82f6" opacity=".85"/><line x1="238" y1="0" x2="238" y2="30" stroke="#22d3ee" stroke-width="1.4" opacity=".8"/><rect x="234" y="16" width="8" height="25" rx="1.5" fill="#22d3ee" opacity=".85"/></g><path d="M6 118 C60 112 90 96 120 84 S190 62 252 4" fill="none" stroke="#8b5cf6" stroke-width="5" opacity=".45" filter="url(#hxjgl)"/><path d="M6 118 C60 112 90 96 120 84 S190 62 252 4" fill="none" stroke="url(#hxjcv)" stroke-width="2"/></svg>
+      <div class="hxp-head-l"><span class="screen-title" id="sh-journal">Журнал</span><span class="hxp-sub" id="hxj-sub">Анализируйте свои сделки и улучшайте результаты</span></div>
+      <button class="btn-secondary" id="btn-add-entry" onclick="openAddEntry()">Запись</button>
     </div>
 
     <div class="journal-wrap">
@@ -1234,35 +1307,49 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
       <!-- Навигация по месяцам -->
       <div class="jrn-month-nav">
-        <button class="jrn-nav-btn" onclick="jrnChangeMonth(-1)">&#8249;</button>
+        <button class="jrn-nav-btn" onclick="jrnChangeMonth(-1)" aria-label="‹"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
         <div class="jrn-month-lbl" id="jrn_month_lbl">Апрель 2026</div>
-        <button class="jrn-nav-btn" onclick="jrnChangeMonth(1)">&#8250;</button>
+        <button class="jrn-nav-btn" onclick="jrnChangeMonth(1)" aria-label="›"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
       </div>
 
       <div class="journal-summary">
-        <div class="js-card">
+        <div class="js-card jt-blue">
+          <svg class="hxj-ic" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="hxic1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><g fill="url(#hxic1)" stroke="#bfe6ff" stroke-width="1"><ellipse cx="24" cy="36" rx="15" ry="5.5"/><path d="M9 30v6c0 3 6.7 5.5 15 5.5S39 39 39 36v-6c0 3-6.7 5.5-15 5.5S9 33 9 30z"/><ellipse cx="24" cy="26" rx="15" ry="5.5"/><path d="M9 20v6c0 3 6.7 5.5 15 5.5S39 29 39 26v-6c0 3-6.7 5.5-15 5.5S9 23 9 20z"/><ellipse cx="24" cy="16" rx="15" ry="5.5"/><path d="M9 10v6c0 3 6.7 5.5 15 5.5S39 19 39 16v-6c0 3-6.7 5.5-15 5.5S9 13 9 10z" opacity=".9"/><ellipse cx="24" cy="10" rx="15" ry="5.5"/></g></svg>
           <div class="js-label" id="lbl-total-in">Всего внёс</div>
           <div class="js-value" id="jrn_total_in" style="color:var(--text)">$0</div>
+          <svg class="hxj-wave" viewBox="0 0 160 60" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="hxw1" x1="0" x2="1"><stop offset="0" stop-color="#3b82f6" stop-opacity="0"/><stop offset="1" stop-color="#3b82f6" stop-opacity=".8"/></linearGradient></defs><path d="M0 52 C40 52 60 46 90 36 S130 8 160 12 L160 60 L0 60Z" fill="url(#hxw1)" opacity=".6"/><path d="M0 52 C40 52 60 46 90 36 S130 8 160 12" fill="none" stroke="#3b82f6" stroke-width="1.6"/></svg>
         </div>
-        <div class="js-card">
+        <div class="js-card jt-green">
+          <svg class="hxj-ic" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="hxic2" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#16a34a"/><stop offset="1" stop-color="#4ade80"/></linearGradient></defs><g fill="url(#hxic2)"><rect x="4" y="30" width="8" height="14" rx="2"/><rect x="16" y="24" width="8" height="20" rx="2"/><rect x="28" y="30" width="8" height="14" rx="2"/><rect x="40" y="18" width="6" height="26" rx="2" opacity=".0"/></g><path d="M4 26 L16 16 L24 22 L42 6" fill="none" stroke="#4ade80" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 5 L43 5 L43 16" fill="none" stroke="#4ade80" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="js-label" id="lbl-total-earned">Заработано</div>
           <div class="js-value" id="jrn_total_earned" style="color:var(--green)">$0</div>
+          <svg class="hxj-wave" viewBox="0 0 160 60" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="hxw2" x1="0" x2="1"><stop offset="0" stop-color="#22f09a" stop-opacity="0"/><stop offset="1" stop-color="#22f09a" stop-opacity=".8"/></linearGradient></defs><path d="M0 52 C40 52 60 46 90 36 S130 8 160 12 L160 60 L0 60Z" fill="url(#hxw2)" opacity=".6"/><path d="M0 52 C40 52 60 46 90 36 S130 8 160 12" fill="none" stroke="#22f09a" stroke-width="1.6"/></svg>
         </div>
-        <div class="js-card">
+        <div class="js-card jt-orange">
+          <svg class="hxj-ic" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="rgba(255,160,30,.12)" stroke="#ffb02e" stroke-width="3.4"/><path d="M24 12v13l8 5" fill="none" stroke="#ffb02e" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10 L3 15 M40 10 L45 15" stroke="#ffb02e" stroke-width="3" stroke-linecap="round"/></svg>
           <div class="js-label" id="lbl-total-out">Снято</div>
           <div class="js-value" id="jrn_total_out" style="color:var(--orange)">$0</div>
+          <svg class="hxj-wave" viewBox="0 0 160 60" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="hxw3" x1="0" x2="1"><stop offset="0" stop-color="#ffa81f" stop-opacity="0"/><stop offset="1" stop-color="#ffa81f" stop-opacity=".8"/></linearGradient></defs><path d="M0 52 C40 52 60 46 90 36 S130 8 160 12 L160 60 L0 60Z" fill="url(#hxw3)" opacity=".6"/><path d="M0 52 C40 52 60 46 90 36 S130 8 160 12" fill="none" stroke="#ffa81f" stroke-width="1.6"/></svg>
         </div>
-        <div class="js-card">
+        <div class="js-card jt-purple">
+          <svg class="hxj-ic" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="hxic4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c084fc"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect x="6" y="18" width="36" height="10" rx="2.5" fill="url(#hxic4)"/><rect x="9" y="28" width="30" height="16" rx="2.5" fill="url(#hxic4)" opacity=".9"/><rect x="21.5" y="18" width="5" height="26" fill="#f5d0fe" opacity=".85"/><path d="M24 18c-7 0-12-3-10-7s9-1 10 7zM24 18c7 0 12-3 10-7s-9-1-10 7z" fill="none" stroke="#e9b8ff" stroke-width="3" stroke-linejoin="round"/></svg>
           <div class="js-label" id="lbl-net-profit">Чистая прибыль</div>
           <div class="js-value" id="jrn_net_profit" style="color:var(--accent)">$0</div>
+          <svg class="hxj-wave" viewBox="0 0 160 60" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="hxw4" x1="0" x2="1"><stop offset="0" stop-color="#a855f7" stop-opacity="0"/><stop offset="1" stop-color="#a855f7" stop-opacity=".8"/></linearGradient></defs><path d="M0 52 C40 52 60 46 90 36 S130 8 160 12 L160 60 L0 60Z" fill="url(#hxw4)" opacity=".6"/><path d="M0 52 C40 52 60 46 90 36 S130 8 160 12" fill="none" stroke="#a855f7" stroke-width="1.6"/></svg>
         </div>
       </div>
 
       <!-- P&L Chart -->
       <div class="chart-placeholder" id="chart_placeholder">
-        <div class="chart-placeholder-icon">📈</div>
-        <div class="empty-title" style="font-size:14px" id="lbl-chart-title">P&L — кривая прибыльности</div>
-        <div class="chart-placeholder-text" id="lbl-chart-hint">Добавь хотя бы одну запись дохода</div>
+        <svg class="hxj-pl-art" viewBox="0 0 170 120" aria-hidden="true"><defs><linearGradient id="hxpa1" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#c026d3"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient><linearGradient id="hxpa2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#22d3ee"/></linearGradient><linearGradient id="hxpa3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#34d399"/></linearGradient><filter id="hxpg" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter></defs>
+<rect x="8" y="14" width="130" height="92" rx="9" fill="rgba(40,70,160,.35)" stroke="rgba(120,170,255,.5)" stroke-width="1.2"/><g stroke="rgba(150,190,255,.18)"><path d="M8 36H138M8 58H138M8 80H138M40 14V106M72 14V106M104 14V106"/></g>
+<g fill="url(#hxpa1)"><rect x="20" y="70" width="14" height="30" rx="2"/><rect x="40" y="56" width="14" height="44" rx="2"/><rect x="60" y="44" width="14" height="56" rx="2"/><rect x="80" y="34" width="14" height="66" rx="2" opacity=".85"/><rect x="100" y="52" width="14" height="48" rx="2" opacity=".4"/></g>
+<path d="M18 74 C50 66 70 48 98 36 S122 22 132 12" fill="none" stroke="#22d3ee" stroke-width="9" opacity=".5" filter="url(#hxpg)"/><path d="M18 74 C50 66 70 48 98 36 S122 22 132 12" fill="none" stroke="url(#hxpa2)" stroke-width="5" stroke-linecap="round"/><path d="M118 8 L138 6 L134 26 Z" fill="#22d3ee"/>
+<ellipse cx="128" cy="98" rx="30" ry="22" fill="#0b4a8a"/><ellipse cx="128" cy="92" rx="30" ry="22" fill="url(#hxpa2)"/><path d="M128 92 L128 70 A30 22 0 0 1 156 100 Z" fill="url(#hxpa3)"/><path d="M128 92 L128 70 A30 22 0 0 0 100 92 Z" fill="#1d4ed8" opacity=".7"/></svg>
+        <div class="hxj-pl-txt">
+          <div class="empty-title" id="lbl-chart-title">P&L — кривая прибыльности</div>
+          <div class="chart-placeholder-text" id="lbl-chart-hint">Добавь хотя бы одну запись дохода</div>
+        </div>
       </div>
       <div id="chart_wrap" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;padding:14px 0 0">
         <div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 16px 10px">
@@ -1276,11 +1363,11 @@ html, body { overflow-x: hidden; max-width: 100%; }
       <div id="portfolio-history-section" style="margin-bottom:10px">
         <div onclick="togglePortfolioHistory()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;user-select:none;touch-action:manipulation">
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:15px">📊</span>
+            <span class="hxj-hist-ic"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="13" width="6" height="11" rx="1.5" fill="#f97316"/><rect x="10" y="7" width="6" height="17" rx="1.5" fill="#fbbf24"/><rect x="18" y="2" width="6" height="22" rx="1.5" fill="#22d3ee"/></svg></span>
             <span style="font-size:12px;font-weight:700;color:var(--text)" id="lbl-pf-history-title">История портфеля</span>
             <span id="pf-history-badge" style="font-size:9px;font-family:'Space Mono',monospace;padding:2px 6px;background:rgba(124,58,237,0.15);color:var(--accent2);border-radius:8px;display:none"></span>
           </div>
-          <span id="pf-history-chevron" style="font-size:11px;color:var(--muted2);transition:transform 0.2s">▼</span>
+          <span id="pf-history-chevron" style="color:#9fb0d0;transition:transform 0.2s;display:flex"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></span>
         </div>
         <div id="portfolio-history-body" style="display:none;margin-top:4px">
           <!-- Переключатель кошелька -->
@@ -1305,6 +1392,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
           <div class="empty-icon">📓</div>
           <div class="empty-title" id="lbl-journal-empty">Журнал пуст</div>
           <div class="empty-sub" id="lbl-journal-empty-sub">Добавь первую запись — каждое пополнение, доход с пула или снятие средств.</div>
+          <button class="hxj-empty-btn" onclick="openAddEntry()"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v9M7.5 12h9"/></svg><span>Запись</span></button>
         </div>
       </div>
 
@@ -4369,7 +4457,7 @@ function renderJournal(){
 
   const listEl=document.getElementById('jrn_entries_list'); if(!listEl) return;
   if(!monthEntries.length){
-    listEl.innerHTML='<div class="empty-state"><div class="empty-icon">📓</div><div class="empty-title">'+(lang==='ru'?'Нет записей за ':'No entries for ')+MN[jrnViewMonth]+'</div><div class="empty-sub">'+(lang==='ru'?'Добавь первую запись кнопкой «+ Запись»':'Add the first entry using the "+ Entry" button')+'</div></div>';
+    listEl.innerHTML='<div class="empty-state"><div class="empty-icon">📓</div><div class="empty-title">'+(lang==='ru'?'Нет записей за ':'No entries for ')+MN[jrnViewMonth]+'</div><div class="empty-sub">'+(lang==='ru'?'Добавь первую запись кнопкой «Запись»':'Add the first entry using the "Entry" button')+'</div><button class="hxj-empty-btn" onclick="openAddEntry()"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v9M7.5 12h9"/></svg><span>'+(lang==='ru'?'Запись':'Entry')+'</span></button></div>';
     return;
   }
 
@@ -10173,9 +10261,32 @@ function hxApplyLang(){
   var m = {'hx-pnl-title':['Общий P&L','Total P&L'], 'hx-qa-title':['Быстрые действия','Quick actions'],
            'hx-qa-refresh':['Обновить','Refresh'], 'hx-qa-wallet':['Кошелёк','Wallet'],
            'hx-qa-pos':['Позиции','Positions'], 'hx-qa-strat':['Стратегия','Strategy'],
-           'hxp-sub':['Ваш крипто-портфель','Your crypto portfolio'], 'hxp-lbl':['Общий баланс','Total balance']};
-  Object.keys(m).forEach(function(id){ var e = document.getElementById(id); if(e) e.textContent = hxL(m[id][0], m[id][1]); });
+           'hxp-sub':['Ваш крипто-портфель','Your crypto portfolio'], 'hxp-lbl':['Общий баланс','Total balance'],
+           'hxj-sub':['Анализируйте свои сделки и улучшайте результаты','Analyze your trades and improve results'],
+           'btn-add-entry':['Запись','Entry'], 'lbl-total-in':['Внесено','Deposited'], 'lbl-total-earned':['Доход','Income'],
+           'lbl-total-out':['Снято','Withdrawn'], 'lbl-net-profit':['Прибыль','Profit'],
+           'lbl-chart-title':['P&L — кривая прибыли','P&L — profit curve'],
+           'lbl-chart-hint':['Добавьте сделки, чтобы увидеть свою статистику','Add entries to see your stats']};
+  Object.keys(m).forEach(function(id){ var e = document.getElementById(id); if(!e) return; var v = hxL(m[id][0], m[id][1]); if(e.textContent !== v) e.textContent = v; });
 }
+function hxjFit(el){
+  try{
+    if(!el||!el.clientWidth) return;
+    el.style.fontSize=''; var fs=parseFloat(getComputedStyle(el).fontSize)||28;
+    while(el.scrollWidth>el.clientWidth && fs>11){ fs-=1; el.style.fontSize=fs+'px'; }
+  }catch(e){}
+}
+function hxjInit(){
+  // тексты, которые перезаписывает основной i18n, возвращаем в новый вид; значения плиток подгоняем по ширине
+  var ids=['btn-add-entry','lbl-total-in','lbl-total-earned','lbl-total-out','lbl-net-profit','lbl-chart-title','lbl-chart-hint'];
+  ids.forEach(function(id){ var e=document.getElementById(id); if(!e) return;
+    new MutationObserver(function(){ if(_hxjBusy) return; _hxjBusy=true; try{ hxApplyLang(); }catch(x){} _hxjBusy=false; }).observe(e,{childList:true,characterData:true,subtree:true}); });
+  ['jrn_total_in','jrn_total_earned','jrn_total_out','jrn_net_profit'].forEach(function(id){ var e=document.getElementById(id); if(!e) return;
+    new MutationObserver(function(){ hxjFit(e); }).observe(e,{childList:true,characterData:true,subtree:true});
+    if(window.ResizeObserver) new ResizeObserver(function(){ hxjFit(e); }).observe(e);
+    hxjFit(e); });
+}
+var _hxjBusy=false;
 function hxInit(){
   try{ if(localStorage.getItem('defi_hx_hide')==='1'){ document.getElementById('screen-home').classList.add('hx-hide'); var _sp=document.getElementById('screen-positions'); if(_sp) _sp.classList.add('hx-hide'); } }catch(e){}
   document.querySelectorAll('#hx-range button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-r')===_hxRange); });
@@ -10198,7 +10309,7 @@ function hxInit(){
     var e = document.getElementById(id);
     if(e) new MutationObserver(syncPos).observe(e, {childList:true, characterData:true, subtree:true, attributes:true, attributeFilter:['class']});
   });
-  hxApplyLang(); hxRenderTicker(); hxUpdateHome(); syncPos();
+  hxApplyLang(); try{ hxjInit(); }catch(e){} hxRenderTicker(); hxUpdateHome(); syncPos();
   setInterval(function(){ try{ hxUpdateHome(); }catch(e){} }, 60000);
 }
 
