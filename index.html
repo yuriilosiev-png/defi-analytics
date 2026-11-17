@@ -677,6 +677,11 @@ html, body { overflow-x: hidden; max-width: 100%; }
 </style>
 <style id="hx-style">
 /* ═══════════ ГЛАВНАЯ v2 — яркий «космос» ═══════════ */
+:root{--hx-font:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.hx-top,.hx-hero,.hx-tiles,.hx-card,.hx-qa,.hx-pill,#screen-home .hf-block,#screen-home .income-card,#screen-home .roi-box{font-family:var(--hx-font)}
+.hx-pi span{font-family:var(--hx-font)!important;font-variant-numeric:tabular-nums}
+.hx-pm em,.hx-net{font-family:var(--hx-font)!important}
+#screen-home .income-label,#screen-home .income-sub,#screen-home .roi-lbl{font-family:var(--hx-font)}
 #screen-home{
   background:
     radial-gradient(1.4px 1.4px at 9% 7%, rgba(255,255,255,.75), transparent 60%),
@@ -719,28 +724,29 @@ html, body { overflow-x: hidden; max-width: 100%; }
 .hx-hero{position:relative;margin:6px 14px 12px;padding:18px 18px 14px;border-radius:26px;overflow:hidden;
   background:linear-gradient(150deg,rgba(14,26,60,.72),rgba(10,12,34,.55));
   border:1px solid rgba(110,150,255,.28);box-shadow:0 10px 40px rgba(0,0,0,.45),0 0 40px rgba(80,90,255,.10) inset}
-.hx-coin{position:absolute;right:-26px;top:-18px;width:210px;height:210px;pointer-events:none;
+.hx-coin{position:absolute;right:-14px;top:-6px;width:150px;height:150px;opacity:.92;z-index:0;pointer-events:none;
   animation:hxFloat 7s ease-in-out infinite;filter:drop-shadow(0 0 26px rgba(255,160,40,.35))}
 @keyframes hxFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(2deg)}}
-.hx-hero-top{display:flex;align-items:center;gap:8px;position:relative}
-.hx-hero-label{font-size:17px;color:#c3cbe0;font-weight:600}
+.hx-coin svg{width:100%;height:100%}
+.hx-hero-top{display:flex;align-items:center;gap:8px;position:relative;z-index:2}
+.hx-hero-label{font-size:15px;color:#c3cbe0;font-weight:600}
 .hx-eye{background:none;border:none;color:#aab4cc;padding:4px;display:flex;cursor:pointer;touch-action:manipulation}
-.hx-hero .hero-value{position:relative;font-family:'Syne',sans-serif;font-size:clamp(42px,14vw,58px);font-weight:800;
-  letter-spacing:-1px;margin:6px 0 8px;color:#fff;text-shadow:0 2px 18px rgba(0,229,255,.25);font-variant-numeric:tabular-nums}
-.hx-hero .hero-delta{position:relative;font-size:15px;padding:3px 0;background:none;border-radius:0;gap:8px}
+.hx-hero .hero-value{position:relative;font-family:var(--hx-font);font-size:clamp(34px,10.5vw,46px);font-weight:800;
+  letter-spacing:-.5px;margin:14px 0 6px;z-index:2;color:#fff;text-shadow:0 2px 18px rgba(0,229,255,.25);font-variant-numeric:tabular-nums}
+.hx-hero .hero-delta{position:relative;z-index:2;font-size:15px;padding:3px 0;background:none;border-radius:0;gap:8px}
 .hx-hero .hero-delta.pos{color:#22f09a;background:none}.hx-hero .hero-delta.neg{color:#ff5a6a;background:none}
 .hx-hero .hero-delta.neu{color:#94a3b8;background:none}
 .hx-range{position:relative;display:flex;gap:2px;margin-top:14px;padding:4px;border-radius:26px;
   background:rgba(8,14,36,.7);border:1px solid rgba(110,150,255,.25)}
-.hx-range button{flex:1;border:none;background:none;color:#aab4cc;font:700 14px 'Syne',sans-serif;padding:9px 0;border-radius:22px;cursor:pointer;touch-action:manipulation}
+.hx-range button{flex:1;border:none;background:none;color:#aab4cc;font:700 14px var(--hx-font);padding:9px 0;border-radius:22px;cursor:pointer;touch-action:manipulation}
 .hx-range button.on{color:#04140c;background:linear-gradient(135deg,#2cf5a0,#12c97a);box-shadow:0 0 18px rgba(34,240,154,.55)}
 
 /* плитки */
 .hx-tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;padding:0 14px;margin-bottom:12px}
-.hx-tile{position:relative;border-radius:20px;padding:12px 11px 11px;min-width:0;overflow:hidden}
-.hx-tile .qm-label{font-size:12px;color:#d4dbec;font-family:'Syne',sans-serif;text-transform:none;letter-spacing:0;margin:8px 0 3px;font-weight:600}
-.hx-tile .qm-value{font-family:'Syne',sans-serif;font-size:clamp(17px,5.2vw,22px);font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
-.hx-tile .qm-sub{font-family:'Syne',sans-serif;font-size:10px;color:#9fb0d0;margin-top:3px}
+.hx-tile{position:relative;border-radius:20px;padding:12px 9px 11px;min-width:0;overflow:hidden}
+.hx-tile .qm-label{font-size:11px;color:#d4dbec;font-family:var(--hx-font);text-transform:none;letter-spacing:0;margin:8px 0 3px;font-weight:600}
+.hx-tile .qm-value{font-family:var(--hx-font);font-size:clamp(14px,4.4vw,18px);font-weight:800;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hx-tile .qm-sub{font-family:var(--hx-font);font-size:10px;color:#9fb0d0;margin-top:3px}
 .hx-tile .hx-ti{width:30px;height:30px}
 .hx-t1{background:linear-gradient(150deg,rgba(24,70,170,.6),rgba(10,22,66,.7));border:1px solid rgba(70,150,255,.6);box-shadow:0 0 22px rgba(50,120,255,.22)}
 .hx-t2{background:linear-gradient(150deg,rgba(14,90,70,.55),rgba(8,30,34,.7));border:1px solid rgba(34,240,154,.5);box-shadow:0 0 22px rgba(34,240,154,.16)}
@@ -753,8 +759,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
 #screen-home .hf-block{border-color:rgba(0,229,255,.3)}
 .hx-head{display:flex;align-items:center;gap:10px}
 .hx-head .hx-hi{width:26px;height:26px;flex-shrink:0}
-.hx-head .hx-ht{font-size:17px;color:#d4dbec;font-weight:600;flex:1}
-.hx-pnl-val{font-family:'Syne',sans-serif;font-size:clamp(28px,9vw,38px);font-weight:800;font-variant-numeric:tabular-nums}
+.hx-head .hx-ht{font-size:15px;color:#d4dbec;font-weight:600;flex:1}
+.hx-pnl-val{font-family:var(--hx-font);font-size:clamp(24px,7.6vw,32px);font-weight:800;font-variant-numeric:tabular-nums}
 .hx-net{font-size:11px;color:#9fb0d0;margin-top:2px;font-family:'Space Mono',monospace}
 .hx-chart{position:relative;height:84px;margin:10px 0 8px}
 .hx-chart.sm{height:56px;margin:2px 0 8px}
@@ -767,24 +773,24 @@ html, body { overflow-x: hidden; max-width: 100%; }
 .hx-zone.neu{color:#9fb0d0;background:rgba(120,140,180,.10);border:1px solid rgba(120,140,180,.35)}
 
 /* HF-карточка */
-#screen-home .hf-label{font-family:'Syne',sans-serif;font-size:17px;text-transform:none;color:#d4dbec;font-weight:600;letter-spacing:0}
-#screen-home .hf-value{font-family:'Syne',sans-serif;font-size:34px;font-weight:800}
+#screen-home .hf-label{font-family:var(--hx-font);font-size:15px;text-transform:none;color:#d4dbec;font-weight:600;letter-spacing:0}
+#screen-home .hf-value{font-family:var(--hx-font);font-size:30px;font-weight:800}
 #screen-home .hf-bar-wrap{height:10px;border-radius:6px;background:rgba(255,255,255,.07)}
 #screen-home .hf-bar{border-radius:6px;box-shadow:0 0 14px currentColor}
 
 /* доход / ROI / кошелёк */
 #screen-home .income-card,#screen-home .roi-box{background:linear-gradient(160deg,rgba(18,30,60,.7),rgba(10,14,36,.7));
   border:1px solid rgba(110,150,255,.22);border-radius:18px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
-#screen-home .income-value{font-family:'Syne',sans-serif;font-weight:800;font-size:20px}
+#screen-home .income-value{font-family:var(--hx-font);font-weight:800;font-size:18px;white-space:nowrap}
 #screen-home .wallet-banner{border-radius:22px;border:1px solid rgba(124,58,237,.45);background:linear-gradient(160deg,rgba(40,24,90,.55),rgba(10,14,36,.7));box-shadow:0 0 30px rgba(124,58,237,.15)}
 
 /* быстрые действия */
 .hx-qa{margin:0 14px 12px;padding:12px 12px 14px;border-radius:22px;background:linear-gradient(160deg,rgba(40,24,90,.5),rgba(10,14,36,.7));
   border:1px solid rgba(160,100,255,.4)}
-.hx-qa-t{display:flex;align-items:center;gap:8px;font-size:16px;color:#e2e8f7;font-weight:700;margin-bottom:10px}
+.hx-qa-t{display:flex;align-items:center;gap:8px;font-size:15px;color:#e2e8f7;font-weight:700;margin-bottom:10px}
 .hx-qa-g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .hx-qa-g button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:14px;background:rgba(8,14,36,.7);
-  border:1px solid rgba(110,150,255,.25);color:#e2e8f7;font:700 12px 'Syne',sans-serif;cursor:pointer;touch-action:manipulation}
+  border:1px solid rgba(110,150,255,.25);color:#e2e8f7;font:700 12px var(--hx-font);cursor:pointer;touch-action:manipulation}
 .hx-qa-g button:active{transform:scale(.96)}
 .hx-qa-g svg{width:26px;height:26px}
 
@@ -9872,9 +9878,30 @@ function hxSpark(vals, color, withDot, w, h){
 }
 
 // ── тикер ──
+var HX_BIN = {bitcoin:'BTCUSDT',ethereum:'ETHUSDT',solana:'SOLUSDT',binancecoin:'BNBUSDT',ripple:'XRPUSDT','avalanche-2':'AVAXUSDT'};
+function hxFetchChgBinance(){
+  var rev = {}; Object.keys(HX_BIN).forEach(function(k){ rev[HX_BIN[k]] = k; });
+  var q = encodeURIComponent(JSON.stringify(Object.keys(rev)));
+  var hosts = ['https://data-api.binance.vision','https://api.binance.com'];
+  var tryHost = function(i){
+    if(i >= hosts.length) return;
+    fetchT(hosts[i]+'/api/v3/ticker/24hr?symbols='+q, 6000)
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(arr){
+        (arr||[]).forEach(function(t){
+          var id = rev[t.symbol], v = parseFloat(t.priceChangePercent);
+          if(id && isFinite(v)) _hxChg[id] = v;
+        });
+        hxRenderTicker(true);
+      })
+      .catch(function(){ tryHost(i+1); });
+  };
+  tryHost(0);
+}
 function hxFetchChg(ids){
   if(Date.now() - _hxChgTs < 5*60*1000 || !ids.length) return;
   _hxChgTs = Date.now();
+  hxFetchChgBinance();
   fetchT('https://api.coingecko.com/api/v3/simple/price?ids='+ids.join(',')+'&vs_currencies=usd&include_24hr_change=true', 8000)
     .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     .then(function(j){
@@ -9889,6 +9916,7 @@ function hxHistChange(cgId){          // запасной вариант: из �
   try{
     var a = JSON.parse(localStorage.getItem('defi_phist_'+cgId)||'[]');
     if(!Array.isArray(a) || a.length < 6) return null;
+    if (a[a.length-1].ts - a[0].ts < 3*3600*1000) return null;   // короткая история — не показываем
     var f = a[0].price, l = a[a.length-1].price;
     return f > 0 ? (l-f)/f*100 : null;
   }catch(e){ return null; }
