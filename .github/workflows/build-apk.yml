@@ -101,7 +101,8 @@ jobs:
           KEYSTORE_ENC: ${{ secrets.KEYSTORE_ENC }}
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         run: |
-          printf '%s' "$KEYSTORE_ENC" | base64 -d > "$RUNNER_TEMP/ks.enc"
+          # убираем случайно скопированные маркеры, метки времени и пробелы
+          printf '%s' "$KEYSTORE_ENC" | sed -E 's/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z//g; s/-----[A-Z]+-----//g' | tr -d ' \r\n\t' | base64 -d > "$RUNNER_TEMP/ks.enc"
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -pass env:STORE_PASSWORD \
             -in "$RUNNER_TEMP/ks.enc" -out "$RUNNER_TEMP/release.jks"
           rm -f "$RUNNER_TEMP/ks.enc"
