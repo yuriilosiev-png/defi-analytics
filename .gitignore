@@ -8,3 +8,4 @@ local.properties
 app/src/main/assets/index.html
 app/src/main/assets/privacy-policy.html
 .idea/
+!app/debug.keystore
