@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Публичный ключ (X.509, base64) для проверки подписи обновлений веб-части. Пусто = OTA выключен. -->
-    <string name="web_pubkey" translatable="false"></string>
+    <string name="web_pubkey" translatable="false">MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoBzY6BF1hxbHttBIawdFchTaYnkgeGX3xKtWFn3S508uKTIK1sgnmQxLsT+SMq1G0fUBqo959kT+NFJ3BJZ+fQ==</string>
 </resources>
