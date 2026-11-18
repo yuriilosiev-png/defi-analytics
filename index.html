@@ -1183,6 +1183,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <div class="wallet-chip" id="wchip-morpho">🦋 Morpho</div>
         <div class="wallet-chip" id="wchip-solana">🟣 Solana</div>
       </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:#9fb0d0"><input type="checkbox" id="onchain-total-cb" onchange="walletOnchainToggle(this)" checked><span>Учитывать позиции Uniswap/GMX в стоимости портфеля</span></label>
       <button class="wallet-diag-btn" onclick="walletDiag()" style="margin-top:8px;background:none;border:1px dashed rgba(110,150,255,.45);color:#9fb0d0;border-radius:12px;padding:8px 12px;font-size:12px;width:100%">🔍 Проверить подключение GMX / Uniswap</button>
     </div>
 
@@ -3952,7 +3953,8 @@ function calc(){
   var evmWalletUSD1 = (typeof getEVMWalletUSD === 'function') ? getEVMWalletUSD() : 0;
   // Если есть Aave позиции — не дублируем EVM баланс (он уже в aaveTotal)
   var evmExtra = (_aaveContractAcct && _aaveContractAcct.totalCollUSD > 1) ? 0 : evmWalletUSD1;
-  const portfolioTotal = aaveTotal + poolsBalance - loan + solanaUSD1 + evmExtra; // чистая стоимость
+  const onchainUSD = walletOnchainUSD().total;   // Uniswap/GMX из кошелька (открыты на займ)
+  const portfolioTotal = aaveTotal + poolsBalance + onchainUSD - loan + solanaUSD1 + evmExtra; // чистая стоимость
   const homeTotal = document.getElementById('home_total');
   if(homeTotal) homeTotal.textContent = (portfolioTotal >= 0 ? '$' : '-$') + Math.abs(Math.round(portfolioTotal)).toLocaleString();
 
@@ -3962,7 +3964,7 @@ function calc(){
   var qpEl = document.getElementById('qm_proto_lbl');
   if(qpEl && !qpEl.textContent) { var info = PROTO_INFO[selectedProto]; if(info) qpEl.textContent = info.name; }
   setEl('qm_loan',       loan>0      ? '$'+Math.round(loan).toLocaleString()       : '—');
-  setEl('qm_pools',      poolsBalance>0 ? '$'+Math.round(poolsBalance).toLocaleString() : '—');
+  setEl('qm_pools',      (poolsBalance+onchainUSD)>0 ? '$'+Math.round(poolsBalance+onchainUSD).toLocaleString() : '—');
 
   // HF с визуальной полоской и зоной
   const hfEl   = document.getElementById('home_hf');
@@ -4999,7 +5001,7 @@ function calcLight(){
   var hf = (aaveTotal>0&&loan>0)?weightedCollateral/loan:0;
   var poolsBalance = S.pools.reduce(function(s,p){return s+calcPoolBalance(p);},0);
   var solanaUSD2 = (typeof getSolanaWalletUSD === 'function') ? getSolanaWalletUSD() : 0;
-  var portfolioTotal = aaveTotal + poolsBalance + solanaUSD2 - loan;   // чистая стоимость, как в основном расчёте
+  var portfolioTotal = aaveTotal + poolsBalance + walletOnchainUSD().total + solanaUSD2 - loan;   // чистая стоимость, как в основном расчёте
   // Update just the key displays - no DOM rebuild
   setEl('home_total', (portfolioTotal>=0?'$':'-$')+Math.abs(Math.round(portfolioTotal)).toLocaleString());
   setEl('qm_collateral', aaveTotal>0?'$'+Math.round(aaveTotal).toLocaleString():'—');
@@ -10024,6 +10026,22 @@ function _doResetAll(){
   window.location.reload();
 }
 
+// ── Стоимость on-chain позиций кошелька: Uniswap (value) + GM-пулы + перпы GMX (залог + PnL) ──
+function walletOnchainUSD(){
+  var r = {uni:0, gmxPools:0, gmxPerp:0, total:0, on:true};
+  try{
+    if(localStorage.getItem('defi_onchain_total') === '0'){ r.on = false; return r; }
+    (_walletUniPositions||[]).forEach(function(p){ r.uni += (p.valueUSD||0); });
+    (_walletGMXPools||[]).forEach(function(p){ r.gmxPools += (p.valueUSD||0); });
+    (_walletGMXPositions||[]).forEach(function(p){ r.gmxPerp += Math.max(0, (p.colUSD||0) + (p.pnlUSD||0)); });
+    r.total = r.uni + r.gmxPools + r.gmxPerp;
+  }catch(e){}
+  return r;
+}
+function walletOnchainToggle(cb){
+  try{ localStorage.setItem('defi_onchain_total', cb.checked ? '1' : '0'); }catch(e){}
+  try{ renderAll(); }catch(e){}
+}
 // ── Кэш on-chain позиций (Uniswap/GMX): показываем сразу после запуска, пока идёт обновление ──
 function walletCacheSave(addr){
   if(!addr) return;
@@ -10038,6 +10056,7 @@ function walletCacheRestore(){
     if(Array.isArray(c.gmx)) _walletGMXPositions = c.gmx;
     if(Array.isArray(c.pools)) _walletGMXPools = c.pools;
     renderPositions();
+    try{ renderAll(); }catch(e){}
   }catch(e){}
 }
 // ── Автозагрузка кошелька: при запуске, при возврате в приложение и раз в 10 минут ──
@@ -10682,6 +10701,7 @@ window.onload = function(){
   walletUpdateLang();
   try{ walletRestoreAddress(); }catch(e){}
   try{ walletCacheRestore(); }catch(e){}
+  try{ var _cb=document.getElementById('onchain-total-cb'); if(_cb) _cb.checked = localStorage.getItem('defi_onchain_total') !== '0'; }catch(e){}
   // Автозагрузка позиций кошелька (после того как подтянутся цены)
   setTimeout(function(){ walletAutoLoad(true); }, 3500);
   setInterval(function(){ walletAutoLoad(false); }, 5*60*1000);
