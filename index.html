@@ -890,6 +890,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
 #screen-positions .pool-item > div:not(.pool-item-top):not(.pool-item-stats){grid-column:1/3}
 #screen-positions .empty-state .empty-sub{color:#9fb0d0}
 </style>
+<style id="hx-peaks-style">
+.hx-chart .hx-pk{position:absolute;--tx:-50%;--ty:-130%;transform:translate(var(--tx),var(--ty));font-size:11px;font-weight:800;line-height:1.5;padding:0 6px;border-radius:8px;background:rgba(6,10,28,.86);border:1px solid currentColor;white-space:nowrap;pointer-events:none;z-index:3;font-variant-numeric:tabular-nums}
+.hx-chart .hx-pk.l{--tx:-8%}.hx-chart .hx-pk.r{--tx:-92%}.hx-chart .hx-pk.dn{--ty:55%}
+.hx-chart .hx-pkd{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#050813;border:2px solid;z-index:2;pointer-events:none}
+.hx-note{margin-top:8px;font-size:11px;color:#7d8aa8}
+#screen-home .hx-chart{margin-top:22px}
+#screen-home .hx-chart.sm{margin-top:20px}
+</style>
 <style id="hxj-style">
 /* ═══════════ ЖУРНАЛ v2 — в стиле главной/позиций ═══════════ */
 #screen-journal{
@@ -1073,6 +1081,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       <div class="hx-net hx-amt" id="hx-pnl-net"></div>
       <div class="hx-chart hx-amt" id="hx-pnl-chart"></div>
       <div class="hx-zone neu hx-amt" id="hx-pnl-zone">—</div>
+      <div class="hx-note" id="hx-pnl-note"></div>
     </div>
 
     <!-- HF блок -->
@@ -4989,9 +4998,9 @@ function calcLight(){
   var hf = (aaveTotal>0&&loan>0)?weightedCollateral/loan:0;
   var poolsBalance = S.pools.reduce(function(s,p){return s+calcPoolBalance(p);},0);
   var solanaUSD2 = (typeof getSolanaWalletUSD === 'function') ? getSolanaWalletUSD() : 0;
-  var portfolioTotal = aaveTotal + poolsBalance + solanaUSD2;
+  var portfolioTotal = aaveTotal + poolsBalance + solanaUSD2 - loan;   // чистая стоимость, как в основном расчёте
   // Update just the key displays - no DOM rebuild
-  setEl('home_total', portfolioTotal>0?'$'+Math.round(portfolioTotal).toLocaleString():'$0');
+  setEl('home_total', (portfolioTotal>=0?'$':'-$')+Math.abs(Math.round(portfolioTotal)).toLocaleString());
   setEl('qm_collateral', aaveTotal>0?'$'+Math.round(aaveTotal).toLocaleString():'—');
   setEl('pos_aave_total', aaveTotal>0?'$'+aaveTotal.toFixed(2):'$0');
   // HF display
@@ -10047,7 +10056,7 @@ function hxCoin(sym, color){
 }
 
 // ── график-линия (SVG) ──
-function hxSpark(vals, color, withDot, w, h){
+function hxSpark(vals, color, withDot, w, h, opt){
   w = w||100; h = h||40;
   if(!vals || vals.length < 2) return '';
   var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
@@ -10069,6 +10078,22 @@ function hxSpark(vals, color, withDot, w, h){
     '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+(withDot?2.2:1.6)+'" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px '+color+')"/></svg>';
   if(withDot){
     svg += '<i class="hx-dot" style="top:'+(pts[n-1][1]/h*100).toFixed(1)+'%;background:'+color+';color:'+color+'"></i>';
+  }
+  // пиковые значения: максимум и минимум периода
+  if(opt && opt.peaks && n >= 3){
+    var iMax = 0, iMin = 0;
+    vals.forEach(function(v,i){ if(v > vals[iMax]) iMax = i; if(v < vals[iMin]) iMin = i; });
+    if(iMax !== iMin && (vals[iMax]-vals[iMin]) > 1e-9){
+      [[iMax,true],[iMin,false]].forEach(function(pk){
+        var i = pk[0], isMax = pk[1];
+        var lx = pts[i][0]/w*100, ty = pts[i][1]/h*100;
+        var al = lx > 70 ? ' r' : lx < 30 ? ' l' : '';
+        var dn = ty < 38 ? ' dn' : '';
+        var c = isMax ? '#22f09a' : '#ff6b7a';
+        if(i !== n-1) svg += '<i class="hx-pkd" style="left:'+lx.toFixed(1)+'%;top:'+ty.toFixed(1)+'%;border-color:'+c+'"></i>';
+        svg += '<b class="hx-pk'+al+dn+'" style="left:'+lx.toFixed(1)+'%;top:'+ty.toFixed(1)+'%;color:'+c+'">'+(isMax?'▲ ':'▼ ')+(opt.fmt ? opt.fmt(vals[i]) : vals[i].toFixed(2))+'</b>';
+      });
+    }
   }
   return svg;
 }
@@ -10160,10 +10185,10 @@ function hxState(){
   var loan = le ? (parseFloat(le.value)||0) : 0;
   var he = document.getElementById('home_hf');
   var hf = he ? (parseFloat((he.textContent||'').replace(',','.'))||0) : 0;   // «∞» и «—» → 0
-  return {total:total, loan:loan, hf:hf};
+  return {total:total, net:total, loan:loan, hf:hf};   // home_total = залог + пулы − займ (уже чистая стоимость)
 }
 function hxRecord(st){
-  if(!(st.total > 0.5)) return;
+  if(!(Math.abs(st.total) > 0.5)) return;
   try{
     var a = hxHist(), last = a[a.length-1], now = Date.now();
     if(last && now - last.ts < 30*60*1000) return;
@@ -10173,28 +10198,155 @@ function hxRecord(st){
   }catch(e){}
 }
 
+// ── история цен за период (Binance, запасной — CoinGecko) → график по ТЕКУЩИМ позициям ──
+var HX_IV = {'1D':['15m',96],'1W':['1h',168],'1M':['4h',180],'3M':['1d',90],'1Y':['1d',365]};
+var HX_CGD = {'1D':1,'1W':7,'1M':30,'3M':90,'1Y':365};
+var HX_SYM2CG = {BTCUSDT:'bitcoin',ETHUSDT:'ethereum',SOLUSDT:'solana',BNBUSDT:'binancecoin',AVAXUSDT:'avalanche-2',LINKUSDT:'chainlink',
+  ARBUSDT:'arbitrum',OPUSDT:'optimism',AAVEUSDT:'aave',UNIUSDT:'uniswap',XRPUSDT:'ripple',PAXGUSDT:'pax-gold',POLUSDT:'matic-network'};
+var HX_NAME2SYM = {btc:'BTCUSDT',wbtc:'BTCUSDT',cbbtc:'BTCUSDT',btcb:'BTCUSDT','btc.b':'BTCUSDT',tbtc:'BTCUSDT',
+  eth:'ETHUSDT',weth:'ETHUSDT',wsteth:'ETHUSDT',steth:'ETHUSDT',weeth:'ETHUSDT',reth:'ETHUSDT',cbeth:'ETHUSDT',
+  sol:'SOLUSDT',bnb:'BNBUSDT',avax:'AVAXUSDT',link:'LINKUSDT',arb:'ARBUSDT',op:'OPUSDT',aave:'AAVEUSDT',uni:'UNIUSDT',
+  xrp:'XRPUSDT',gold:'PAXGUSDT',paxg:'PAXGUSDT',matic:'POLUSDT',pol:'POLUSDT',
+  usdc:'STABLE',usdt:'STABLE',dai:'STABLE',usde:'STABLE',gho:'STABLE',fdusd:'STABLE',usds:'STABLE'};
+var _hxPC = {}, _hxPCBusy = {}, _hxPCFail = {};
+function hxPcKey(range, sym){ return range+'|'+sym; }
+function hxPcTtl(range){ return range === '1D' ? 5*60e3 : 20*60e3; }
+function hxPcFromLS(range, sym, anyAge){
+  try{
+    var o = JSON.parse(localStorage.getItem('defi_hx_pc|'+range+'|'+sym) || 'null');
+    if(o && Array.isArray(o.d) && o.d.length > 5 && (anyAge || Date.now() - o.ts < hxPcTtl(range))) return o.d;
+  }catch(e){}
+  return null;
+}
+function hxPcStore(range, sym, d){
+  _hxPC[hxPcKey(range,sym)] = {ts:Date.now(), d:d};
+  try{ localStorage.setItem('defi_hx_pc|'+range+'|'+sym, JSON.stringify({ts:Date.now(), d:d})); }catch(e){}
+}
+function hxPcFetch(range, sym, done){
+  var iv = HX_IV[range], hosts = ['https://data-api.binance.vision','https://api.binance.com'];
+  var tryB = function(i){
+    if(i >= hosts.length) return tryCG();
+    fetchT(hosts[i]+'/api/v3/klines?symbol='+sym+'&interval='+iv[0]+'&limit='+iv[1], 9000)
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(a){
+        var d = (a||[]).map(function(k){ return [k[0], parseFloat(k[4])]; }).filter(function(x){ return x[1] > 0; });
+        if(d.length < 6) throw new Error('short');
+        done(d);
+      }).catch(function(){ tryB(i+1); });
+  };
+  var tryCG = function(){
+    var cg = HX_SYM2CG[sym]; if(!cg) return done(null);
+    fetchT('https://api.coingecko.com/api/v3/coins/'+cg+'/market_chart?vs_currency=usd&days='+HX_CGD[range], 10000)
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(j){
+        var d = (j && j.prices || []).filter(function(x){ return x[1] > 0; });
+        if(d.length > 200){ var st = Math.ceil(d.length/200); d = d.filter(function(x,i){ return i%st === 0; }); }
+        done(d.length > 5 ? d : null);
+      }).catch(function(){ done(null); });
+  };
+  tryB(0);
+}
+function hxPcEnsure(range, syms){
+  var need = false;
+  syms.forEach(function(sym){
+    var k = hxPcKey(range, sym), c = _hxPC[k];
+    if(c && Date.now() - c.ts < hxPcTtl(range)) return;
+    var ls = hxPcFromLS(range, sym, false);
+    if(ls){ _hxPC[k] = {ts:Date.now(), d:ls}; return; }
+    if(_hxPCBusy[k]) { need = true; return; }
+    if(_hxPCFail[k] && Date.now() - _hxPCFail[k] < 60e3) return;     // не долбим после ошибки
+    need = true; _hxPCBusy[k] = 1;
+    hxPcFetch(range, sym, function(d){
+      delete _hxPCBusy[k];
+      if(d) hxPcStore(range, sym, d);
+      else { _hxPCFail[k] = Date.now(); var old = hxPcFromLS(range, sym, true); if(old) _hxPC[k] = {ts:Date.now()-hxPcTtl(range)+60e3, d:old}; }
+      try{ hxUpdateHome(); }catch(e){}
+    });
+  });
+  return need;
+}
+function hxPositions(){
+  var out = [];
+  try{
+    (S.assets||[]).forEach(function(a){
+      var qty = parseFloat(a.aaveQty)||0; if(!(qty > 0)) return;
+      var nm = (a.name||'').toLowerCase();
+      var cg = ASSET_MAP[nm];
+      if(!cg){ var cat = ASSET_CATALOG.find(function(x){ return x.name.toLowerCase() === nm; }); if(cat) cg = cat.cgId; }
+      var price = (cg && livePrices[cg]) ? livePrices[cg] : (parseFloat(a.cur)||0);
+      if(!(price > 0)) return;
+      var thr = (parseFloat(a.thresh) || getProtoThresh(a.name))/100;
+      out.push({qty:qty, price:price, thr:thr, sym:HX_NAME2SYM[nm]||null});
+    });
+  }catch(e){}
+  return out;
+}
+function hxAtTs(arr, ts, st){            // значение ряда на момент ts (указатель st.i идёт вперёд)
+  while(st.i < arr.length-1 && arr[st.i+1][0] <= ts) st.i++;
+  return arr[st.i][1];
+}
+function hxBuildSeries(st, range){
+  var items = hxPositions(); if(!items.length) return null;
+  var vol = items.filter(function(i){ return i.sym && i.sym !== 'STABLE'; });
+  if(!vol.length) return null;
+  var syms = []; vol.forEach(function(i){ if(syms.indexOf(i.sym) < 0) syms.push(i.sym); });
+  if(hxPcEnsure(range, syms)) { /* догрузится, перерисуем */ }
+  var data = {};
+  for(var q=0;q<syms.length;q++){ var kq = hxPcKey(range, syms[q]), c = _hxPC[kq]; if(!c) return _hxPCFail[kq] ? null : {loading:true}; data[syms[q]] = c.d; }
+  var T = data[syms[0]].map(function(p){ return p[0]; });
+  var pricedNow = 0, wFixed = 0, now = {};
+  items.forEach(function(i){
+    var val = i.qty*i.price;
+    if(i.sym){ pricedNow += val; if(i.sym !== 'STABLE'&& now[i.sym] === undefined){ var d = data[i.sym]; now[i.sym] = d[d.length-1][1]; } }
+    else wFixed += val*i.thr;
+  });
+  var fixedNet = st.net - pricedNow;
+  var ptr = {}; syms.forEach(function(sy){ ptr[sy] = {i:0}; });
+  var N = [], H = [];
+  T.forEach(function(t){
+    var V = 0, W = 0;
+    items.forEach(function(i){
+      var f = 1;
+      if(i.sym && i.sym !== 'STABLE') f = hxAtTs(data[i.sym], t, ptr[i.sym]) / now[i.sym];
+      if(i.sym){ var v = i.qty*i.price*f; V += v; W += v*i.thr; }
+    });
+    N.push(fixedNet + V);
+    H.push(st.loan > 0 ? (wFixed + W)/st.loan : 0);
+  });
+  N.push(st.net); H.push(st.hf > 0 ? st.hf : H[H.length-1]);
+  var hasHF = st.loan > 0 && H.some(function(h){ return h > 0; });
+  return {N:N, H:hasHF ? H : [], T:T};
+}
+
 // ── обновление главной ──
 function hxUpdateHome(){
   var st = hxState();
   hxRecord(st);
-  var net = st.total - st.loan;
+  var net = st.net;                       // «Стоимость портфеля» уже = залог + пулы − займ
   var hist = hxHist(), now = Date.now(), days = HX_RANGES[_hxRange], from = now - days*864e5;
-  // стартовая точка: последняя не новее начала диапазона, иначе самая ранняя
-  var base = null, partial = false;
-  for(var i=0;i<hist.length;i++){ if(hist[i].ts <= from) base = hist[i]; else break; }
-  if(!base && hist.length){ base = hist[0]; partial = true; }
-  var seriesNet = [], seriesHF = [];
-  hist.forEach(function(p){ if(p.ts >= from || p===base){ seriesNet.push(p.t - p.l); if(p.h > 0) seriesHF.push(p.h); } });
-  if(st.total > 0) seriesNet.push(net);
-  if(st.hf > 0) seriesHF.push(st.hf);
+  var seriesNet = [], seriesHF = [], baseNet = null, partial = false, spanDays = 0, srcNote = '';
+  var rec = net > 0 || st.total > 0 ? hxBuildSeries(st, _hxRange) : null;
+  if(rec && !rec.loading){
+    seriesNet = rec.N; seriesHF = rec.H; baseNet = rec.N[0];
+    srcNote = hxL('по текущим позициям · цены Binance','current positions · Binance prices');
+  } else {
+    // запасной вариант: собственная история (копится с момента установки)
+    var base = null;
+    for(var i=0;i<hist.length;i++){ if(hist[i].ts <= from) base = hist[i]; else break; }
+    if(!base && hist.length){ base = hist[0]; partial = true; }
+    hist.forEach(function(p){ if(p.ts >= from || p===base){ seriesNet.push(p.t); if(p.h > 0) seriesHF.push(p.h); } });
+    if(st.total !== 0) seriesNet.push(net);
+    if(st.hf > 0) seriesHF.push(st.hf);
+    if(base){ baseNet = base.t; spanDays = Math.max(1, Math.round((now - base.ts)/864e5)); }
+    srcNote = (rec && rec.loading) ? hxL('загружаю цены за период…','loading prices for the period…') : hxL('по накопленной истории приложения','from app history');
+  }
 
-  // hero: Δ по чистой стоимости (портфель − займ)
+  // hero: Δ по чистой стоимости
   var dEl = document.getElementById('home_delta');
-  var baseNet = base ? base.t - base.l : 0;
-  var d = base && st.total > 0 ? net - baseNet : null;
+  var d = (baseNet !== null && (st.total !== 0)) ? net - baseNet : null;
   var pct = (d !== null && Math.abs(baseNet) > 0.01) ? d/Math.abs(baseNet)*100 : 0;
   if(dEl){
-    if(d === null || (hist.length < 2 && Math.abs(d) < 0.005)){
+    if(d === null || (!rec && hist.length < 2 && Math.abs(d) < 0.005)){
       dEl.className = 'hero-delta neu hx-amt'; dEl.textContent = hxL('история копится…','history is building…');
     } else {
       dEl.className = 'hero-delta hx-amt ' + (d>=0?'pos':'neg');
@@ -10204,36 +10356,38 @@ function hxUpdateHome(){
 
   // P&L-карточка
   var pv = document.getElementById('hx-pnl-val'), nt = document.getElementById('hx-pnl-net'),
-      ch = document.getElementById('hx-pnl-chart'), zn = document.getElementById('hx-pnl-zone');
+      ch = document.getElementById('hx-pnl-chart'), zn = document.getElementById('hx-pnl-zone'),
+      nn = document.getElementById('hx-pnl-note');
   var pos = d === null || d >= 0, col = pos ? '#22f09a' : '#ff5a6a';
   if(pv){
     if(d === null){ pv.textContent = '—'; pv.style.color = '#94a3b8'; }
     else { pv.textContent = hxSgn(d) + hxUsd(d); pv.style.color = col; }
   }
   if(nt){
-    nt.textContent = st.total > 0
-      ? hxL('Чистая стоимость ','Net value ') + hxUsd(net) + ' = ' + hxUsd(st.total) + ' − ' + hxL('займ ','loan ') + hxUsd(st.loan)
+    nt.textContent = (st.total !== 0)
+      ? hxL('Чистая стоимость ','Net value ') + hxUsd(net) + ' = ' + hxUsd(net + st.loan) + ' − ' + hxL('займ ','loan ') + hxUsd(st.loan)
       : '';
   }
   if(ch){
-    ch.innerHTML = seriesNet.length >= 2 ? hxSpark(seriesNet, col, true, 300, 84)
-      : '<div class="hx-empty">'+hxL('График появится, когда накопится история (точка раз в 30 мин)','Chart appears once history builds up (a point every 30 min)')+'</div>';
+    ch.innerHTML = seriesNet.length >= 2 ? hxSpark(seriesNet, col, true, 300, 84, {peaks:true, fmt:hxUsd})
+      : '<div class="hx-empty">'+(rec && rec.loading ? hxL('Загружаю цены…','Loading prices…') : hxL('График появится, когда накопится история (точка раз в 30 мин)','Chart appears once history builds up (a point every 30 min)'))+'</div>';
   }
   if(zn){
     if(d === null){ zn.className = 'hx-zone neu'; zn.textContent = hxL('Нет данных за период','No data for this period'); }
     else {
-      var span = base ? Math.max(1, Math.round((now - base.ts)/864e5)) : 0;
+      var lblR = {'1D':hxL('за 24 ч','24h'),'1W':hxL('за 7 дн.','7d'),'1M':hxL('за 30 дн.','30d'),'3M':hxL('за 90 дн.','90d'),'1Y':hxL('за год','1y')}[_hxRange];
       zn.className = 'hx-zone ' + (d>=0?'pos':'neg');
       zn.textContent = (d>=0 ? '✓ '+hxL('Зона прибыли','Profit zone') : '▼ '+hxL('Просадка','Drawdown')) + ' — ' + hxSgn(d) + hxUsd(d) + ' (' + Math.abs(pct).toFixed(1) + '%)' +
-        (partial ? ' · ' + hxL('за '+span+' дн.', span+'d') : '');
+        (rec && !rec.loading ? ' · ' + lblR : (partial ? ' · ' + hxL('за '+spanDays+' дн.', spanDays+'d') : ''));
     }
   }
+  if(nn) nn.textContent = srcNote;
 
-  // график Health Factor
+  // график Health Factor (по тому же периоду) с пиками
   var hc = document.getElementById('hx-hf-chart');
   if(hc){
     var hcol = st.hf >= 2 ? '#22f09a' : st.hf >= 1.6 ? '#00e5ff' : st.hf >= 1.4 ? '#f59e0b' : st.hf > 0 ? '#ff5a6a' : '#94a3b8';
-    hc.innerHTML = seriesHF.length >= 2 ? hxSpark(seriesHF, hcol, true, 300, 56) : '';
+    hc.innerHTML = seriesHF.length >= 2 ? hxSpark(seriesHF, hcol, true, 300, 56, {peaks:true, fmt:function(v){ return v.toFixed(2); }}) : '';
     hc.style.display = seriesHF.length >= 2 ? '' : 'none';
   }
 }
