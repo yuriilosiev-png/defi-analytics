@@ -970,6 +970,92 @@ html, body { overflow-x: hidden; max-width: 100%; }
   background:linear-gradient(100deg,rgba(6,70,80,.9),rgba(30,30,110,.9) 60%,rgba(90,40,170,.85));border:1.5px solid rgba(34,240,200,.85);box-shadow:0 0 22px rgba(34,240,200,.4),inset 0 0 16px rgba(34,211,238,.15)}
 .hxj-empty-btn svg{color:#22d3ee}
 </style>
+<style id="hxs-style">
+#screen-strategy{position:relative;background:radial-gradient(120% 60% at 85% 0%,rgba(40,90,200,.28),transparent 60%),radial-gradient(90% 50% at 0% 30%,rgba(124,58,237,.16),transparent 65%),radial-gradient(80% 40% at 100% 70%,rgba(34,240,154,.07),transparent 70%),#050a1c}
+#screen-strategy .screen-header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 16px 10px;overflow:hidden;min-height:96px}
+#screen-strategy .hxs-art{position:absolute;right:0;top:0;height:100%;width:62%;pointer-events:none;opacity:.95}
+#screen-strategy .hxp-head-l{position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+#screen-strategy .screen-title{font-size:30px;font-weight:800;background:linear-gradient(90deg,#fff,#8fd0ff 60%,#b88cff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+#screen-strategy .hxp-sub{font-size:12.5px;color:#9fb0d8;max-width:190px;line-height:1.3}
+#hxs-settings{position:absolute;right:14px;bottom:6px;z-index:2;display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:14px;background:rgba(18,32,74,.72);border:1px solid rgba(120,160,255,.35);color:#cfe3ff;font-size:13px;font-weight:600;box-shadow:0 0 14px rgba(70,120,255,.25),inset 0 0 12px rgba(90,140,255,.12);backdrop-filter:blur(6px)}
+#screen-strategy .hxs-tabs{background:rgba(10,18,46,.7)!important;border:1px solid rgba(110,150,255,.22)!important;border-radius:18px!important;padding:4px;gap:6px!important}
+#screen-strategy .hxs-tabs button{display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px!important;font-weight:700;background:transparent!important;border:1px solid transparent!important;transition:.2s}
+#screen-strategy .hxs-tabs button .hxs-tic{width:26px;height:26px;flex-shrink:0}
+#screen-strategy .hxs-tabs button.hxs-on{background:linear-gradient(180deg,rgba(20,60,70,.75),rgba(10,26,50,.85))!important;border:1px solid #22f09a!important;box-shadow:0 0 16px rgba(34,240,154,.45),inset 0 0 14px rgba(34,240,154,.14);color:#e9fff6!important}
+#screen-strategy .hxs-tabs button#strat-tab-lp.hxs-on{border-color:#ff4fa8!important;box-shadow:0 0 16px rgba(255,79,168,.45),inset 0 0 14px rgba(255,79,168,.14);color:#ffe3f2!important}
+#screen-strategy .strategy-status{position:relative;display:flex;align-items:center;gap:14px;overflow:hidden;padding:18px 16px;border-radius:22px;background:linear-gradient(135deg,rgba(120,14,34,.55),rgba(30,10,30,.7) 70%);border:1px solid rgba(255,77,99,.65);box-shadow:0 0 22px rgba(255,60,80,.28),inset 0 0 26px rgba(255,60,80,.12)}
+#screen-strategy .strategy-status[data-state=win]{background:linear-gradient(135deg,rgba(8,90,58,.55),rgba(8,26,34,.7) 70%);border-color:rgba(34,240,154,.65);box-shadow:0 0 22px rgba(34,240,154,.26),inset 0 0 26px rgba(34,240,154,.1)}
+#screen-strategy .strategy-status[data-state=none]{background:linear-gradient(135deg,rgba(30,44,100,.5),rgba(10,16,40,.7) 70%);border-color:rgba(125,160,255,.45);box-shadow:0 0 18px rgba(100,140,255,.18),inset 0 0 22px rgba(100,140,255,.08)}
+.hxs-vic{width:62px;height:62px;flex-shrink:0;display:none;filter:drop-shadow(0 0 10px rgba(255,77,99,.6))}
+.hxs-vart{position:absolute;right:6px;bottom:6px;width:46%;height:auto;display:none;opacity:.9;pointer-events:none}
+.strategy-status[data-state=loss] .hxs-ic-loss,.strategy-status[data-state=loss] .hxs-art-loss,.strategy-status[data-state=win] .hxs-ic-win,.strategy-status[data-state=win] .hxs-art-win,.strategy-status[data-state=none] .hxs-ic-none{display:block}
+.strategy-status[data-state=win] .hxs-ic-win{filter:drop-shadow(0 0 10px rgba(34,240,154,.6))}
+.strategy-status[data-state=none] .hxs-ic-none{filter:drop-shadow(0 0 10px rgba(125,160,255,.5))}
+.hxs-vtxt{position:relative;z-index:1;min-width:0}
+#screen-strategy .ss-title{font-size:14px;color:#ffd0d6;font-weight:600}
+#screen-strategy .strategy-status[data-state=win] .ss-title{color:#c8ffe6}
+#screen-strategy .strategy-status[data-state=none] .ss-title{color:#c9d6ff}
+#screen-strategy .ss-verdict{font-size:30px;font-weight:800;line-height:1.15;text-shadow:0 0 18px currentColor}
+#screen-strategy .ss-sub{font-size:13px;color:#e7c9d0;margin-top:2px}
+#screen-strategy .card{background:linear-gradient(160deg,rgba(18,30,72,.72),rgba(8,14,36,.82));border:1px solid rgba(110,150,255,.25);border-radius:22px;box-shadow:0 0 18px rgba(60,100,230,.14),inset 0 0 22px rgba(90,130,255,.05)}
+#screen-strategy .card-header{border-bottom:none;padding:16px 16px 6px}
+#screen-strategy .card-icon{width:auto;height:auto;background:none!important}
+#screen-strategy .card-title{font-size:17px;font-weight:800}
+.hxs-be{position:relative;overflow:hidden!important}
+.hxs-coins-art{position:absolute;right:10px;top:6px;width:70px;height:70px;filter:drop-shadow(0 0 12px rgba(245,176,33,.45));pointer-events:none}
+.hxs-panel{display:grid;grid-template-columns:1fr 1fr;margin-bottom:10px;border:1px solid rgba(110,150,255,.2);border-radius:16px;background:rgba(8,14,40,.55);overflow:hidden}
+.hxs-panel .be-row{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px 14px;border:none}
+.hxs-panel .be-row+.be-row{border-left:1px solid rgba(110,150,255,.2)}
+.hxs-panel .be-label{font-size:12px;color:#9fb0d8}
+.hxs-panel .be-value{font-size:20px;font-weight:800;text-shadow:0 0 12px currentColor}
+.hxs-rate{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:22px;background:linear-gradient(160deg,rgba(18,30,72,.72),rgba(8,14,36,.82));border:1px solid rgba(110,150,255,.25)}
+.hxs-rate-ic{width:42px;height:46px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(80,150,255,.5))}
+.hxs-rate .input-row{flex:1;min-width:0;background:rgba(8,14,40,.6);border:1px solid rgba(110,150,255,.25);border-radius:14px}
+.hxs-sim .card-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,77,99,.12);color:#ff8d9a;border:1px solid rgba(255,77,99,.4);padding:6px 10px;font-size:11px}
+.hxs-slidebox{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px 14px;border:1px solid rgba(110,150,255,.2);border-radius:16px;background:rgba(8,14,40,.55)}
+.hxs-slidebox .hxs-drop{font-size:13px;color:#9fb0d8}
+#sim_slider{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:8px;border-radius:8px;background:linear-gradient(90deg,#22f09a,#facc15 55%,#ff4d63);outline:none;box-shadow:0 0 12px rgba(255,120,80,.3)}
+#sim_slider::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ffd0d6 50%,#ff6b78);border:2px solid #fff;box-shadow:0 0 14px #ff4d63,0 0 4px #fff}
+#sim_slider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#ff6b78;border:2px solid #fff;box-shadow:0 0 14px #ff4d63}
+#sim_pct{font-size:20px!important;font-weight:800;text-shadow:0 0 14px #ff4d63}
+.hxs-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hxs-tile{display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;border:1px solid rgba(110,150,255,.22);background:rgba(8,14,40,.6);min-width:0}
+.hxs-tile>div{min-width:0}
+.hxs-tic2{width:40px;height:40px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(120,160,255,.4))}
+.hxs-tl{font-size:11px;color:#9fb0d8;margin-bottom:4px}
+.hxs-tv{font-size:18px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#screen-strategy .hxs-subt{display:block!important;font-size:12.5px;color:#9fb0d8;max-width:185px;line-height:1.3}
+#screen-strategy #hxs-settings{width:auto!important;left:auto!important;margin:0!important;flex:none;height:auto}
+#screen-strategy .screen-header{align-items:flex-start;padding-bottom:50px}
+#screen-strategy .hxs-art{width:58%;opacity:.8}
+#screen-strategy .hxs-vtxt{text-align:left}
+#screen-strategy .ss-title,#screen-strategy .ss-verdict,#screen-strategy .ss-sub{text-align:left!important}
+.hxs-vart{width:27%!important;opacity:.5!important;right:10px!important}
+#sim_warn{display:none!important}
+.hxs-reco{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:18px;background:linear-gradient(135deg,rgba(70,40,150,.4),rgba(20,16,60,.6));border:1px solid rgba(160,110,255,.5);box-shadow:0 0 16px rgba(130,80,255,.25)}
+.hxs-reco-ic{width:36px;height:42px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(255,210,74,.6))}
+.hxs-reco-wr{width:44px;height:40px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(168,85,247,.7))}
+.hxs-reco-tx{flex:1;min-width:0;font-size:12.5px;color:#d9ccff;line-height:1.35}
+.hxs-reco-tx b{display:block;color:#fff;font-size:14px;margin-bottom:2px}
+</style>
+<script>
+(function(){
+  function sync(){
+    var w=document.getElementById('sim_warn'),r=document.getElementById('hxs-reco'),t=document.getElementById('hxs-reco-txt');
+    if(!w||!r||!t) return;
+    var txt=(w.textContent||'').trim();
+    if(!txt){ if(r.style.display!=='none') r.style.display='none'; return; }
+    if(t.textContent!==txt) t.textContent=txt;
+    if(r.style.display!=='flex') r.style.display='flex';
+  }
+  function init(){
+    var w=document.getElementById('sim_warn'); if(!w) return;
+    new MutationObserver(sync).observe(w,{childList:true,characterData:true,subtree:true,attributes:true});
+    sync();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
 </head>
 <body>
 <script>
@@ -1413,93 +1499,126 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <!-- ─── ЭКРАН 4: СТРАТЕГИЯ ─── -->
   <div class="screen" id="screen-strategy">
     <div class="screen-header">
-      <span class="screen-title" id="sh-strategy">Стратегия</span>
+      <svg class="hxs-art" viewBox="0 0 270 130" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><defs><linearGradient id="hxsa1" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee" stop-opacity="0"/><stop offset=".5" stop-color="#22f09a"/><stop offset="1" stop-color="#7dffd0"/></linearGradient><filter id="hxsbl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.6"/></filter><linearGradient id="hxsfd" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".4" stop-color="#fff"/></linearGradient><mask id="hxsmk"><rect width="270" height="130" fill="url(#hxsfd)"/></mask></defs>
+<g mask="url(#hxsmk)"><g filter="url(#hxsbl)" opacity=".75"><line x1="16" y1="62" x2="16" y2="112" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="11.5" y="74" width="9" height="28" rx="1.6" fill="#22f09a"/><line x1="32" y1="54" x2="32" y2="106" stroke="#ff5a6a" stroke-width="1.4" opacity=".85"/><rect x="27.5" y="66" width="9" height="30" rx="1.6" fill="#ff5a6a"/><line x1="48" y1="68" x2="48" y2="118" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="43.5" y="80" width="9" height="28" rx="1.6" fill="#22f09a"/><line x1="64" y1="46" x2="64" y2="100" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="59.5" y="58" width="9" height="32" rx="1.6" fill="#22f09a"/><line x1="80" y1="52" x2="80" y2="104" stroke="#8b5cf6" stroke-width="1.4" opacity=".85"/><rect x="75.5" y="64" width="9" height="30" rx="1.6" fill="#8b5cf6"/><line x1="96" y1="34" x2="96" y2="90" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="91.5" y="46" width="9" height="34" rx="1.6" fill="#22f09a"/><line x1="112" y1="26" x2="112" y2="82" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="107.5" y="38" width="9" height="34" rx="1.6" fill="#22f09a"/><line x1="128" y1="38" x2="128" y2="90" stroke="#ff5a6a" stroke-width="1.4" opacity=".85"/><rect x="123.5" y="50" width="9" height="30" rx="1.6" fill="#ff5a6a"/><line x1="144" y1="18" x2="144" y2="74" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="139.5" y="30" width="9" height="34" rx="1.6" fill="#22f09a"/><line x1="160" y1="24" x2="160" y2="76" stroke="#8b5cf6" stroke-width="1.4" opacity=".85"/><rect x="155.5" y="36" width="9" height="30" rx="1.6" fill="#8b5cf6"/><line x1="176" y1="8" x2="176" y2="62" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="171.5" y="20" width="9" height="32" rx="1.6" fill="#22f09a"/><line x1="192" y1="14" x2="192" y2="66" stroke="#22d3ee" stroke-width="1.4" opacity=".85"/><rect x="187.5" y="26" width="9" height="30" rx="1.6" fill="#22d3ee"/><line x1="208" y1="0" x2="208" y2="52" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="203.5" y="12" width="9" height="30" rx="1.6" fill="#22f09a"/></g><line x1="16" y1="62" x2="16" y2="112" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="11.5" y="74" width="9" height="28" rx="1.6" fill="#22f09a"/><line x1="32" y1="54" x2="32" y2="106" stroke="#ff5a6a" stroke-width="1.4" opacity=".85"/><rect x="27.5" y="66" width="9" height="30" rx="1.6" fill="#ff5a6a"/><line x1="48" y1="68" x2="48" y2="118" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="43.5" y="80" width="9" height="28" rx="1.6" fill="#22f09a"/><line x1="64" y1="46" x2="64" y2="100" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="59.5" y="58" width="9" height="32" rx="1.6" fill="#22f09a"/><line x1="80" y1="52" x2="80" y2="104" stroke="#8b5cf6" stroke-width="1.4" opacity=".85"/><rect x="75.5" y="64" width="9" height="30" rx="1.6" fill="#8b5cf6"/><line x1="96" y1="34" x2="96" y2="90" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="91.5" y="46" width="9" height="34" rx="1.6" fill="#22f09a"/><line x1="112" y1="26" x2="112" y2="82" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="107.5" y="38" width="9" height="34" rx="1.6" fill="#22f09a"/><line x1="128" y1="38" x2="128" y2="90" stroke="#ff5a6a" stroke-width="1.4" opacity=".85"/><rect x="123.5" y="50" width="9" height="30" rx="1.6" fill="#ff5a6a"/><line x1="144" y1="18" x2="144" y2="74" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="139.5" y="30" width="9" height="34" rx="1.6" fill="#22f09a"/><line x1="160" y1="24" x2="160" y2="76" stroke="#8b5cf6" stroke-width="1.4" opacity=".85"/><rect x="155.5" y="36" width="9" height="30" rx="1.6" fill="#8b5cf6"/><line x1="176" y1="8" x2="176" y2="62" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="171.5" y="20" width="9" height="32" rx="1.6" fill="#22f09a"/><line x1="192" y1="14" x2="192" y2="66" stroke="#22d3ee" stroke-width="1.4" opacity=".85"/><rect x="187.5" y="26" width="9" height="30" rx="1.6" fill="#22d3ee"/><line x1="208" y1="0" x2="208" y2="52" stroke="#22f09a" stroke-width="1.4" opacity=".85"/><rect x="203.5" y="12" width="9" height="30" rx="1.6" fill="#22f09a"/></g>
+<path d="M60 120 C120 110 160 96 196 70 S240 30 252 14" fill="none" stroke="#22f09a" stroke-width="9" opacity=".4" filter="url(#hxsbl)"/>
+<path d="M60 120 C120 110 160 96 196 70 S240 30 252 14" fill="none" stroke="url(#hxsa1)" stroke-width="6" stroke-linecap="round"/>
+<path d="M232 8 L262 4 L252 36 Z" fill="#7dffd0" stroke="#22f09a" stroke-width="2" stroke-linejoin="round"/></svg>
+      <div class="hxp-head-l"><span class="screen-title" id="sh-strategy">Стратегия</span><span class="hxs-subt" id="hxs-sub">Анализируйте результаты и улучшайте стратегию</span></div>
+      <button class="btn-secondary" id="hxs-settings" onclick="goToSettings()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#9fd0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.400 15a1.700 1.700 0 0 0 .3 1.800l.1.100a2 2 0 1 1-2.800 2.800l-.1-.1a1.700 1.700 0 0 0-1.800-.3 1.700 1.700 0 0 0-1 1.500V21a2 2 0 1 1-4 0v-.1a1.700 1.700 0 0 0-1.100-1.500 1.700 1.700 0 0 0-1.800.3l-.1.100a2 2 0 1 1-2.800-2.800l.1-.1a1.700 1.700 0 0 0 .3-1.800 1.700 1.700 0 0 0-1.500-1H3a2 2 0 1 1 0-4h.1a1.700 1.700 0 0 0 1.500-1.100 1.700 1.700 0 0 0-.3-1.800l-.1-.1a2 2 0 1 1 2.800-2.800l.1.100a1.700 1.700 0 0 0 1.800.3H9a1.700 1.700 0 0 0 1-1.500V3a2 2 0 1 1 4 0v.1a1.700 1.700 0 0 0 1 1.500 1.700 1.700 0 0 0 1.800-.3l.1-.1a2 2 0 1 1 2.800 2.800l-.1.100a1.700 1.700 0 0 0-.3 1.800V9a1.700 1.700 0 0 0 1.500 1H21a2 2 0 1 1 0 4h-.1a1.700 1.700 0 0 0-1.500 1z"/></svg><span id="hxs-set-lbl">Настройки</span></button>
     </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="hxsg-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".55" stop-color="#f5b021"/><stop offset="1" stop-color="#b8710a"/></linearGradient>
+<linearGradient id="hxsg-cy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#2563eb"/></linearGradient>
+<linearGradient id="hxsg-gr" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#16a34a"/><stop offset="1" stop-color="#4ade80"/></linearGradient>
+<symbol id="hxs-coins" viewBox="0 0 48 48"><g fill="url(#hxsg-gold)" stroke="#8a5207" stroke-width=".8"><ellipse cx="22" cy="38" rx="15" ry="5.5"/><path d="M7 32v6c0 3 6.7 5.5 15 5.5S37 41 37 38v-6c0 3-6.7 5.5-15 5.5S7 35 7 32z"/><ellipse cx="22" cy="31" rx="15" ry="5.5"/><path d="M7 25v6c0 3 6.7 5.5 15 5.5S37 34 37 31v-6c0 3-6.7 5.5-15 5.5S7 28 7 25z"/><ellipse cx="22" cy="24" rx="15" ry="5.5"/><ellipse cx="33" cy="18" rx="12" ry="4.5"/><path d="M21 18v5c0 2.5 5.4 4.5 12 4.5s12-2 12-4.5v-5c0 2.5-5.4 4.5-12 4.5S21 20.5 21 18z"/><ellipse cx="33" cy="13" rx="12" ry="4.5"/></g><g fill="#fff3c4" opacity=".7"><ellipse cx="22" cy="23" rx="8" ry="2.2"/><ellipse cx="33" cy="12.5" rx="6" ry="1.8"/></g></symbol>
+<symbol id="hxs-shield" viewBox="0 0 48 48"><path d="M24 3 L41 9 V23 C41 34 33 42 24 45 C15 42 7 34 7 23 V9Z" fill="rgba(34,240,154,.14)" stroke="#22f09a" stroke-width="3" stroke-linejoin="round"/><path d="M15 24 L22 31 L34 17" fill="none" stroke="#22f09a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="hxs-scales" viewBox="0 0 56 48"><g fill="none" stroke="#7dd3fc" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 6v32M16 42h24M28 10 9 14M28 10l19 4"/><path d="M9 14 2 29c0 4 3 6 7 6s7-2 7-6L9 14zM47 14l-7 15c0 4 3 6 7 6s7-2 7-6l-7-15z" fill="rgba(125,211,252,.18)"/></g><circle cx="28" cy="6" r="3" fill="#a5d8ff"/></symbol>
+<symbol id="hxs-calc" viewBox="0 0 40 44"><rect x="4" y="2" width="32" height="40" rx="6" fill="url(#hxsg-cy)" stroke="#bfe6ff" stroke-width="1.4"/><rect x="9" y="7" width="22" height="8" rx="2" fill="#0b1a40"/><g fill="#e0f2fe"><circle cx="12" cy="22" r="2.4"/><circle cx="20" cy="22" r="2.4"/><circle cx="28" cy="22" r="2.4"/><circle cx="12" cy="30" r="2.4"/><circle cx="20" cy="30" r="2.4"/><circle cx="28" cy="30" r="2.4"/><circle cx="12" cy="37" r="2.4"/><circle cx="20" cy="37" r="2.4"/><circle cx="28" cy="37" r="2.4"/></g></symbol>
+<symbol id="hxs-chart" viewBox="0 0 48 48"><g fill="url(#hxsg-cy)"><rect x="3" y="30" width="8" height="15" rx="2"/><rect x="14" y="24" width="8" height="21" rx="2"/><rect x="25" y="30" width="8" height="15" rx="2"/></g><path d="M3 24 L16 14 L25 20 L44 4" fill="none" stroke="#4ade80" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M34 4 L44 4 L44 14" fill="none" stroke="#4ade80" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="hxs-bulb" viewBox="0 0 48 56"><defs><radialGradient id="hxsg-bulb" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#fff7c2"/><stop offset=".6" stop-color="#ffd24a"/><stop offset="1" stop-color="#e59a0f"/></radialGradient></defs><path d="M24 4c-9 0-15 6.5-15 14 0 5 2.6 8.3 5.2 11 1.7 1.8 2.3 3.5 2.3 5.5h14.9c0-2 .6-3.7 2.3-5.5C39.400 26.300 39 23 39 18 39 10.500 33 4 24 4z" fill="url(#hxsg-bulb)" stroke="#f0b429" stroke-width="1.2"/><g stroke="#b7791f" stroke-width="2" fill="none" stroke-linecap="round"><path d="M18 24l4 6 2-4 2 4 4-6"/></g><rect x="17" y="38" width="14" height="4.5" rx="2" fill="#a8b2d1"/><rect x="19" y="44" width="10" height="4" rx="2" fill="#8f9bbd"/><g stroke="#ffd24a" stroke-width="2.2" stroke-linecap="round"><path d="M3 10l5 3M45 10l-5 3M1 24h6M47 24h-6"/></g></symbol>
+<symbol id="hxs-warn" viewBox="0 0 56 50"><path d="M28 3 54 46H2Z" fill="rgba(124,58,237,.35)" stroke="#a855f7" stroke-width="3.4" stroke-linejoin="round"/><path d="M28 18v14" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/><circle cx="28" cy="38.500" r="2.800" fill="#fff"/></symbol>
+</defs></svg>
 
     <!-- Переключатель вкладок -->
-    <div style="display:flex;gap:0;margin:10px 16px 0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;flex-shrink:0">
-      <button id="strat-tab-loan" onclick="switchStratTab('loan')"
+    <div class="hxs-tabs" style="display:flex;gap:0;margin:10px 16px 0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;flex-shrink:0">
+      <button id="strat-tab-loan" class="hxs-on" onclick="switchStratTab('loan')"
         style="flex:1;padding:10px 8px;border:none;background:rgba(0,229,255,0.12);color:var(--accent);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;touch-action:manipulation;transition:all .2s">
-        💰 <span id="strat-tab-loan-lbl">Займ</span>
+        <svg class="hxs-tic" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="hxsbag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#d98c0b"/></linearGradient></defs><path d="M14 6 l3 5h6l3-5c-3-2-9-2-12 0z" fill="#e6a117"/><path d="M15 11c-6 5-10 11-10 18 0 5 5 8 15 8s15-3 15-8c0-7-4-13-10-18z" fill="url(#hxsbag)" stroke="#9a5e07" stroke-width="1.2"/><path d="M15 11h10" stroke="#8a5207" stroke-width="2.4" stroke-linecap="round"/><text x="20" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="15" fill="#fff6d6" stroke="#8a5207" stroke-width=".6">$</text></svg> <span id="strat-tab-loan-lbl">Займ</span>
       </button>
       <button id="strat-tab-lp" onclick="switchStratTab('lp')"
         style="flex:1;padding:10px 8px;border:none;background:transparent;color:var(--muted2);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;touch-action:manipulation;transition:all .2s">
-        🦄 <span id="strat-tab-lp-lbl">LP Симулятор</span>
+        <svg class="hxs-tic" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="hxsu1" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ffb347"/><stop offset="1" stop-color="#fff1a8"/></linearGradient><linearGradient id="hxsu2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6ec7"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><path d="M22 2 l4.5 12-8-1.500z" fill="url(#hxsu1)"/><path d="M12 14c1-5 6-8 11-5l5 9c3 4 2 9-2 12l-2 3h-8c-3-3-2-6 1-8-5 0-6-6-5-11z" fill="#fff" stroke="#e6defa" stroke-width=".8"/><path d="M12 14c-5 3-6 13 1 20-3-6-3-12 1-16 .500-1.500 1-2.800-2-4z" fill="url(#hxsu2)"/><path d="M16 12c-3 2-4 8-2 13 .5-4 1-7 4-9z" fill="#c084fc" opacity=".8"/><circle cx="22.500" cy="17" r="1.500" fill="#2a1a4a"/><ellipse cx="27" cy="27" rx="1" ry="1.400" fill="#e9b8d8"/></svg> <span id="strat-tab-lp-lbl">LP Симулятор</span>
       </button>
     </div>
 
     <!-- ═══════════════ ВКЛАДКА: ЗАЙМ (оригинальная) ═══════════════ -->
     <div id="strat-panel-loan" class="strategy-wrap">
 
-      <div class="strategy-status" id="strategy_verdict">
-        <div class="ss-title" id="lbl-strategy-now">Стратегия сейчас</div>
-        <div class="ss-verdict" id="sv_text" style="color:var(--muted2)">—</div>
-        <div class="ss-sub" id="sv_sub"></div>
+      <div class="strategy-status" id="strategy_verdict" data-state="none">
+        <svg class="hxs-vic hxs-ic-loss" viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="hxsl" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#ff6b78"/><stop offset="1" stop-color="#b3122a"/></radialGradient></defs><circle cx="32" cy="32" r="28" fill="rgba(255,60,80,.18)" stroke="#ff4d63" stroke-width="3"/><circle cx="32" cy="32" r="21" fill="url(#hxsl)"/><path d="M23 23l18 18M41 23L23 41" stroke="#fff" stroke-width="5.500" stroke-linecap="round"/></svg><svg class="hxs-vic hxs-ic-win" viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="hxsw" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#5af0b0"/><stop offset="1" stop-color="#0a8f55"/></radialGradient></defs><circle cx="32" cy="32" r="28" fill="rgba(34,240,154,.16)" stroke="#22f09a" stroke-width="3"/><circle cx="32" cy="32" r="21" fill="url(#hxsw)"/><path d="M21 33l8 8 15-17" fill="none" stroke="#fff" stroke-width="5.500" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="hxs-vic hxs-ic-none" viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="hxsn" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#8aa8ff"/><stop offset="1" stop-color="#3a4fb0"/></radialGradient></defs><circle cx="32" cy="32" r="28" fill="rgba(125,160,255,.14)" stroke="#7da0ff" stroke-width="3"/><circle cx="32" cy="32" r="21" fill="url(#hxsn)"/><path d="M22 32h20" stroke="#fff" stroke-width="5.500" stroke-linecap="round"/></svg>
+        <div class="hxs-vtxt">
+          <div class="ss-title" id="lbl-strategy-now">Стратегия сейчас</div>
+          <div class="ss-verdict" id="sv_text" style="color:var(--muted2)">—</div>
+          <div class="ss-sub" id="sv_sub"></div>
+        </div>
+        <svg class="hxs-vart hxs-art-loss" viewBox="0 0 190 100" aria-hidden="true"><defs><linearGradient id="hxsb1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff5a6a"/><stop offset="1" stop-color="#a3122a"/></linearGradient><filter id="hxsb2"><feGaussianBlur stdDeviation="3"/></filter></defs><g fill="url(#hxsb1)"><rect x="6" y="14" width="14" height="82" rx="2"/><rect x="28" y="30" width="14" height="66" rx="2"/><rect x="50" y="44" width="14" height="52" rx="2"/><rect x="72" y="60" width="14" height="36" rx="2"/><rect x="94" y="72" width="14" height="24" rx="2"/><rect x="116" y="82" width="14" height="14" rx="2"/></g><path d="M6 10 C60 20 100 40 150 78" fill="none" stroke="#ff4d63" stroke-width="12" opacity=".45" filter="url(#hxsb2)"/><path d="M6 10 C60 20 100 40 150 78" fill="none" stroke="#ff6b78" stroke-width="6" stroke-linecap="round"/><path d="M134 80 L170 92 L158 58Z" fill="#ff5a6a"/></svg><svg class="hxs-vart hxs-art-win" viewBox="0 0 190 100" aria-hidden="true"><defs><linearGradient id="hxsb3" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#0a8f55"/><stop offset="1" stop-color="#4af0a8"/></linearGradient><filter id="hxsb4"><feGaussianBlur stdDeviation="3"/></filter></defs><g fill="url(#hxsb3)"><rect x="6" y="82" width="14" height="14" rx="2"/><rect x="28" y="72" width="14" height="24" rx="2"/><rect x="50" y="60" width="14" height="36" rx="2"/><rect x="72" y="44" width="14" height="52" rx="2"/><rect x="94" y="30" width="14" height="66" rx="2"/><rect x="116" y="14" width="14" height="82" rx="2"/></g><path d="M6 80 C60 70 100 55 150 22" fill="none" stroke="#22f09a" stroke-width="12" opacity=".45" filter="url(#hxsb4)"/><path d="M6 80 C60 70 100 55 150 22" fill="none" stroke="#5af0b0" stroke-width="6" stroke-linecap="round"/><path d="M134 20 L170 8 L158 42Z" fill="#4af0a8"/></svg>
       </div>
 
-      <div class="card">
+      <div class="card hxs-be">
+        <svg class="hxs-coins-art" aria-hidden="true"><use href="#hxs-coins"/></svg>
         <div class="card-header">
-          <div class="card-icon" style="background:rgba(124,58,237,0.15)">⚖️</div>
+          <div class="card-icon"><svg viewBox="0 0 56 48" width="40" height="34"><use href="#hxs-scales"/></svg></div>
           <span class="card-title" id="lbl-breakeven">Точка безубыточности</span>
         </div>
         <div class="card-body">
-          <div class="be-row">
-            <span class="be-label" id="lbl-be-income">Доход с пулов / мес</span>
-            <span class="be-value" id="be_income" style="color:var(--green)">—</span>
+          <div class="hxs-panel">
+            <div class="be-row">
+              <span class="be-label" id="lbl-be-income">Доход с пулов / мес</span>
+              <span class="be-value" id="be_income" style="color:var(--green)">—</span>
+            </div>
+            <div class="be-row">
+              <span class="be-label" id="lbl-be-cost">Стоимость долга / мес</span>
+              <span class="be-value" id="be_cost" style="color:var(--red)">—</span>
+            </div>
           </div>
-          <div class="be-row">
-            <span class="be-label" id="lbl-be-cost">Стоимость долга / мес</span>
-            <span class="be-value" id="be_cost" style="color:var(--red)">—</span>
+          <div class="hxs-panel">
+            <div class="be-row">
+              <span class="be-label" id="lbl-be-profit">Чистая прибыль / мес</span>
+              <span class="be-value" id="be_profit">—</span>
+            </div>
+            <div class="be-row">
+              <span class="be-label" id="lbl-be-year">Чистая прибыль / год</span>
+              <span class="be-value" id="be_year">—</span>
+            </div>
           </div>
-          <div class="be-row">
-            <span class="be-label" id="lbl-be-profit">Чистая прибыль / мес</span>
-            <span class="be-value" id="be_profit">—</span>
-          </div>
-          <div class="be-row">
-            <span class="be-label" id="lbl-be-year">Чистая прибыль / год</span>
-            <span class="be-value" id="be_year">—</span>
-          </div>
-          <div class="input-row" style="margin-top:12px">
-            <label id="lbl-borrow-rate" style="white-space:nowrap;flex-shrink:0">Ставка займа</label>
-            <input type="number" id="borrow_rate" value="5.5" inputmode="decimal" oninput="calc();saveStateDebounced();" style="min-width:0;width:60px">
-            <span class="input-sym" id="lbl-pct-yr">%/год</span>
-          </div>
+        </div>
+      </div>
+
+      <div class="hxs-rate">
+        <svg class="hxs-rate-ic" viewBox="0 0 40 44" aria-hidden="true"><use href="#hxs-calc"/></svg>
+        <div class="input-row">
+          <label id="lbl-borrow-rate" style="white-space:nowrap;flex-shrink:0">Ставка займа</label>
+          <input type="number" id="borrow_rate" value="5.5" inputmode="decimal" oninput="calc();saveStateDebounced();" style="min-width:0;width:60px">
+          <span class="input-sym" id="lbl-pct-yr">%/год</span>
         </div>
       </div>
 
       <!-- Симулятор падения -->
-      <div class="card">
+      <div class="card hxs-sim">
         <div class="card-header">
-          <div class="card-icon" style="background:rgba(239,68,68,0.15)">📉</div>
+          <div class="card-icon"><svg viewBox="0 0 48 48" width="34" height="34"><use href="#hxs-chart"/></svg></div>
           <span class="card-title" id="lbl-crash-sim">Симулятор падения</span>
-          <span class="card-badge"><span id="lbl-sim-badge">СЦЕНАРИЙ</span></span>
+          <span class="card-badge"><span id="lbl-sim-badge">СЦЕНАРИЙ</span> <svg viewBox="0 0 12 8" width="11" height="8" fill="currentColor"><path d="M1 1l5 6 5-6z"/></svg></span>
         </div>
         <div class="card-body">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-            <span style="font-size:12px;color:var(--muted2)" id="lbl-drop">Падение</span>
-            <input type="range" id="sim_slider" min="5" max="70" value="20"
-              style="flex:1;accent-color:var(--accent)" oninput="updateSim()">
-            <span id="sim_pct" style="font-family:\'Space Mono\',monospace;font-size:16px;font-weight:700;color:var(--red);min-width:48px;text-align:right">−20%</span>
+          <div class="hxs-slidebox">
+            <span class="hxs-drop" id="lbl-drop">Падение</span>
+            <input type="range" id="sim_slider" min="5" max="70" value="20" oninput="updateSim()">
+            <span id="sim_pct">−20%</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px">
-              <div style="font-size:9px;color:var(--muted2);font-family:\'Space Mono\',monospace;text-transform:uppercase;margin-bottom:4px" id="lbl-sim-col">Залог после</div>
-              <div id="sim_collateral" style="font-family:\'Space Mono\',monospace;font-size:15px;font-weight:700">—</div>
+          <div class="hxs-tiles">
+            <div class="hxs-tile">
+              <svg class="hxs-tic2" viewBox="0 0 48 48" aria-hidden="true"><use href="#hxs-coins"/></svg>
+              <div><div class="hxs-tl" id="lbl-sim-col">Залог после</div><div class="hxs-tv" id="sim_collateral">—</div></div>
             </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px">
-              <div style="font-size:9px;color:var(--muted2);font-family:\'Space Mono\',monospace;text-transform:uppercase;margin-bottom:4px" id="lbl-sim-hf">Health Factor</div>
-              <div id="sim_hf" style="font-family:\'Space Mono\',monospace;font-size:15px;font-weight:700">—</div>
+            <div class="hxs-tile">
+              <svg class="hxs-tic2" viewBox="0 0 48 48" aria-hidden="true"><use href="#hxs-shield"/></svg>
+              <div><div class="hxs-tl" id="lbl-sim-hf">Health Factor</div><div class="hxs-tv" id="sim_hf">—</div></div>
             </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px">
-              <div style="font-size:9px;color:var(--muted2);font-family:\'Space Mono\',monospace;text-transform:uppercase;margin-bottom:4px" id="lbl-sim-margin">До ликвидации</div>
-              <div id="sim_margin" style="font-family:\'Space Mono\',monospace;font-size:15px;font-weight:700">—</div>
+            <div class="hxs-tile">
+              <div><div class="hxs-tl" id="lbl-sim-margin">До ликвидации</div><div class="hxs-tv" id="sim_margin">—</div></div>
             </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px">
-              <div style="font-size:9px;color:var(--muted2);font-family:\'Space Mono\',monospace;text-transform:uppercase;margin-bottom:4px" id="lbl-sim-liq">BTC при ликв.</div>
-              <div id="sim_liq_price" style="font-family:\'Space Mono\',monospace;font-size:15px;font-weight:700">—</div>
+            <div class="hxs-tile">
+              <div><div class="hxs-tl" id="lbl-sim-liq">BTC при ликв.</div><div class="hxs-tv" id="sim_liq_price">—</div></div>
             </div>
           </div>
-          <div id="sim_warn" style="margin-top:10px;border-radius:8px;font-size:12px;text-align:center;font-weight:700;display:none"></div>
+          <div id="sim_warn" style="display:none"></div>
+          <div class="hxs-reco" id="hxs-reco" style="display:none" data-k="info">
+            <svg class="hxs-reco-ic" viewBox="0 0 48 56" aria-hidden="true"><use href="#hxs-bulb"/></svg>
+            <div class="hxs-reco-tx"><b id="hxs-reco-title">Рекомендация</b><div id="hxs-reco-txt"></div></div>
+            <svg class="hxs-reco-wr" viewBox="0 0 56 50" aria-hidden="true"><use href="#hxs-warn"/></svg>
+          </div>
         </div>
       </div>
 
@@ -4014,13 +4133,16 @@ function calc(){
   if(totalIncome>0 || debtCost>0){
     if(netProfit>0){
       if(svEl)  { svEl.textContent=t('profitable'); svEl.style.color='var(--green)'; }
+      var _svb=document.getElementById('strategy_verdict'); if(_svb) _svb.dataset.state='win';
       if(svSub) svSub.textContent = `+${fmt(netProfit)}/${lang==='ru'?'мес':'mo'} · +${fmt(netProfit*12)}/${lang==='ru'?'год':'yr'}`;
     } else {
       if(svEl)  { svEl.textContent=t('unprofitable'); svEl.style.color='var(--red)'; }
+      var _svb2=document.getElementById('strategy_verdict'); if(_svb2) _svb2.dataset.state='loss';
       if(svSub) svSub.textContent = `${fmt(netProfit)}/${lang==='ru'?'мес':'mo'} · ${lang==='ru'?'убыток':'loss'}`;
     }
   } else {
     if(svEl)  { svEl.textContent=t('no_strategy_data'); svEl.style.color='var(--muted2)'; }
+    var _svb3=document.getElementById('strategy_verdict'); if(_svb3) _svb3.dataset.state='none';
     if(svSub) svSub.textContent = t('enter_loan_pools');
   }
 
@@ -5584,6 +5706,7 @@ function switchStratTab(tab){
     if(btn){
       btn.style.background = t===tab ? (t==='loan'?'rgba(0,229,255,0.12)':'rgba(255,0,122,0.12)') : 'transparent';
       btn.style.color      = t===tab ? (t==='loan'?'var(--accent)':'#ff007a') : 'var(--muted2)';
+      btn.classList.toggle('hxs-on', t===tab);
     }
   });
   if(tab==='lp'){ lpSyncFromParams(); setTimeout(function(){ lpInitCanvas(); lpDrawChart(); }, 80); }
