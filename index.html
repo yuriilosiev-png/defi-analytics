@@ -971,7 +971,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
 .hxj-empty-btn svg{color:#22d3ee}
 </style>
 <style id="hxs-style">
-#screen-strategy{position:relative;background:radial-gradient(120% 60% at 85% 0%,rgba(40,90,200,.28),transparent 60%),radial-gradient(90% 50% at 0% 30%,rgba(124,58,237,.16),transparent 65%),radial-gradient(80% 40% at 100% 70%,rgba(34,240,154,.07),transparent 70%),#050a1c}
+#screen-strategy{background:radial-gradient(120% 60% at 85% 0%,rgba(40,90,200,.28),transparent 60%),radial-gradient(90% 50% at 0% 30%,rgba(124,58,237,.16),transparent 65%),radial-gradient(80% 40% at 100% 70%,rgba(34,240,154,.07),transparent 70%),#050a1c}
 #screen-strategy .screen-header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 16px 10px;overflow:hidden;min-height:96px}
 #screen-strategy .hxs-art{position:absolute;right:0;top:0;height:100%;width:62%;pointer-events:none;opacity:.95}
 #screen-strategy .hxp-head-l{position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -4132,11 +4132,11 @@ function calc(){
   const svSub = document.getElementById('sv_sub');
   if(totalIncome>0 || debtCost>0){
     if(netProfit>0){
-      if(svEl)  { svEl.textContent=t('profitable'); svEl.style.color='var(--green)'; }
+      if(svEl)  { svEl.textContent=t('profitable').replace(/^[✅❌]\s*/,''); svEl.style.color='var(--green)'; }
       var _svb=document.getElementById('strategy_verdict'); if(_svb) _svb.dataset.state='win';
       if(svSub) svSub.textContent = `+${fmt(netProfit)}/${lang==='ru'?'мес':'mo'} · +${fmt(netProfit*12)}/${lang==='ru'?'год':'yr'}`;
     } else {
-      if(svEl)  { svEl.textContent=t('unprofitable'); svEl.style.color='var(--red)'; }
+      if(svEl)  { svEl.textContent=t('unprofitable').replace(/^[✅❌]\s*/,''); svEl.style.color='var(--red)'; }
       var _svb2=document.getElementById('strategy_verdict'); if(_svb2) _svb2.dataset.state='loss';
       if(svSub) svSub.textContent = `${fmt(netProfit)}/${lang==='ru'?'мес':'mo'} · ${lang==='ru'?'убыток':'loss'}`;
     }
