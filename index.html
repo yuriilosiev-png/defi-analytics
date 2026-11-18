@@ -1183,6 +1183,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <div class="wallet-chip" id="wchip-morpho">🦋 Morpho</div>
         <div class="wallet-chip" id="wchip-solana">🟣 Solana</div>
       </div>
+      <button class="wallet-diag-btn" onclick="walletDiag()" style="margin-top:8px;background:none;border:1px dashed rgba(110,150,255,.45);color:#9fb0d0;border-radius:12px;padding:8px 12px;font-size:12px;width:100%">🔍 Проверить подключение GMX / Uniswap</button>
     </div>
 
   </div>
@@ -8186,7 +8187,8 @@ function walletSetChip(id, state, extra){
   else if(state==='error')  el.classList.add('error');
 }
 
-async function walletLoad(){
+async function walletLoad(opts){
+  var _auto = !!(opts && opts.auto === true);   // фоновая автозагрузка: ничего не стираем и не спрашиваем
   if(_walletLoading) return;
   var inp = document.getElementById('wallet-address-input');
   var addrRaw = (inp ? inp.value.trim() : '');
@@ -8205,7 +8207,12 @@ async function walletLoad(){
   _walletAddress = addr;
   try{ localStorage.setItem('defi_wallet_addr', addr); }catch(e){}
 
-  // ── Полная очистка данных предыдущего кошелька ────────────────
+  // авто-режим: запоминаем прежние позиции, чтобы вернуть их, если источник не ответил (сбой сети ≠ «позиций нет»)
+  var _keep = _auto ? {uni:_walletUniPositions, gmx:_walletGMXPositions, pools:_walletGMXPools} : null;
+  _walletUniErrs = 0; _walletGMXErrs = 0;
+
+  // ── Полная очистка данных предыдущего кошелька (только при ручной загрузке) ──
+  if(!_auto){
   _walletSolanaData     = null;
   _walletEVMData        = null;
   _walletUniPositions   = [];
@@ -8234,6 +8241,7 @@ async function walletLoad(){
   if(poolsListEl) poolsListEl.innerHTML = '';
   var poolsTotEl2 = document.getElementById('pos_pools_total');
   if(poolsTotEl2) poolsTotEl2.textContent = '$0';
+  }
 
   var btn = document.getElementById('wallet-load-btn');
   if(btn) btn.disabled = true;
@@ -8268,6 +8276,13 @@ async function walletLoad(){
       _wl('morpho',  walletLoadMorpho)
     ]);
     var aaveOk = _res[0], merklOk = _res[1], uniOk = _res[2], gmxOk = _res[3], morphoOk = _res[4];
+    // авто-режим: источник упал (ошибки сети), а раньше позиции были — оставляем прежние, не затираем пустотой
+    if(_keep){
+      if(_walletUniErrs > 0 && !_walletUniPositions.length && _keep.uni.length){ _walletUniPositions = _keep.uni; uniOk = true; walletSetChip('uniswap','active'); }
+      if(_walletGMXErrs > 0 && !_walletGMXPositions.length && !_walletGMXPools.length && (_keep.gmx.length || _keep.pools.length)){
+        _walletGMXPositions = _keep.gmx; _walletGMXPools = _keep.pools; gmxOk = true; walletSetChip('gmx','active'); }
+      try{ renderPositions(); }catch(e){}
+    }
 
     // Compound — позже
     walletSetChip('compound','skip');
@@ -8296,8 +8311,9 @@ async function walletLoad(){
   setEl('lbl-wallet-load-btn', wt('load_btn'));
   _walletLoading = false;
 
-  // Предлагаем сохранить кошелёк если ещё не в списке
-  walletAskSave(addr);
+  // Предлагаем сохранить кошелёк если ещё не в списке (не при фоновой загрузке)
+  if(!_auto) walletAskSave(addr);
+  try{ walletCacheSave(addr); }catch(e){}
 
   // Записываем P&L снапшот (только для сохранённых кошельков)
   walletSnapshotSave(addr);
@@ -9299,6 +9315,7 @@ function walletApplyAaveRestData(d){
 // Без ключа, POST + {address, chain}, 30+ сетей
 // ══════════════════════════════════════════════════════════════
 var _walletUniPositions = [];
+var _walletUniErrs = 0, _walletGMXErrs = 0;   // ошибки сети/HTTP (отличаем «сбой» от «позиций нет»)
 
 // Все chain-названия которые Oku принимает (из DevTools разведки)
 var OKU_CHAINS = [
@@ -9381,7 +9398,7 @@ async function _okuFetchChain(addr, chain){
       body: JSON.stringify({ address: addr, chain: chain }),
       signal: _abortAfter(8000)
     });
-    if(!resp.ok) return [];
+    if(!resp.ok){ _walletUniErrs++; return []; }
     var j = await resp.json();
 
     // Логируем первый непустой ответ для отладки
@@ -9393,7 +9410,7 @@ async function _okuFetchChain(addr, chain){
     var positions = j.positions || j.holdings || j.data || j.result || [];
     if(!Array.isArray(positions)) positions = [];
     return positions.map(function(p){ return _okuParsePosition(p, chain); }).filter(Boolean);
-  }catch(e){ return []; }
+  }catch(e){ _walletUniErrs++; return []; }
 }
 
 async function walletLoadUniswap(addr){
@@ -9455,6 +9472,74 @@ var GMX_REST = [
   { name: 'Avalanche', api: 'https://avalanche-api.gmxinfra.io' }
 ];
 
+// ── GMX API v2 (официальный): GET https://{chain}.gmxapi.io/v1/positions?address=…  (зеркало — gmxapi.ai) ──
+var GMX_API2 = [
+  { name: 'Arbitrum',  hosts: ['https://arbitrum.gmxapi.io/v1',  'https://arbitrum.gmxapi.ai/v1'],  oracle: 'https://arbitrum-api.gmxinfra.io' },
+  { name: 'Avalanche', hosts: ['https://avalanche.gmxapi.io/v1', 'https://avalanche.gmxapi.ai/v1'], oracle: 'https://avalanche-api.gmxinfra.io' }
+];
+// число из API: целая строка ≥20 цифр = 30-значная фикс-точка (USD), иначе обычное число
+function _gmxNum(v){
+  if(v === null || v === undefined || v === '') return 0;
+  var t = String(v);
+  if(/^-?\d+$/.test(t) && t.replace('-','').length >= 20) return parseFloat(t)/1e30;
+  var n = parseFloat(t); return isFinite(n) ? n : 0;
+}
+// цена: если целое — масштаб 1e(30−decimals токена), нужен decimals; без него не гадаем (вернём null)
+function _gmxPrice(v, dec){
+  if(v === null || v === undefined || v === '') return null;
+  var t = String(v);
+  if(/^-?\d+$/.test(t) && t.replace('-','').length >= 12){ return (dec > 0) ? parseFloat(t)/Math.pow(10, 30-dec) : null; }
+  var n = parseFloat(t); return isFinite(n) ? n : null;
+}
+async function _gmxTokenMaps(oracle){
+  var out = {sym:{}, dec:{}, idx:{}};
+  try{
+    var r1 = await fetch(oracle + '/tokens', {signal: _abortAfter(8000)});
+    if(r1.ok){ var j1 = await r1.json(); (j1.tokens || j1 || []).forEach(function(t){ if(t && t.address){ var a = t.address.toLowerCase(); out.sym[a] = t.symbol; out.dec[a] = t.decimals; } }); }
+    var r2 = await fetch(oracle + '/markets', {signal: _abortAfter(8000)});
+    if(r2.ok){ var j2 = await r2.json(); (j2.markets || j2 || []).forEach(function(m){ if(m && m.marketToken && m.indexToken) out.idx[m.marketToken.toLowerCase()] = m.indexToken.toLowerCase(); }); }
+  }catch(e){}
+  return out;
+}
+// возвращает список сетей, по которым API ответил (даже пустым массивом) — по ним старый субграф не нужен
+async function _gmxFetchPositionsRest(addrLower){
+  var handled = [];
+  await Promise.all(GMX_API2.map(async function(ch){
+    var arr = null;
+    for(var i = 0; i < ch.hosts.length && arr === null; i++){
+      try{
+        var r = await fetch(ch.hosts[i] + '/positions?address=' + addrLower, {signal: _abortAfter(12000)});
+        if(!r.ok) continue;
+        var j = await r.json();
+        arr = Array.isArray(j) ? j : (j && Array.isArray(j.dataList) ? j.dataList : (j && Array.isArray(j.positions) ? j.positions : null));
+      }catch(e){}
+    }
+    if(arr === null){ _walletGMXErrs++; return; }
+    handled.push(ch.name);
+    if(!arr.length) return;
+    var mp = await _gmxTokenMaps(ch.oracle);
+    arr.forEach(function(p){
+      var sizeUSD = _gmxNum(p.sizeInUsd);
+      if(sizeUSD < 0.01) return;
+      var mk = (p.marketAddress || '').toLowerCase(), cl = (p.collateralTokenAddress || '').toLowerCase();
+      var idxAddr = mp.idx[mk];
+      var colUSD = _gmxNum(p.collateralUsd);
+      var dec = mp.dec[idxAddr];
+      _walletGMXPositions.push({
+        net: ch.name,
+        indexSym: (idxAddr && mp.sym[idxAddr]) || (mk ? mk.slice(0,6)+'…' : '?'),
+        colSym: mp.sym[cl] || 'USDC',
+        isLong: !!p.isLong, sizeUSD: sizeUSD, colUSD: colUSD,
+        pnlUSD: _gmxNum(p.pnl),
+        entryPrice: _gmxPrice(p.entryPrice, dec) || 0,
+        liqPrice:   _gmxPrice(p.liquidationPrice, dec) || 0,
+        lev: p.leverage ? _gmxNum(p.leverage) : 0
+      });
+    });
+  }));
+  return handled;
+}
+
 async function walletLoadGMX(addr){
   var chip = document.getElementById('wchip-gmx');
   if(chip) chip.innerHTML = '🟢 GMX <span style="font-size:9px;color:var(--accent)">⏳ scan...</span>';
@@ -9462,8 +9547,10 @@ async function walletLoadGMX(addr){
   _walletGMXPools = [];
   var addrLower = addr.toLowerCase();
 
+  // основной путь — официальный REST v2; старый субграф — только для сетей, где REST не ответил
+  var handledNets = await _gmxFetchPositionsRest(addrLower).catch(function(){ return []; });
   await Promise.all([
-    _gmxFetchPositionsSubgraph(addrLower),
+    _gmxFetchPositionsSubgraph(addrLower, handledNets),
     _gmxFetchGMPools(addrLower)
   ]);
 
@@ -9489,10 +9576,11 @@ async function walletLoadGMX(addr){
 }
 
 // Перп-позиции через subgraph — только account=addrLower
-async function _gmxFetchPositionsSubgraph(addrLower){
+async function _gmxFetchPositionsSubgraph(addrLower, skipNets){
   var query = '{ positions(where:{account:"' + addrLower + '",sizeInUsd_gt:"0"}, first:50) { account market sizeInUsd collateralAmount unrealizedPnl isLong averagePrice liquidationPrice indexToken { symbol } collateralTokenData { symbol } } }';
   for(var i = 0; i < GMX_SUBGRAPHS.length; i++){
     var sg = GMX_SUBGRAPHS[i];
+    if(skipNets && skipNets.indexOf(sg.name) >= 0) continue;     // эту сеть уже дал REST v2
     try{
       var r = await fetch(sg.url, {
         method: 'POST',
@@ -9500,7 +9588,7 @@ async function _gmxFetchPositionsSubgraph(addrLower){
         body: JSON.stringify({query: query}),
         signal: _abortAfter(12000)
       });
-      if(!r.ok) continue;
+      if(!r.ok){ _walletGMXErrs++; continue; }
       var j = await r.json();
       var positions = (j.data && j.data.positions) ? j.data.positions : [];
       console.log('[GMX subgraph] '+sg.name+' positions:', positions.length);
@@ -9521,7 +9609,7 @@ async function _gmxFetchPositionsSubgraph(addrLower){
           pnlUSD: pnlUSD, entryPrice: entryPrice, liqPrice: liqPrice
         });
       });
-    }catch(e){ console.warn('[GMX subgraph] '+sg.name+' error:', e); }
+    }catch(e){ _walletGMXErrs++; console.warn('[GMX subgraph] '+sg.name+' error:', e); }
   }
 }
 
@@ -9578,7 +9666,7 @@ function _renderWalletGMXPositions(poolsEl, poolsTotEl){
     var dirLabel = p.isLong ? '▲ LONG' : '▼ SHORT';
     var pnlColor = p.pnlUSD >= 0 ? 'var(--green)' : 'var(--red)';
     var pnlStr   = (p.pnlUSD >= 0 ? '+' : '') + '$' + p.pnlUSD.toFixed(2);
-    var lev = p.colUSD > 0 ? (p.sizeUSD / p.colUSD).toFixed(1) + 'x' : '—';
+    var lev = p.lev > 0 ? p.lev.toFixed(1) + 'x' : (p.colUSD > 0 ? (p.sizeUSD / p.colUSD).toFixed(1) + 'x' : '—');
 
     var card = document.createElement('div');
     card.style.cssText = 'background:var(--surface2);border:1px solid rgba(0,200,100,0.2);border-radius:12px;padding:12px 14px;margin-bottom:8px';
@@ -9934,6 +10022,88 @@ function _doResetAll(){
   if(ov) ov.remove();
   try{ localStorage.clear(); }catch(e){}
   window.location.reload();
+}
+
+// ── Кэш on-chain позиций (Uniswap/GMX): показываем сразу после запуска, пока идёт обновление ──
+function walletCacheSave(addr){
+  if(!addr) return;
+  try{ localStorage.setItem('defi_wallet_cache', JSON.stringify({addr:addr, ts:Date.now(), uni:_walletUniPositions, gmx:_walletGMXPositions, pools:_walletGMXPools})); }catch(e){}
+}
+function walletCacheRestore(){
+  try{
+    var c = JSON.parse(localStorage.getItem('defi_wallet_cache') || 'null');
+    var saved = localStorage.getItem('defi_wallet_addr');
+    if(!c || !saved || c.addr !== saved || Date.now() - c.ts > 7*864e5) return;
+    if(Array.isArray(c.uni)) _walletUniPositions = c.uni;
+    if(Array.isArray(c.gmx)) _walletGMXPositions = c.gmx;
+    if(Array.isArray(c.pools)) _walletGMXPools = c.pools;
+    renderPositions();
+  }catch(e){}
+}
+// ── Автозагрузка кошелька: при запуске, при возврате в приложение и раз в 10 минут ──
+var _walletLastAuto = 0;
+function walletAutoLoad(force){
+  try{
+    var addr = localStorage.getItem('defi_wallet_addr');
+    if(!addr || _walletLoading || document.visibilityState === 'hidden') return;
+    var ae = document.activeElement; if(ae && ae.id === 'wallet-address-input') return;   // пользователь вводит адрес
+    if(!force && Date.now() - _walletLastAuto < 10*60*1000) return;
+    if(!/^0x[0-9a-fA-F]{40}$/.test(addr) && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr)) return;
+    _walletLastAuto = Date.now();
+    var inp = document.getElementById('wallet-address-input'); if(inp && !inp.value) inp.value = addr;
+    walletLoad({auto:true});
+  }catch(e){}
+}
+
+// ── Диагностика источников: что реально отвечает на этом телефоне ──
+async function walletDiag(){
+  var addr = (document.getElementById('wallet-address-input')||{}).value || localStorage.getItem('defi_wallet_addr') || '';
+  addr = addr.trim();
+  var old = document.getElementById('wdiag'); if(old) old.remove();
+  var box = document.createElement('div'); box.id = 'wdiag';
+  box.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(5,8,19,.97);color:#e2e8f7;padding:calc(16px + env(safe-area-inset-top)) 14px 14px;display:flex;flex-direction:column;gap:10px;font-family:system-ui,sans-serif';
+  box.innerHTML = '<div style="font-size:18px;font-weight:800">Проверка GMX / Uniswap</div>'+
+    '<pre id="wdiag-out" style="flex:1;overflow:auto;margin:0;font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-all;background:#0a1020;border:1px solid rgba(110,150,255,.3);border-radius:12px;padding:10px"></pre>'+
+    '<div style="display:flex;gap:10px"><button id="wdiag-copy" style="flex:1;padding:13px;border-radius:14px;border:1px solid rgba(34,211,238,.6);background:#0b1a33;color:#fff;font-weight:700;font-size:15px">Копировать</button>'+
+    '<button id="wdiag-close" style="flex:1;padding:13px;border-radius:14px;border:1px solid rgba(110,150,255,.4);background:#101634;color:#fff;font-weight:700;font-size:15px">Закрыть</button></div>';
+  document.body.appendChild(box);
+  var out = document.getElementById('wdiag-out'), lines = [];
+  var put = function(t){ lines.push(t); out.textContent = lines.join('\n'); out.scrollTop = out.scrollHeight; };
+  document.getElementById('wdiag-close').onclick = function(){ box.remove(); };
+  document.getElementById('wdiag-copy').onclick = function(){ try{ navigator.clipboard.writeText(lines.join('\n')); this.textContent = 'Скопировано'; }catch(e){ this.textContent = 'Выдели текст вручную'; } };
+  if(!/^0x[0-9a-fA-F]{40}$/.test(addr)){ put('Нужен EVM-адрес (0x…). Введи адрес в поле кошелька и нажми проверку снова.'); return; }
+  var a = addr.toLowerCase();
+  put('Адрес: ' + a.slice(0,8) + '…' + a.slice(-6) + '\nAPK-версия: ' + (window.AndroidBridge && AndroidBridge.getVersionName ? AndroidBridge.getVersionName() : 'web') + '\n');
+  var show = function(j, n){ var s0; try{ s0 = JSON.stringify(j); }catch(e){ s0 = String(j); } return s0.length > n ? s0.slice(0,n) + '…(+' + (s0.length-n) + ')' : s0; };
+  var test = async function(label, url, init, summarize){
+    var t0 = Date.now();
+    try{
+      var r = await fetch(url, Object.assign({signal: _abortAfter(12000)}, init||{}));
+      var ms = Date.now() - t0, txt = await r.text(), j = null; try{ j = JSON.parse(txt); }catch(e){}
+      var sum = j !== null ? (summarize ? summarize(j) : show(j, 300)) : ('не JSON: ' + txt.slice(0,160));
+      put('[' + (r.ok ? 'OK ' : 'ERR') + ' ' + r.status + ', ' + ms + ' мс] ' + label + '\n   ' + sum);
+    }catch(e){
+      put('[СБОЙ, ' + (Date.now()-t0) + ' мс] ' + label + '\n   ' + (e && e.name === 'AbortError' ? 'таймаут 12 с' : 'сеть/CORS: ' + (e && e.message)));
+    }
+  };
+  var arrSum = function(j){ var arr = Array.isArray(j) ? j : (j && (j.dataList || j.positions || j.markets || j.tokens)); if(!Array.isArray(arr)) return 'ключи: ' + Object.keys(j||{}).join(', ') + ' | ' + show(j, 200);
+    return 'элементов: ' + arr.length + (arr.length ? ' | поля: ' + Object.keys(arr[0]).join(', ') + '\n   пример: ' + show(arr[0], 700) : ''); };
+  var jobs = [];
+  GMX_API2.forEach(function(ch){
+    jobs.push(test('GMX API v2 ' + ch.name + ' (.io) /positions', ch.hosts[0] + '/positions?address=' + a, null, arrSum));
+    jobs.push(test('GMX API v2 ' + ch.name + ' (.ai) /positions', ch.hosts[1] + '/positions?address=' + a, null, arrSum));
+  });
+  jobs.push(test('GMX oracle /tokens (Arbitrum)', 'https://arbitrum-api.gmxinfra.io/tokens', null, function(j){ var arr = j.tokens || j; return Array.isArray(arr) ? 'токенов: ' + arr.length + ' | поля: ' + Object.keys(arr[0]||{}).join(', ') : show(j, 200); }));
+  jobs.push(test('GMX oracle /markets (Arbitrum)', 'https://arbitrum-api.gmxinfra.io/markets', null, function(j){ var arr = j.markets || j; return Array.isArray(arr) ? 'рынков: ' + arr.length + ' | поля: ' + Object.keys(arr[0]||{}).join(', ') : show(j, 200); }));
+  jobs.push(test('GMX старый субграф Satsuma (Arbitrum)', GMX_SUBGRAPHS[0].url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query:'{ positions(first:1){ id } }'})}));
+  jobs.push(test('GMX старый gm_balances (Arbitrum)', 'https://arbitrum-api.gmxinfra.io/account/gm_balances?account=' + a));
+  ['ethereum','arbitrum','base','optimism','polygon'].forEach(function(ch){
+    jobs.push(test('Uniswap · Oku ' + ch, OKU_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({address:a, chain:ch})}, function(j){
+      var keys = Object.keys(j||{}); var arr = j.positions || j.holdings || j.data || j.result;
+      return 'ключи: ' + keys.join(', ') + (Array.isArray(arr) ? ' | позиций: ' + arr.length + (arr.length ? '\n   поля: ' + Object.keys(arr[0]).join(', ') + '\n   пример: ' + show(arr[0], 700) : '') : ' | ' + show(j, 200)); }));
+  });
+  await Promise.all(jobs);
+  put('\nГотово. Нажми «Копировать» и пришли текст мне. В нём есть твои позиции — адрес показан сокращённо.');
 }
 
 // Восстанавливаем сохранённый адрес при загрузке
@@ -10475,6 +10645,7 @@ window.onload = function(){
       try{ fetchPrices(); }catch(e){}
     }
     if(!document.hidden){ try{ updCheck(); }catch(e){} }
+    if(!document.hidden){ try{ setTimeout(function(){ walletAutoLoad(false); }, 1500); }catch(e){} }   // вернулись в приложение — обновить позиции (не чаще раза в 10 мин)
     if(document.hidden){
       // Страница скрыта — сбрасываем HF fired флаги чтобы не было ложных алертов
       // при возврате когда calc пересчитается с нуля
@@ -10510,6 +10681,10 @@ window.onload = function(){
   lpUpdateLang();
   walletUpdateLang();
   try{ walletRestoreAddress(); }catch(e){}
+  try{ walletCacheRestore(); }catch(e){}
+  // Автозагрузка позиций кошелька (после того как подтянутся цены)
+  setTimeout(function(){ walletAutoLoad(true); }, 3500);
+  setInterval(function(){ walletAutoLoad(false); }, 5*60*1000);
   // Загружаем и рендерим список сохранённых кошельков
   try{ walletBookLoad(); walletBookRender(); }catch(e){}
   // Init canvas обработчиков
