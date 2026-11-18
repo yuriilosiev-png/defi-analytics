@@ -9415,23 +9415,186 @@ async function _okuFetchChain(addr, chain){
   }catch(e){ _walletUniErrs++; return []; }
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// UNISWAP v3 — on-chain: NonfungiblePositionManager (без ключей и сторонних API)
+// balanceOf → tokenOfOwnerByIndex → positions(id) → factory.getPool → pool.slot0 → суммы токенов
+// ══════════════════════════════════════════════════════════════
+var UNI_V3_CHAINS = [
+  {name:'ethereum', cg:'ethereum',            nfpm:'0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+   rpc:['https://eth.llamarpc.com','https://rpc.ankr.com/eth','https://cloudflare-eth.com','https://ethereum.publicnode.com']},
+  {name:'arbitrum', cg:'arbitrum-one',        nfpm:'0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+   rpc:['https://arb1.arbitrum.io/rpc','https://arbitrum.llamarpc.com','https://rpc.ankr.com/arbitrum','https://arbitrum.publicnode.com']},
+  {name:'base',     cg:'base',                nfpm:'0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1',
+   rpc:['https://mainnet.base.org','https://rpc.ankr.com/base','https://base.llamarpc.com','https://base.publicnode.com']},
+  {name:'optimism', cg:'optimistic-ethereum', nfpm:'0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+   rpc:['https://mainnet.optimism.io','https://rpc.ankr.com/optimism','https://optimism.llamarpc.com','https://optimism.publicnode.com']},
+  {name:'polygon',  cg:'polygon-pos',         nfpm:'0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+   rpc:['https://polygon.llamarpc.com','https://rpc.ankr.com/polygon','https://polygon.publicnode.com','https://polygon-rpc.com']}
+];
+var UNI_STABLES = {'USDC':1,'USDT':1,'DAI':1,'USDC.E':1,'USDBC':1,'FRAX':1,'LUSD':1,'USDS':1,'GHO':1,'PYUSD':1,'FDUSD':1,'USDE':1,'CRVUSD':1,'USDT0':1};
+
+function _u256hex(n){ return BigInt(n).toString(16).padStart(64,'0'); }
+function _ah(a){ return a.toLowerCase().replace('0x','').padStart(64,'0'); }
+function _word(h,i){ return h.slice(2+i*64, 2+(i+1)*64); }
+function _sint(w){ var v = BigInt('0x'+w); if(v >= (1n<<255n)) v -= (1n<<256n); return v; }
+function _wAddr(w){ return '0x'+w.slice(24); }
+
+// пакет eth_call (JSON-RPC batch, по 20 штук); если RPC не умеет батчи — по одному
+async function _rpcBatch(rpcList, calls, ms){
+  var out = new Array(calls.length).fill(null), CH = 20, sawNonArray = false;
+  for(var off = 0; off < calls.length; off += CH){
+    var part = calls.slice(off, off+CH), done = false;
+    for(var k = 0; k < rpcList.length && !done; k++){
+      try{
+        var body = part.map(function(c,i){ return {jsonrpc:'2.0', id:i, method:'eth_call', params:[{to:c.to, data:c.data}, 'latest']}; });
+        var r = await fetch(rpcList[k], {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body), signal:_abortAfter(ms||12000)});
+        if(!r.ok) continue;
+        var j = await r.json();
+        if(!Array.isArray(j)){ sawNonArray = true; continue; }
+        j.forEach(function(x){ if(x && x.result && x.result !== '0x') out[off + x.id] = x.result; });
+        done = true;
+      }catch(e){}
+    }
+    if(!done && sawNonArray){
+      var single = await Promise.all(part.map(function(c){ return _rpcCall(rpcList, c.to, c.data, ms||9000); }));
+      single.forEach(function(v,i){ out[off+i] = v; });
+    }
+  }
+  return out;
+}
+function _decStr(h){
+  try{
+    if(!h) return '';
+    var body = h.slice(2);
+    if(body.length === 64){ var s0 = ''; for(var i=0;i<64;i+=2){ var c = parseInt(body.substr(i,2),16); if(c) s0 += String.fromCharCode(c); } return s0; }   // bytes32 (MKR и т.п.)
+    var len = parseInt(body.slice(64,128),16), hex = body.slice(128, 128+len*2), t = '';
+    for(var j=0;j<hex.length;j+=2) t += String.fromCharCode(parseInt(hex.substr(j,2),16));
+    return t;
+  }catch(e){ return ''; }
+}
+// суммы токенов позиции по формулам Uniswap v3 (через корни цен)
+function _uniAmounts(liq, sqrtP, tickCur, tickLo, tickHi){
+  var sa = Math.pow(1.0001, tickLo/2), sb = Math.pow(1.0001, tickHi/2), a0 = 0, a1 = 0;
+  if(tickCur < tickLo){ a0 = liq*(1/sa - 1/sb); }
+  else if(tickCur >= tickHi){ a1 = liq*(sb - sa); }
+  else { a0 = liq*(1/sqrtP - 1/sb); a1 = liq*(sqrtP - sa); }
+  return [a0, a1];
+}
+function _uniKnownUsd(sym){
+  var u = (sym||'').toUpperCase();
+  if(UNI_STABLES[u]) return 1;
+  var alias = {WETH:'ETH', WBTC:'BTC', CBBTC:'BTC', WMATIC:'MATIC', WPOL:'POL', 'WBTC.E':'BTC'}[u] || u;
+  var cg = ASSET_MAP[alias.toLowerCase()];
+  return (cg && livePrices[cg]) ? livePrices[cg] : 0;
+}
+async function _uniV3Chain(ch, owner){
+  var out = [];
+  var bal = await _rpcBatch(ch.rpc, [{to:ch.nfpm, data:'0x70a08231'+_ah(owner)}], 9000);
+  if(!bal[0]){ _walletUniErrs++; return out; }                  // RPC не ответил — это сбой, а не «нет позиций»
+  var n = Math.min(Number(BigInt(bal[0])), 60);
+  if(!n) return out;
+  var idCalls = []; for(var i=0;i<n;i++) idCalls.push({to:ch.nfpm, data:'0x2f745c59'+_ah(owner)+_u256hex(i)});
+  var idsHex = await _rpcBatch(ch.rpc, idCalls);
+  var ids = idsHex.filter(Boolean).map(function(h){ return BigInt(h); });
+  if(ids.length < n) _walletUniErrs++;
+  if(!ids.length) return out;
+  var posHex = await _rpcBatch(ch.rpc, ids.map(function(id){ return {to:ch.nfpm, data:'0x99fbab88'+_u256hex(id)}; }));
+  var poss = [];
+  posHex.forEach(function(h,i){
+    if(!h || h.length < 2+64*12){ _walletUniErrs++; return; }
+    var liq = BigInt('0x'+_word(h,7));
+    if(liq === 0n) return;                                       // закрытая позиция (NFT остался)
+    poss.push({id:ids[i], t0:_wAddr(_word(h,2)), t1:_wAddr(_word(h,3)), fee:Number(BigInt('0x'+_word(h,4))),
+               tl:Number(_sint(_word(h,5))), tu:Number(_sint(_word(h,6))), liq:Number(liq)});
+  });
+  if(!poss.length) return out;
+  // фабрика → пулы
+  var fh = await _rpcBatch(ch.rpc, [{to:ch.nfpm, data:'0xc45a0155'}]);
+  if(!fh[0]){ _walletUniErrs++; return out; }
+  var factory = _wAddr(_word(fh[0],0));
+  var poolKeys = {}, poolList = [];
+  poss.forEach(function(q){ var k = q.t0+'|'+q.t1+'|'+q.fee; q.pk = k; if(!poolKeys[k]){ poolKeys[k] = {t0:q.t0,t1:q.t1,fee:q.fee}; poolList.push(k); } });
+  var poolHex = await _rpcBatch(ch.rpc, poolList.map(function(k){ var o = poolKeys[k]; return {to:factory, data:'0x1698ee82'+_ah(o.t0)+_ah(o.t1)+_u256hex(o.fee)}; }));
+  poolList.forEach(function(k,i){ poolKeys[k].pool = poolHex[i] ? _wAddr(_word(poolHex[i],0)) : null; });
+  var slotHex = await _rpcBatch(ch.rpc, poolList.map(function(k){ return {to:poolKeys[k].pool || ch.nfpm, data:'0x3850c7bd'}; }));
+  poolList.forEach(function(k,i){
+    var h = slotHex[i]; if(!h || !poolKeys[k].pool || h.length < 2+64*2) return;
+    poolKeys[k].sqrtP = Number(BigInt('0x'+_word(h,0)))/Math.pow(2,96);
+    poolKeys[k].tick = Number(_sint(_word(h,1)));
+  });
+  // токены: symbol + decimals
+  var toks = [], seen = {};
+  poss.forEach(function(q){ [q.t0,q.t1].forEach(function(a){ var l = a.toLowerCase(); if(!seen[l]){ seen[l] = {addr:a}; toks.push(l); } }); });
+  var tc = []; toks.forEach(function(l){ tc.push({to:seen[l].addr, data:'0x95d89b41'}); tc.push({to:seen[l].addr, data:'0x313ce567'}); });
+  var th = await _rpcBatch(ch.rpc, tc);
+  toks.forEach(function(l,i){ seen[l].sym = _decStr(th[i*2]) || '?'; seen[l].dec = th[i*2+1] ? Number(BigInt(th[i*2+1])) : 18; });
+  // цены токенов: известные → CoinGecko по контракту (для остальных)
+  var unk = toks.filter(function(l){ return !_uniKnownUsd(seen[l].sym); });
+  var cgPrices = {};
+  if(unk.length){
+    try{
+      var rr = await fetch('https://api.coingecko.com/api/v3/simple/token_price/'+ch.cg+'?contract_addresses='+unk.join(',')+'&vs_currencies=usd', {signal:_abortAfter(9000)});
+      if(rr.ok) cgPrices = await rr.json();
+    }catch(e){}
+  }
+  var usdOf = function(l){ var k = _uniKnownUsd(seen[l].sym); if(k) return k; var c = cgPrices[l]; return (c && c.usd) ? c.usd : 0; };
+
+  poss.forEach(function(q){
+    var pl = poolKeys[q.pk]; if(!pl || !pl.sqrtP) { _walletUniErrs++; return; }
+    var a = seen[q.t0.toLowerCase()], b = seen[q.t1.toLowerCase()];
+    var amt = _uniAmounts(q.liq, pl.sqrtP, pl.tick, q.tl, q.tu);
+    var am0 = amt[0]/Math.pow(10,a.dec), am1 = amt[1]/Math.pow(10,b.dec);
+    var ratio = pl.sqrtP*pl.sqrtP * Math.pow(10, a.dec - b.dec);     // цена token0 в token1
+    var u0 = usdOf(q.t0.toLowerCase()), u1 = usdOf(q.t1.toLowerCase());
+    if(!u0 && u1 && ratio > 0) u0 = u1*ratio;                        // выводим цену через пул
+    if(!u1 && u0 && ratio > 0) u1 = u0/ratio;
+    var valueUSD = am0*u0 + am1*u1;
+    var lo = _tickToPrice(q.tl, a.dec, b.dec), hi = _tickToPrice(q.tu, a.dec, b.dec), cur = ratio;
+    var s0 = a.sym.toUpperCase(), s1 = b.sym.toUpperCase();
+    // показываем цену в стабильной валюте: если token0 стейбл, а token1 нет — инвертируем пару
+    if(UNI_STABLES[s0] && !UNI_STABLES[s1]){ var t = lo; lo = 1/hi; hi = 1/t; cur = 1/ratio; var ts = s0; s0 = s1; s1 = ts; var ta = am0; am0 = am1; am1 = ta; }
+    out.push({id:String(q.id), net:ch.name, ver:'v3', sym0:s0, sym1:s1, fee:q.fee/1e6,
+              priceLow:lo, priceHigh:hi, priceCur:cur, inRange:(pl.tick >= q.tl && pl.tick < q.tu),
+              valueUSD:valueUSD || 0,
+              fees:0, dep0:am0, dep1:am1, src:'onchain'});
+  });
+  return out;
+}
+async function _uniV3LoadOnchain(owner){
+  var res = await Promise.all(UNI_V3_CHAINS.map(function(ch){ return _uniV3Chain(ch, owner).catch(function(){ _walletUniErrs++; return []; }); }));
+  return res.reduce(function(a,b){ return a.concat(b); }, []);
+}
+
 async function walletLoadUniswap(addr){
   var chip = document.getElementById('wchip-uniswap');
-  if(chip) chip.innerHTML = '🦄 Uniswap <span style="font-size:9px;color:var(--accent)">⏳ Oku scan...</span>';
+  if(chip) chip.innerHTML = '🦄 Uniswap <span style="font-size:9px;color:var(--accent)">⏳ on-chain scan...</span>';
 
   _walletUniPositions = [];
 
+  // 1) v3 напрямую из контракта NonfungiblePositionManager (работает в APK, без ключей)
+  var onchain = [];
+  try{ onchain = await _uniV3LoadOnchain(addr); }catch(e){ _walletUniErrs++; }
+  var have = {}; onchain.forEach(function(p){ have[p.net+':'+p.id] = 1; });
+
+  // 2) Oku (неофициальный; из APK обычно блокируется CORS): пробуем одну сеть, если не отвечает — остальные пропускаем.
+  //    Ошибки Oku не считаем сбоем источника, чтобы не держать устаревший кэш.
+  var _errBefore = _walletUniErrs, okuAlive = true;
+  var probe = await _okuFetchChain(addr, 'ethereum').catch(function(){ return []; });
+  if(_walletUniErrs > _errBefore){ okuAlive = false; _walletUniErrs = _errBefore; }
+
   // Запрашиваем все сети параллельно батчами по 10
-  var allResults = [];
+  var allResults = onchain.slice();
+  probe.forEach(function(p){ if(!have[p.net+':'+p.id]) allResults.push(p); });
   var batchSize = 10;
-  for(var i = 0; i < OKU_CHAINS.length; i += batchSize){
+  for(var i = 0; okuAlive && i < OKU_CHAINS.length; i += batchSize){
     var batch = OKU_CHAINS.slice(i, i + batchSize);
     var batchResults = await Promise.all(
-      batch.map(function(chain){
+      batch.filter(function(c){ return c !== 'ethereum'; }).map(function(chain){
         return _okuFetchChain(addr, chain).catch(function(){ return []; });
       })
     );
-    batchResults.forEach(function(r){ allResults = allResults.concat(r); });
+    batchResults.forEach(function(r){ r.forEach(function(p){ if(!have[p.net+':'+p.id]) allResults.push(p); }); });
   }
 
   _walletUniPositions = allResults;
@@ -10121,6 +10284,15 @@ async function walletDiag(){
       var keys = Object.keys(j||{}); var arr = j.positions || j.holdings || j.data || j.result;
       return 'ключи: ' + keys.join(', ') + (Array.isArray(arr) ? ' | позиций: ' + arr.length + (arr.length ? '\n   поля: ' + Object.keys(arr[0]).join(', ') + '\n   пример: ' + show(arr[0], 700) : '') : ' | ' + show(j, 200)); }));
   });
+  jobs.push((async function(){
+    var t0 = Date.now(), e0 = _walletUniErrs;
+    try{
+      var r = await _uniV3LoadOnchain(a);
+      put('[' + (_walletUniErrs > e0 ? 'ЧАСТИЧНО' : 'OK') + ', ' + (Date.now()-t0) + ' мс] Uniswap v3 on-chain (5 сетей, RPC)\n   позиций: ' + r.length + (_walletUniErrs > e0 ? ' | ошибок RPC: ' + (_walletUniErrs - e0) : '') +
+        r.map(function(p){ return '\n   ' + p.net + ' #' + p.id + ' ' + p.sym0 + '/' + p.sym1 + ' fee ' + (p.fee*100) + '% $' + Math.round(p.valueUSD) + (p.inRange ? ' в диапазоне' : ' вне диапазона'); }).join(''));
+      _walletUniErrs = e0;
+    }catch(e){ put('[СБОЙ] Uniswap v3 on-chain: ' + (e && e.message)); }
+  })());
   await Promise.all(jobs);
   put('\nГотово. Нажми «Копировать» и пришли текст мне. В нём есть твои позиции — адрес показан сокращённо.');
 }
