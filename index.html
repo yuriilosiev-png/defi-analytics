@@ -1402,6 +1402,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
       <!-- Годовая статистика -->
       <div id="jrn_year_stats"></div>
 
+      <!-- Кошелёк → журнал (авто-импорт переводов) -->
+      <div class="hxjw" id="jw_card">
+        <svg class="hxjw-ic" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="hxjwg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect x="4" y="10" width="40" height="30" rx="7" fill="rgba(125,211,252,.12)" stroke="url(#hxjwg)" stroke-width="3"/><path d="M4 18h40" stroke="url(#hxjwg)" stroke-width="3"/><rect x="29" y="25" width="15" height="9" rx="4" fill="url(#hxjwg)"/><circle cx="34" cy="29.500" r="1.800" fill="#0b1230"/></svg>
+        <div class="hxjw-tx"><b id="jw_title">Кошелёк → журнал</b><span id="jw_status">Импорт переводов: «Внесено» и «Снято»</span><span id="jw_log"></span></div>
+        <button id="jw_btn" onclick="jwImport(true)">Импорт</button>
+      </div>
+
+
       <!-- Навигация по месяцам -->
       <div class="jrn-month-nav">
         <button class="jrn-nav-btn" onclick="jrnChangeMonth(-1)" aria-label="‹"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -11754,5 +11762,178 @@ function _renderWalletSolana(){
   </div>
 
 </div>
+<style id="hxjw-style">
+.hxjw{display:flex;align-items:center;gap:12px;padding:12px 14px;margin:0 0 10px;border-radius:20px;background:linear-gradient(150deg,rgba(18,30,72,.72),rgba(8,14,36,.82));border:1px solid rgba(110,150,255,.28);box-shadow:0 0 16px rgba(60,100,230,.14)}
+.hxjw-ic{width:38px;height:38px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(125,211,252,.4))}
+.hxjw-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.hxjw-tx b{font-size:14px;color:#fff}
+.hxjw-tx span{font-size:11.5px;color:#9fb0d8;line-height:1.3}
+#jw_log{font-size:10.5px!important;color:#7f8fb5!important;word-break:break-word}
+#jw_btn{flex-shrink:0;padding:9px 14px;border-radius:14px;border:1px solid rgba(34,240,154,.6);background:rgba(34,240,154,.1);color:#bfffe6;font-weight:700;font-size:13px;box-shadow:0 0 12px rgba(34,240,154,.25)}
+#jw_btn[disabled]{opacity:.55}
+</style>
+<script>
+/* Кошелёк → журнал: авто-импорт «Внесено/Снято» из публичного Blockscout */
+var JW_CHAINS=[
+  {k:'ethereum',n:'Ethereum',host:'eth.blockscout.com',nat:'ETH'},
+  {k:'arbitrum',n:'Arbitrum',host:'arbitrum.blockscout.com',nat:'ETH'},
+  {k:'base',n:'Base',host:'base.blockscout.com',nat:'ETH'},
+  {k:'optimism',n:'Optimism',host:'optimism.blockscout.com',nat:'ETH'},
+  {k:'polygon',n:'Polygon',host:'polygon.blockscout.com',nat:'POL'},
+  {k:'gnosis',n:'Gnosis',host:'gnosis.blockscout.com',nat:'XDAI'}
+];
+var JW_MAX_PAGES=20, JW_MIN_USD=1, _jwBusy=false, _jwLast=0;
+var JW_STABLE={usdc:1,usdt:1,dai:1,usde:1,gho:1,fdusd:1,usds:1,pyusd:1,lusd:1,crvusd:1,xdai:1,'usdc.e':1,'usdt.e':1,usdbc:1,susd:1,frax:1,tusd:1};
+var JW_NAT_SYM={ETH:'ETHUSDT',POL:'POLUSDT'};
+function jwRu(){ try{ return lang==='ru'; }catch(e){ return true; } }
+function jwSet(id,t){ var e=document.getElementById(id); if(e && e.textContent!==t) e.textContent=t; }
+function jwHash(str){ var h=5381; for(var i=0;i<str.length;i++){ h=((h<<5)+h+str.charCodeAt(i))>>>0; } return 1000000000+h; }
+async function jwGet(url){
+  for(var a=0;a<2;a++){
+    var ctl=new AbortController(); var to=setTimeout(function(){ctl.abort();},15000);
+    try{
+      var r=await fetch(url,{signal:ctl.signal}); clearTimeout(to);
+      if(r.status===429 && a===0){ await new Promise(function(z){setTimeout(z,1800);}); continue; }
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return await r.json();
+    }catch(e){ clearTimeout(to); if(a===1) throw e; await new Promise(function(z){setTimeout(z,600);}); }
+  }
+}
+function jwQS(o){ var q=[]; for(var k in (o||{})){ if(o[k]!==null&&o[k]!==undefined) q.push(encodeURIComponent(k)+'='+encodeURIComponent(o[k])); } return q.join('&'); }
+async function jwPages(base,firstQS){
+  var items=[], qs=firstQS||'', pages=0, more=false;
+  while(pages<JW_MAX_PAGES){
+    var j=await jwGet(base+(qs?'?'+qs:''));
+    (j.items||[]).forEach(function(x){items.push(x);});
+    pages++;
+    if(j.next_page_params){ qs=(firstQS?firstQS+'&':'')+jwQS(j.next_page_params); more=true; } else { more=false; break; }
+  }
+  return {items:items, truncated:more};
+}
+function jwAddr(o){ return ((o&&(o.hash||o.address_hash||o.address))||'').toLowerCase(); }
+async function jwChain(ch,me){
+  var base='https://'+ch.host+'/api/v2/addresses/'+me;
+  var res={chain:ch,rows:[],skipContract:0,truncated:false};
+  var tt=await jwPages(base+'/token-transfers','type=ERC-20');
+  var nt=await jwPages(base+'/transactions','');
+  res.truncated=tt.truncated||nt.truncated;
+  tt.items.forEach(function(x){
+    var from=jwAddr(x.from), to=jwAddr(x.to); if(from===to) return;
+    var inn=(to===me), out=(from===me); if(!inn&&!out) return;
+    var cp=inn?x.from:x.to; if(cp&&cp.is_contract){ res.skipContract++; return; }
+    var tk=x.token||{}; var dec=parseInt((x.total&&x.total.decimals)||tk.decimals||18,10);
+    var amt=Number((x.total&&x.total.value)||0)/Math.pow(10,dec);
+    res.rows.push({key:ch.k+'|'+x.transaction_hash+'|'+(x.log_index!==undefined?x.log_index:''),ts:x.timestamp,dir:inn?'deposit':'withdraw',sym:String(tk.symbol||'').toLowerCase(),amt:amt,native:false,chain:ch.n});
+  });
+  nt.items.forEach(function(x){
+    var ok=(x.status==='ok')||(x.result==='success'); if(!ok) return;
+    var from=jwAddr(x.from), to=jwAddr(x.to); if(from===to) return;
+    var inn=(to===me), out=(from===me); if(!inn&&!out) return;
+    var v=Number(x.value||0)/1e18; if(!(v>0)) return;
+    var cp=inn?x.from:x.to; if(cp&&cp.is_contract){ res.skipContract++; return; }
+    res.rows.push({key:ch.k+'|'+x.hash+'|native',ts:x.timestamp,dir:inn?'deposit':'withdraw',sym:ch.nat.toLowerCase(),amt:v,native:true,chain:ch.n});
+  });
+  return res;
+}
+var _jwDay={};
+async function jwDayMap(sym,fromMs){
+  var key=sym; if(_jwDay[key]&&_jwDay[key].from<=fromMs) return _jwDay[key].map;
+  var map={}, ok=false;
+  var hosts=['https://data-api.binance.vision','https://api.binance.com'];
+  for(var h=0;h<hosts.length&&!ok;h++){
+    try{
+      var j=await jwGet(hosts[h]+'/api/v3/klines?symbol='+sym+'&interval=1d&limit=1000&startTime='+Math.max(0,fromMs-3*864e5));
+      (j||[]).forEach(function(k){ map[new Date(k[0]).toISOString().slice(0,10)]=parseFloat(k[4]); }); ok=true;
+    }catch(e){}
+  }
+  _jwDay[key]={from:fromMs,map:map}; return map;
+}
+function jwPriceOf(r,maps){
+  var s=r.sym;
+  if(JW_STABLE[s]) return 1;
+  var sym=r.native?JW_NAT_SYM[r.sym.toUpperCase()]:(HX_NAME2SYM[s]||null);
+  if(sym==='STABLE') return 1;
+  if(!sym) return null;
+  var m=maps[sym]; if(!m) return null;
+  var d=String(r.ts).slice(0,10);
+  if(m[d]) return m[d];
+  // ближайший доступный день (±3 дня)
+  for(var i=1;i<=3;i++){
+    var a=new Date(new Date(d).getTime()-i*864e5).toISOString().slice(0,10); if(m[a]) return m[a];
+    var b=new Date(new Date(d).getTime()+i*864e5).toISOString().slice(0,10); if(m[b]) return m[b];
+  }
+  return null;
+}
+async function jwImport(manual){
+  if(_jwBusy) return;
+  var ru=jwRu(), addr=''; try{ addr=(localStorage.getItem('defi_wallet_addr')||'').trim(); }catch(e){}
+  if(!/^0x[0-9a-fA-F]{40}$/.test(addr)){ jwSet('jw_status',ru?'Нужен EVM-адрес кошелька (0x…) — введи его на вкладке «Позиции»':'EVM wallet address (0x…) required'); return; }
+  var me=addr.toLowerCase();
+  _jwBusy=true; var btn=document.getElementById('jw_btn'); if(btn) btn.disabled=true;
+  jwSet('jw_status',ru?'Читаю переводы кошелька…':'Reading wallet transfers…'); jwSet('jw_log','');
+  try{
+    var results=await Promise.all(JW_CHAINS.map(function(ch){ return jwChain(ch,me).catch(function(e){ return {chain:ch,err:String(e&&e.message||e),rows:[],skipContract:0}; }); }));
+    var errs=results.filter(function(r){return r.err;});
+    if(errs.length===results.length){
+      jwSet('jw_status',ru?'Не удалось получить данные ни из одной сети':'No network responded');
+      jwSet('jw_log',errs.map(function(r){return r.chain.n+': '+r.err;}).join(' · '));
+      return;
+    }
+    var rows=[]; results.forEach(function(r){ rows=rows.concat(r.rows); });
+    // цены: суточные свечи Binance по нужным тикерам
+    var need={}; rows.forEach(function(r){
+      if(JW_STABLE[r.sym]) return;
+      var sym=r.native?JW_NAT_SYM[r.sym.toUpperCase()]:(HX_NAME2SYM[r.sym]||null);
+      if(sym&&sym!=='STABLE'){ var t=new Date(r.ts).getTime(); if(!need[sym]||t<need[sym]) need[sym]=t; }
+    });
+    var maps={}; for(var sy in need){ maps[sy]=await jwDayMap(sy,need[sy]); }
+    var entries=[]; try{ entries=JSON.parse(localStorage.getItem('defi_journal')||'[]'); }catch(e){ entries=[]; }
+    var have={}; entries.forEach(function(e){ if(e.key) have[e.key]=1; });
+    var added=0,noPrice=0,dust=0,dep=0,wd=0;
+    rows.sort(function(a,b){return new Date(a.ts)-new Date(b.ts);});
+    rows.forEach(function(r){
+      if(have[r.key]) return;
+      var pr=jwPriceOf(r,maps); if(pr===null){ noPrice++; return; }
+      var usd=r.amt*pr; if(!(usd>=JW_MIN_USD)){ dust++; return; }
+      entries.push({id:jwHash(r.key),key:r.key,date:String(r.ts).slice(0,10),ts:r.ts,type:r.dir,amountUSD:Math.round(usd*100)/100,source:'wallet',
+        note:r.sym.toUpperCase()+' '+(r.amt>=1?r.amt.toFixed(4):r.amt.toPrecision(3))+' · '+r.chain+(ru?' (авто)':' (auto)'),auto:true});
+      added++; if(r.dir==='deposit') dep++; else wd++;
+    });
+    entries.sort(function(a,b){return new Date(b.ts||b.date)-new Date(a.ts||a.date);});
+    localStorage.setItem('defi_journal',JSON.stringify(entries));
+    localStorage.setItem('defi_jw_enabled','1'); _jwLast=Date.now();
+    try{ renderJournal(); }catch(e){}
+    var skipC=0; results.forEach(function(r){skipC+=r.skipContract||0;});
+    var used=results.filter(function(r){return !r.err&&r.rows.length;}).map(function(r){return r.chain.n;});
+    var d=new Date(), hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+    jwSet('jw_status',(ru?'Обновлено ':'Updated ')+hh+' · '+(ru?'новых: ':'new: ')+added+' ('+(ru?'внесено ':'in ')+dep+', '+(ru?'снято ':'out ')+wd+')');
+    var log=[]; if(used.length) log.push((ru?'сети: ':'chains: ')+used.join(', ')); else log.push(ru?'переводов не найдено':'no transfers found');
+    if(skipC) log.push((ru?'пропущено переводов с контрактами: ':'skipped contract transfers: ')+skipC);
+    if(noPrice) log.push((ru?'без цены: ':'no price: ')+noPrice);
+    if(dust) log.push((ru?'пыль <$1: ':'dust <$1: ')+dust);
+    if(errs.length) log.push((ru?'ошибка: ':'errors: ')+errs.map(function(r){return r.chain.n+' ('+r.err+')';}).join(', '));
+    if(results.some(function(r){return r.truncated;})) log.push(ru?'история обрезана (старые переводы не загружены)':'history truncated');
+    jwSet('jw_log',log.join(' · '));
+  }catch(e){
+    jwSet('jw_status',(ru?'Ошибка импорта: ':'Import error: ')+(e&&e.message||e));
+  }finally{ _jwBusy=false; if(btn){ btn.disabled=false; } jwSet('jw_btn',jwRu()?'Обновить':'Refresh'); }
+}
+function jwAuto(){
+  try{
+    if(localStorage.getItem('defi_jw_enabled')!=='1'||_jwBusy||document.visibilityState==='hidden') return;
+    if(Date.now()-_jwLast<10*60*1000) return;
+    _jwLast=Date.now(); jwImport(false);
+  }catch(e){}
+}
+(function(){
+  function boot(){
+    try{ if(localStorage.getItem('defi_jw_enabled')==='1') jwSet('jw_btn',jwRu()?'Обновить':'Refresh'); }catch(e){}
+    setTimeout(jwAuto,6000);
+    setInterval(jwAuto,5*60*1000);
+    document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') jwAuto(); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+</script>
 </body>
 </html>
