@@ -10384,7 +10384,19 @@ async function walletDiag(){
   var put = function(t){ lines.push(t); out.textContent = lines.join('\n'); out.scrollTop = out.scrollHeight; };
   document.getElementById('wdiag-close').onclick = function(){ box.remove(); };
   document.getElementById('wdiag-copy').onclick = function(){ try{ navigator.clipboard.writeText(lines.join('\n')); this.textContent = 'Скопировано'; }catch(e){ this.textContent = 'Выдели текст вручную'; } };
-  if(!/^0x[0-9a-fA-F]{40}$/.test(addr)){ put('Нужен EVM-адрес (0x…). Введи адрес в поле кошелька и нажми проверку снова.'); return; }
+  if(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr)){
+    put('Адрес Solana: ' + addr.slice(0,6) + '…' + addr.slice(-6) + '\nAPK-версия: ' + (window.AndroidBridge && AndroidBridge.getVersionName ? AndroidBridge.getVersionName() : 'web') + '\n');
+    var sjobs = [];
+    var hk = (typeof HELIUS_KEY !== 'undefined') ? HELIUS_KEY : '';
+    var tst = async function(label, fn){ var t0 = Date.now(); try{ var r = await fn(); put('[OK , ' + (Date.now()-t0) + ' мс] ' + label + '\n   ' + r); }catch(e){ put('[СБОЙ, ' + (Date.now()-t0) + ' мс] ' + label + '\n   ' + (e && e.name === 'AbortError' ? 'таймаут' : (e && e.message))); } };
+    sjobs.push(tst('Helius balances', async function(){ var r = await fetch('https://api.helius.xyz/v0/addresses/' + addr + '/balances?api-key=' + hk, {signal: _abortAfter(12000)}); var tx = await r.text(); if(!r.ok) throw new Error('HTTP ' + r.status + ': ' + tx.slice(0,200)); return 'HTTP 200: ' + tx.slice(0,300); }));
+    sjobs.push(tst('Helius transactions (для журнала)', async function(){ var r = await fetch('https://api.helius.xyz/v0/addresses/' + addr + '/transactions?api-key=' + hk + '&limit=5', {signal: _abortAfter(12000)}); var tx = await r.text(); if(!r.ok) throw new Error('HTTP ' + r.status + ': ' + tx.slice(0,200)); var j = JSON.parse(tx); return 'HTTP 200, транзакций: ' + (Array.isArray(j) ? j.length : '?'); }));
+    SOL_RPCS.forEach(function(u){ sjobs.push(tst('Solana RPC ' + u.replace('https://',''), async function(){ var d = await _solRpcBatch(u, addr); return 'SOL ' + d.sol + ', токен-аккаунтов: ' + d.tokens.length + (d.tokErr ? ' (ошибок токенов: ' + d.tokErr + ')' : ''); })); });
+    await Promise.all(sjobs);
+    put('\nГотово. Нажми «Копировать» и пришли текст мне.');
+    return;
+  }
+  if(!/^0x[0-9a-fA-F]{40}$/.test(addr)){ put('Нужен адрес (0x… или Solana). Введи адрес в поле кошелька и нажми проверку снова.'); return; }
   var a = addr.toLowerCase();
   put('Адрес: ' + a.slice(0,8) + '…' + a.slice(-6) + '\nAPK-версия: ' + (window.AndroidBridge && AndroidBridge.getVersionName ? AndroidBridge.getVersionName() : 'web') + '\n');
   var show = function(j, n){ var s0; try{ s0 = JSON.stringify(j); }catch(e){ s0 = String(j); } return s0.length > n ? s0.slice(0,n) + '…(+' + (s0.length-n) + ')' : s0; };
@@ -11030,6 +11042,40 @@ var _walletSolanaData = null;
 var _walletEVMData    = null; // ankrResult для EVM кошелька (нативный баланс)
 var HELIUS_KEY = 'ce08d37d-c077-48c0-b2a9-89063d48d897';
 
+var SOL_RPCS=['https://solana-rpc.publicnode.com','https://api.mainnet-beta.solana.com','https://solana.drpc.org'];
+async function _solRpcBatch(url,addr){
+  var body=[
+    {jsonrpc:'2.0',id:1,method:'getBalance',params:[addr]},
+    {jsonrpc:'2.0',id:2,method:'getTokenAccountsByOwner',params:[addr,{programId:'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'},{encoding:'jsonParsed'}]},
+    {jsonrpc:'2.0',id:3,method:'getTokenAccountsByOwner',params:[addr,{programId:'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'},{encoding:'jsonParsed'}]}
+  ];
+  var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:_abortAfter(10000)});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  var j=await r.json(); if(!Array.isArray(j)) throw new Error('bad response');
+  var by={}; j.forEach(function(x){ by[x.id]=x; });
+  if(!by[1]||by[1].error||!by[1].result) throw new Error('getBalance: '+JSON.stringify((by[1]||{}).error||'нет ответа').slice(0,80));
+  var tokens=[], tokErr=0;
+  [2,3].forEach(function(id){
+    var x=by[id]; if(!x||x.error||!x.result){ tokErr++; return; }
+    (x.result.value||[]).forEach(function(acc){
+      var inf=(((acc.account||{}).data||{}).parsed||{}).info||{}; var ta=inf.tokenAmount||{};
+      if(!(parseFloat(ta.amount||0)>0)) return;
+      tokens.push({mint:inf.mint,amount:ta.amount,decimals:ta.decimals,tokenAccount:acc.pubkey});
+    });
+  });
+  return {sol:(by[1].result.value||0)/1e9,tokens:tokens,tokErr:tokErr};
+}
+async function _solanaLoadRPC(addr){
+  for(var i=0;i<SOL_RPCS.length;i++){
+    try{
+      var d=await _solRpcBatch(SOL_RPCS[i],addr);
+      _walletSolanaData={source:'Solana RPC ('+SOL_RPCS[i].replace('https://','')+')',solBalance:d.sol,tokens:d.tokens,defiPositions:[]};
+      console.log('[Solana RPC] ok',SOL_RPCS[i],d.sol,d.tokens.length);
+      return true;
+    }catch(e){ console.warn('[Solana RPC] '+SOL_RPCS[i]+': '+(e&&e.message)); }
+  }
+  return false;
+}
 async function walletLoadSolana(addr){
   _walletSolanaData = null;
 
@@ -11038,6 +11084,14 @@ async function walletLoadSolana(addr){
   if(heliusOk){
     _renderWalletSolana();
     // Обновляем главный экран — добавляем Solana в портфель
+    if(typeof calc === 'function') calc();
+    return true;
+  }
+
+  // Шаг 1b: публичный Solana RPC (SOL + SPL-токены, без ключа)
+  var rpcOk = await _solanaLoadRPC(addr);
+  if(rpcOk){
+    _renderWalletSolana();
     if(typeof calc === 'function') calc();
     return true;
   }
