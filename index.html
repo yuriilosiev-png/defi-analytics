@@ -11784,7 +11784,7 @@ var JW_CHAINS=[
 ];
 var JW_MAX_PAGES=20, JW_MIN_USD=1, _jwBusy=false, _jwLast=0;
 var JW_STABLE={usdc:1,usdt:1,dai:1,usde:1,gho:1,fdusd:1,usds:1,pyusd:1,lusd:1,crvusd:1,xdai:1,'usdc.e':1,'usdt.e':1,usdbc:1,susd:1,frax:1,tusd:1};
-var JW_NAT_SYM={ETH:'ETHUSDT',POL:'POLUSDT'};
+var JW_NAT_SYM={ETH:'ETHUSDT',POL:'POLUSDT',SOL:'SOLUSDT'};
 function jwRu(){ try{ return lang==='ru'; }catch(e){ return true; } }
 function jwSet(id,t){ var e=document.getElementById(id); if(e && e.textContent!==t) e.textContent=t; }
 function jwHash(str){ var h=5381; for(var i=0;i<str.length;i++){ h=((h<<5)+h+str.charCodeAt(i))>>>0; } return 1000000000+h; }
@@ -11864,15 +11864,49 @@ function jwPriceOf(r,maps){
   }
   return null;
 }
+var JW_SOL_MINT={'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':'usdc','Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB':'usdt','So11111111111111111111111111111111111111112':'sol','2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo':'pyusd'};
+function jwIsSol(a){ return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a); }
+async function jwSolana(me){
+  var ch={k:'solana',n:'Solana'}; var res={chain:ch,rows:[],skipContract:0,truncated:false};
+  var before='', pages=0;
+  while(pages<10){
+    var url='https://api.helius.xyz/v0/addresses/'+me+'/transactions?api-key='+HELIUS_KEY+'&limit=100'+(before?'&before='+before:'');
+    var j=await jwGet(url);
+    if(!Array.isArray(j)) throw new Error('bad response');
+    j.forEach(function(t){
+      if(t.transactionError) return;
+      if(t.type!=='TRANSFER'){ if((t.nativeTransfers&&t.nativeTransfers.length)||(t.tokenTransfers&&t.tokenTransfers.length)) res.skipContract++; return; }
+      var ts=new Date((t.timestamp||0)*1000).toISOString(), idx=0;
+      (t.nativeTransfers||[]).forEach(function(x){
+        var f=x.fromUserAccount, o=x.toUserAccount; idx++;
+        if(f===o) return; var inn=(o===me), out=(f===me); if(!inn&&!out) return;
+        var v=Number(x.amount||0)/1e9; if(!(v>0)) return;
+        res.rows.push({key:'solana|'+t.signature+'|n'+idx,ts:ts,dir:inn?'deposit':'withdraw',sym:'sol',amt:v,native:true,chain:'Solana'});
+      });
+      (t.tokenTransfers||[]).forEach(function(x){
+        var f=x.fromUserAccount, o=x.toUserAccount; idx++;
+        if(f===o) return; var inn=(o===me), out=(f===me); if(!inn&&!out) return;
+        var sym=JW_SOL_MINT[x.mint]||('mint:'+String(x.mint||'').slice(0,4));
+        var a=Number(x.tokenAmount||0); if(!(a>0)) return;
+        res.rows.push({key:'solana|'+t.signature+'|t'+idx,ts:ts,dir:inn?'deposit':'withdraw',sym:sym,amt:a,native:false,chain:'Solana'});
+      });
+    });
+    pages++;
+    if(j.length<100) break;
+    before=j[j.length-1].signature; if(pages>=10) res.truncated=true;
+  }
+  return res;
+}
 async function jwImport(manual){
   if(_jwBusy) return;
   var ru=jwRu(), addr=''; try{ addr=(localStorage.getItem('defi_wallet_addr')||'').trim(); }catch(e){}
-  if(!/^0x[0-9a-fA-F]{40}$/.test(addr)){ jwSet('jw_status',ru?'Нужен EVM-адрес кошелька (0x…) — введи его на вкладке «Позиции»':'EVM wallet address (0x…) required'); return; }
-  var me=addr.toLowerCase();
+  var isSol=jwIsSol(addr);
+  if(!isSol && !/^0x[0-9a-fA-F]{40}$/.test(addr)){ jwSet('jw_status',ru?'Нужен адрес кошелька (0x… или Solana) — введи его на вкладке «Позиции»':'Wallet address (0x… or Solana) required'); return; }
+  var me=isSol?addr:addr.toLowerCase();
   _jwBusy=true; var btn=document.getElementById('jw_btn'); if(btn) btn.disabled=true;
   jwSet('jw_status',ru?'Читаю переводы кошелька…':'Reading wallet transfers…'); jwSet('jw_log','');
   try{
-    var results=await Promise.all(JW_CHAINS.map(function(ch){ return jwChain(ch,me).catch(function(e){ return {chain:ch,err:String(e&&e.message||e),rows:[],skipContract:0}; }); }));
+    var results=isSol ? [await jwSolana(me).catch(function(e){ return {chain:{k:'solana',n:'Solana'},err:String(e&&e.message||e),rows:[],skipContract:0}; })] : await Promise.all(JW_CHAINS.map(function(ch){ return jwChain(ch,me).catch(function(e){ return {chain:ch,err:String(e&&e.message||e),rows:[],skipContract:0}; }); }));
     var errs=results.filter(function(r){return r.err;});
     if(errs.length===results.length){
       jwSet('jw_status',ru?'Не удалось получить данные ни из одной сети':'No network responded');
