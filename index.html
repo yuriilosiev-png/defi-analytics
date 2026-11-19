@@ -1410,6 +1410,13 @@ html, body { overflow-x: hidden; max-width: 100%; }
       </div>
 
 
+      <!-- Период: месяц / год / всё время -->
+      <div class="hxj-seg" id="jrn_seg">
+        <button id="jrn_seg_month" onclick="jrnSetPeriod('month')">Месяц</button>
+        <button id="jrn_seg_year" onclick="jrnSetPeriod('year')">Год</button>
+        <button id="jrn_seg_all" onclick="jrnSetPeriod('all')">Всё время</button>
+      </div>
+
       <!-- Навигация по месяцам -->
       <div class="jrn-month-nav">
         <button class="jrn-nav-btn" onclick="jrnChangeMonth(-1)" aria-label="‹"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -1445,6 +1452,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
       </div>
 
       <!-- P&L Chart -->
+      <div id="jrn_breakdown"></div>
+
       <div class="chart-placeholder" id="chart_placeholder">
         <svg class="hxj-pl-art" viewBox="0 0 170 120" aria-hidden="true"><defs><linearGradient id="hxpa1" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#c026d3"/><stop offset=".5" stop-color="#3b82f6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient><linearGradient id="hxpa2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#22d3ee"/></linearGradient><linearGradient id="hxpa3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#34d399"/></linearGradient><filter id="hxpg" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter></defs>
 <rect x="8" y="14" width="130" height="92" rx="9" fill="rgba(40,70,160,.35)" stroke="rgba(120,170,255,.5)" stroke-width="1.2"/><g stroke="rgba(150,190,255,.18)"><path d="M8 36H138M8 58H138M8 80H138M40 14V106M72 14V106M104 14V106"/></g>
@@ -2771,10 +2780,15 @@ var MONTH_NAMES_EN = ['January','February','March','April','May','June','July','
 
 // ─── JOURNAL MONTH NAVIGATION ───
 var jrnViewMonth = new Date().getMonth();
+var jrnPeriod = 'month';   // 'month' | 'year' | 'all'
 var jrnViewYear  = new Date().getFullYear();
 
 function jrnChangeMonth(dir){
-  if(dir === 0){ jrnViewMonth = new Date().getMonth(); jrnViewYear = new Date().getFullYear(); }
+  if(jrnPeriod === 'all') return;
+  if(jrnPeriod === 'year'){
+    if(dir === 0) jrnViewYear = new Date().getFullYear(); else jrnViewYear += dir;
+  }
+  else if(dir === 0){ jrnViewMonth = new Date().getMonth(); jrnViewYear = new Date().getFullYear(); }
   else {
     jrnViewMonth += dir;
     if(jrnViewMonth > 11){ jrnViewMonth = 0; jrnViewYear++; }
@@ -4505,8 +4519,9 @@ function getJrnEntries(){ try{ return JSON.parse(localStorage.getItem('defi_jour
 function renderJournal(){
   const entries = getJrnEntries();
   const MN = lang==='ru' ? MONTH_NAMES_RU : MONTH_NAMES_EN;
-  const monthLabel = MN[jrnViewMonth] + ' ' + jrnViewYear;
+  const monthLabel = jrnPeriod==='all' ? (lang==='ru'?'Всё время':'All time') : jrnPeriod==='year' ? String(jrnViewYear) : (MN[jrnViewMonth] + ' ' + jrnViewYear);
   setEl('jrn_month_lbl', monthLabel);
+  jrnSyncPeriodUI();
 
   // Годовая статистика
   const yearEl = document.getElementById('jrn_year_stats');
@@ -4519,7 +4534,7 @@ function renderJournal(){
       if(e.type==='income'||e.type==='reward') yIncome+=a;
       if(e.type==='fee') yFees+=a;
     });
-    if(yIn>0||yIncome>0){
+    if((yIn>0||yIncome>0) && jrnPeriod==='month'){
       var mono = "Space Mono";
       var ru = (lang==='ru');
       var yearTitle = ru ? ('📊 Итого за '+jrnViewYear+' год') : ('📊 Total for '+jrnViewYear);
@@ -4541,9 +4556,12 @@ function renderJournal(){
 
   // Фильтруем за текущий месяц
   const monthEntries = entries.filter(e=>{
+    if(jrnPeriod==='all') return true;
     const d=new Date(e.date||e.ts||'');
+    if(jrnPeriod==='year') return d.getFullYear()===jrnViewYear;
     return d.getMonth()===jrnViewMonth && d.getFullYear()===jrnViewYear;
   });
+  jrnRenderBreakdown(entries);
 
   // Глобальные суммы (все записи)
   let totalIn=0,totalOut=0,totalEarned=0,totalFees=0;
@@ -4599,7 +4617,7 @@ function renderJournal(){
 
   const listEl=document.getElementById('jrn_entries_list'); if(!listEl) return;
   if(!monthEntries.length){
-    listEl.innerHTML='<div class="empty-state"><div class="empty-icon">📓</div><div class="empty-title">'+(lang==='ru'?'Нет записей за ':'No entries for ')+MN[jrnViewMonth]+'</div><div class="empty-sub">'+(lang==='ru'?'Добавь первую запись кнопкой «Запись»':'Add the first entry using the "Entry" button')+'</div><button class="hxj-empty-btn" onclick="openAddEntry()"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v9M7.5 12h9"/></svg><span>'+(lang==='ru'?'Запись':'Entry')+'</span></button></div>';
+    listEl.innerHTML='<div class="empty-state"><div class="empty-icon">📓</div><div class="empty-title">'+(lang==='ru'?'Нет записей за ':'No entries for ')+(jrnPeriod==='all'?(lang==='ru'?'всё время':'all time'):jrnPeriod==='year'?jrnViewYear:MN[jrnViewMonth])+'</div><div class="empty-sub">'+(lang==='ru'?'Добавь первую запись кнопкой «Запись»':'Add the first entry using the "Entry" button')+'</div><button class="hxj-empty-btn" onclick="openAddEntry()"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v9M7.5 12h9"/></svg><span>'+(lang==='ru'?'Запись':'Entry')+'</span></button></div>';
     return;
   }
 
@@ -4617,7 +4635,7 @@ function renderJournal(){
     fee:      {icon:'💸',label:'Fee',        color:'var(--red)'},
   };
 
-  const sorted=[...monthEntries].sort((a,b)=>new Date(b.date||b.ts||'')-new Date(a.date||a.ts||''));
+  const sorted=[...monthEntries].sort((a,b)=>new Date(b.date||b.ts||'')-new Date(a.date||a.ts||'')).slice(0,150);
   const byDate={};
   sorted.forEach(e=>{ const d=(e.date||e.ts||'').slice(0,10); if(!byDate[d]) byDate[d]=[]; byDate[d].push(e); });
 
@@ -4636,7 +4654,7 @@ function renderJournal(){
 
   const balance=mIn-mOut+mIncome-mFees;
   html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;margin-top:8px">'
-    +'<span style="font-size:11px;color:var(--green)">Баланс '+MN[jrnViewMonth]+'</span>'
+    +'<span style="font-size:11px;color:var(--green)">'+(lang==='ru'?'Баланс ':'Balance ')+(jrnPeriod==='all'?(lang==='ru'?'за всё время':'all time'):jrnPeriod==='year'?jrnViewYear:MN[jrnViewMonth])+(monthEntries.length>150?(lang==='ru'?' · показано 150 последних записей':' · last 150 shown'):'')+'</span>'
     +'<span style="font-size:14px;font-weight:700;color:'+(balance>=0?'var(--green)':'var(--red)')+'">'+  (balance>=0?'+':'')+'$'+Math.abs(balance).toFixed(2)+'</span></div>';
 
   listEl.innerHTML=html;
@@ -12024,6 +12042,61 @@ function jwAuto(){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
 })();
+</script>
+<style id="hxjp-style">
+.hxj-seg{display:flex;gap:6px;padding:4px;margin:0 0 10px;border-radius:16px;background:rgba(10,18,46,.7);border:1px solid rgba(110,150,255,.22)}
+.hxj-seg button{flex:1;padding:9px 6px;border-radius:12px;border:1px solid transparent;background:transparent;color:#9fb0d8;font-weight:700;font-size:13px}
+.hxj-seg button.on{color:#e9fff6;border-color:#22f09a;background:linear-gradient(180deg,rgba(20,60,70,.75),rgba(10,26,50,.85));box-shadow:0 0 14px rgba(34,240,154,.4),inset 0 0 12px rgba(34,240,154,.12)}
+#jrn_breakdown{margin:0 0 12px}
+.hxj-bd{border-radius:20px;border:1px solid rgba(110,150,255,.25);background:linear-gradient(160deg,rgba(18,30,72,.7),rgba(8,14,36,.82));overflow:hidden}
+.hxj-bd-h,.hxj-bd-r{display:grid;grid-template-columns:1.05fr 1fr 1fr 1fr;gap:6px;padding:9px 12px;align-items:center;font-family:'Space Mono',monospace}
+.hxj-bd-h{font-size:9.5px;color:#8b9bc4;text-transform:uppercase;border-bottom:1px solid rgba(110,150,255,.18)}
+.hxj-bd-h span:not(:first-child),.hxj-bd-r span:not(:first-child){text-align:right}
+.hxj-bd-r{font-size:11.5px;color:#e8eeff;border-bottom:1px solid rgba(110,150,255,.08);cursor:pointer}
+.hxj-bd-r:last-child{border-bottom:none}
+.hxj-bd-r.z{opacity:.35}
+.hxj-bd-r.cur{background:rgba(34,240,154,.07)}
+.hxj-bd-r.tot{background:rgba(124,58,237,.14);font-weight:700;cursor:default}
+.hxj-bd-r .a{color:#7dd3fc}.hxj-bd-r .b{color:#ffb02e}.hxj-bd-r .c{color:#22f09a}
+</style>
+<script>
+function jrnSetPeriod(p){ jrnPeriod=p; try{ renderJournal(); }catch(e){} }
+function jrnSyncPeriodUI(){
+  var ru=(lang==='ru'), map={month:ru?'Месяц':'Month',year:ru?'Год':'Year',all:ru?'Всё время':'All time'};
+  ['month','year','all'].forEach(function(k){ var b=document.getElementById('jrn_seg_'+k); if(!b) return; b.classList.toggle('on',jrnPeriod===k); if(b.textContent!==map[k]) b.textContent=map[k]; });
+  document.querySelectorAll('#screen-journal .jrn-nav-btn').forEach(function(b){ b.style.visibility=(jrnPeriod==='all')?'hidden':''; });
+}
+function jrnRenderBreakdown(entries){
+  var box=document.getElementById('jrn_breakdown'); if(!box) return;
+  if(jrnPeriod==='month'){ if(box.innerHTML) box.innerHTML=''; return; }
+  var ru=(lang==='ru'), MN=ru?MONTH_NAMES_RU:MONTH_NAMES_EN;
+  function z(){ return {i:0,o:0,inc:0,fee:0,n:0}; }
+  function add(g,e){ var a=parseFloat(e.amountUSD||e.amount)||0; g.n++; if(e.type==='deposit') g.i+=a; else if(e.type==='withdraw') g.o+=a; else if(e.type==='income'||e.type==='reward') g.inc+=a; else if(e.type==='fee') g.fee+=a; }
+  function f(v){ return v?'$'+Math.round(v).toLocaleString('en-US'):'—'; }
+  var rows=[], groups={}, keys=[];
+  if(jrnPeriod==='year'){
+    for(var m=0;m<12;m++){ groups[m]=z(); keys.push(m); }
+    entries.forEach(function(e){ var d=new Date(e.date||e.ts||''); if(d.getFullYear()===jrnViewYear) add(groups[d.getMonth()],e); });
+  } else {
+    entries.forEach(function(e){ var y=new Date(e.date||e.ts||'').getFullYear(); if(isNaN(y)) return; if(!groups[y]){ groups[y]=z(); keys.push(y); } add(groups[y],e); });
+    keys.sort(function(a,b){return b-a;});
+  }
+  var tot=z(), nowM=new Date().getMonth(), nowY=new Date().getFullYear(), html='';
+  html+='<div class="hxj-bd"><div class="hxj-bd-h"><span>'+(jrnPeriod==='year'?(ru?'Месяц':'Month'):(ru?'Год':'Year'))+'</span><span>'+(ru?'Внесено':'In')+'</span><span>'+(ru?'Снято':'Out')+'</span><span>'+(ru?'Доход':'Income')+'</span></div>';
+  keys.forEach(function(k){
+    var g=groups[k]; tot.i+=g.i; tot.o+=g.o; tot.inc+=g.inc; tot.fee+=g.fee; tot.n+=g.n;
+    var cur=(jrnPeriod==='year')?(k===nowM&&jrnViewYear===nowY):(k===nowY);
+    var name=(jrnPeriod==='year')?MN[k].slice(0,3):String(k);
+    html+='<div class="hxj-bd-r'+(g.n?'':' z')+(cur?' cur':'')+'" onclick="jrnPick('+k+')"><span>'+name+'</span><span class="a">'+f(g.i)+'</span><span class="b">'+f(g.o)+'</span><span class="c">'+f(g.inc-g.fee)+'</span></div>';
+  });
+  html+='<div class="hxj-bd-r tot"><span>'+(ru?'Итого':'Total')+'</span><span class="a">'+f(tot.i)+'</span><span class="b">'+f(tot.o)+'</span><span class="c">'+f(tot.inc-tot.fee)+'</span></div></div>';
+  if(box.innerHTML!==html) box.innerHTML=html;
+}
+function jrnPick(k){
+  if(jrnPeriod==='year'){ jrnViewMonth=k; jrnPeriod='month'; }
+  else { jrnViewYear=k; jrnPeriod='year'; }
+  try{ renderJournal(); }catch(e){}
+}
 </script>
 </body>
 </html>
