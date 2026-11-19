@@ -10389,9 +10389,9 @@ async function walletDiag(){
     var sjobs = [];
     var hk = (typeof HELIUS_KEY !== 'undefined') ? HELIUS_KEY : '';
     var tst = async function(label, fn){ var t0 = Date.now(); try{ var r = await fn(); put('[OK , ' + (Date.now()-t0) + ' мс] ' + label + '\n   ' + r); }catch(e){ put('[СБОЙ, ' + (Date.now()-t0) + ' мс] ' + label + '\n   ' + (e && e.name === 'AbortError' ? 'таймаут' : (e && e.message))); } };
-    sjobs.push(tst('Helius balances', async function(){ var r = await fetch('https://api.helius.xyz/v0/addresses/' + addr + '/balances?api-key=' + hk, {signal: _abortAfter(12000)}); var tx = await r.text(); if(!r.ok) throw new Error('HTTP ' + r.status + ': ' + tx.slice(0,200)); return 'HTTP 200: ' + tx.slice(0,300); }));
+    sjobs.push(tst('Helius balances (старый эндпоинт, ожидаемо 404)', async function(){ var r = await fetch('https://api.helius.xyz/v0/addresses/' + addr + '/balances?api-key=' + hk, {signal: _abortAfter(12000)}); var tx = await r.text(); if(!r.ok) throw new Error('HTTP ' + r.status + ': ' + tx.slice(0,200)); return 'HTTP 200: ' + tx.slice(0,300); }));
     sjobs.push(tst('Helius transactions (для журнала)', async function(){ var r = await fetch('https://api.helius.xyz/v0/addresses/' + addr + '/transactions?api-key=' + hk + '&limit=5', {signal: _abortAfter(12000)}); var tx = await r.text(); if(!r.ok) throw new Error('HTTP ' + r.status + ': ' + tx.slice(0,200)); var j = JSON.parse(tx); return 'HTTP 200, транзакций: ' + (Array.isArray(j) ? j.length : '?'); }));
-    SOL_RPCS.forEach(function(u){ sjobs.push(tst('Solana RPC ' + u.replace('https://',''), async function(){ var d = await _solRpcBatch(u, addr); return 'SOL ' + d.sol + ', токен-аккаунтов: ' + d.tokens.length + (d.tokErr ? ' (ошибок токенов: ' + d.tokErr + ')' : ''); })); });
+    SOL_RPCS.forEach(function(u){ sjobs.push(tst('Solana RPC ' + _solRpcName(u), async function(){ var d = await _solRpcBatch(u, addr); return 'SOL ' + d.sol + ', токен-аккаунтов: ' + d.tokens.length + (d.tokErr ? ' (ошибок токенов: ' + d.tokErr + ')' : ''); })); });
     await Promise.all(sjobs);
     put('\nГотово. Нажми «Копировать» и пришли текст мне.');
     return;
@@ -11042,37 +11042,39 @@ var _walletSolanaData = null;
 var _walletEVMData    = null; // ankrResult для EVM кошелька (нативный баланс)
 var HELIUS_KEY = 'ce08d37d-c077-48c0-b2a9-89063d48d897';
 
-var SOL_RPCS=['https://solana-rpc.publicnode.com','https://api.mainnet-beta.solana.com','https://solana.drpc.org'];
-async function _solRpcBatch(url,addr){
-  var body=[
-    {jsonrpc:'2.0',id:1,method:'getBalance',params:[addr]},
-    {jsonrpc:'2.0',id:2,method:'getTokenAccountsByOwner',params:[addr,{programId:'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'},{encoding:'jsonParsed'}]},
-    {jsonrpc:'2.0',id:3,method:'getTokenAccountsByOwner',params:[addr,{programId:'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'},{encoding:'jsonParsed'}]}
-  ];
-  var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:_abortAfter(10000)});
+var SOL_RPCS=['https://mainnet.helius-rpc.com/?api-key='+HELIUS_KEY,'https://solana-rpc.publicnode.com','https://solana.drpc.org','https://api.mainnet-beta.solana.com'];
+function _solRpcName(u){ return String(u).replace('https://','').split('?')[0]; }
+async function _solRpcCall(url,method,params){
+  var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:method,params:params}),signal:_abortAfter(10000)});
   if(!r.ok) throw new Error('HTTP '+r.status);
-  var j=await r.json(); if(!Array.isArray(j)) throw new Error('bad response');
-  var by={}; j.forEach(function(x){ by[x.id]=x; });
-  if(!by[1]||by[1].error||!by[1].result) throw new Error('getBalance: '+JSON.stringify((by[1]||{}).error||'нет ответа').slice(0,80));
+  var j=await r.json(); if(j.error) throw new Error(method+': '+String(j.error.message||JSON.stringify(j.error)).slice(0,80));
+  return j.result;
+}
+async function _solRpcBatch(url,addr){
+  var res=await Promise.all([
+    _solRpcCall(url,'getBalance',[addr]),
+    _solRpcCall(url,'getTokenAccountsByOwner',[addr,{programId:'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'},{encoding:'jsonParsed'}]).catch(function(e){ return {err:e}; }),
+    _solRpcCall(url,'getTokenAccountsByOwner',[addr,{programId:'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'},{encoding:'jsonParsed'}]).catch(function(e){ return {err:e}; })
+  ]);
   var tokens=[], tokErr=0;
-  [2,3].forEach(function(id){
-    var x=by[id]; if(!x||x.error||!x.result){ tokErr++; return; }
-    (x.result.value||[]).forEach(function(acc){
+  [res[1],res[2]].forEach(function(x){
+    if(!x||x.err){ tokErr++; return; }
+    (x.value||[]).forEach(function(acc){
       var inf=(((acc.account||{}).data||{}).parsed||{}).info||{}; var ta=inf.tokenAmount||{};
       if(!(parseFloat(ta.amount||0)>0)) return;
       tokens.push({mint:inf.mint,amount:ta.amount,decimals:ta.decimals,tokenAccount:acc.pubkey});
     });
   });
-  return {sol:(by[1].result.value||0)/1e9,tokens:tokens,tokErr:tokErr};
+  return {sol:((res[0]&&res[0].value)||0)/1e9,tokens:tokens,tokErr:tokErr};
 }
 async function _solanaLoadRPC(addr){
   for(var i=0;i<SOL_RPCS.length;i++){
     try{
       var d=await _solRpcBatch(SOL_RPCS[i],addr);
-      _walletSolanaData={source:'Solana RPC ('+SOL_RPCS[i].replace('https://','')+')',solBalance:d.sol,tokens:d.tokens,defiPositions:[]};
-      console.log('[Solana RPC] ok',SOL_RPCS[i],d.sol,d.tokens.length);
+      _walletSolanaData={source:'Solana RPC ('+_solRpcName(SOL_RPCS[i])+')',solBalance:d.sol,tokens:d.tokens,defiPositions:[]};
+      console.log('[Solana RPC] ok',_solRpcName(SOL_RPCS[i]),d.sol,d.tokens.length);
       return true;
-    }catch(e){ console.warn('[Solana RPC] '+SOL_RPCS[i]+': '+(e&&e.message)); }
+    }catch(e){ console.warn('[Solana RPC] '+_solRpcName(SOL_RPCS[i])+': '+(e&&e.message)); }
   }
   return false;
 }
