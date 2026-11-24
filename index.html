@@ -11859,7 +11859,7 @@ var JW_CHAINS=[
   {k:'gnosis',n:'Gnosis',host:'gnosis.blockscout.com',nat:'XDAI'}
 ];
 var JW_MAX_PAGES=20, JW_MIN_USD=1, _jwBusy=false, _jwLast=0;
-var JW_STABLE={usdc:1,usdt:1,dai:1,usde:1,gho:1,fdusd:1,usds:1,pyusd:1,lusd:1,crvusd:1,xdai:1,'usdc.e':1,'usdt.e':1,usdbc:1,susd:1,frax:1,tusd:1};
+var JW_STABLE={usdt0:1,usdtb:1,usd0:1,usdc:1,usdt:1,dai:1,usde:1,gho:1,fdusd:1,usds:1,pyusd:1,lusd:1,crvusd:1,xdai:1,'usdc.e':1,'usdt.e':1,usdbc:1,susd:1,frax:1,tusd:1};
 var JW_NAT_SYM={ETH:'ETHUSDT',POL:'POLUSDT',SOL:'SOLUSDT'};
 function jwRu(){ try{ return lang==='ru'; }catch(e){ return true; } }
 function jwSet(id,t){ var e=document.getElementById(id); if(e && e.textContent!==t) e.textContent=t; }
@@ -12027,6 +12027,7 @@ async function jwImport(manual){
     rows.forEach(function(r){
       var base={ts:r.ts,c:r.chain,dir:r.dir,sym:r.sym.toUpperCase(),amt:r.amt,wl:r.wl};
       if(have[r.key]){ base.why='have'; skips.push(base); return; }
+      if(/^(variabledebt|stabledebt)|^a(arb|eth|bas|opt|pol|gno|ava)[a-z0-9]+$/.test(r.sym)){ base.why='receipt'; skips.push(base); return; }
       var pr=jwPriceOf(r,maps); if(pr===null){ noPrice++; base.why='nopr'; skips.push(base); return; }
       var usd=r.amt*pr; if(!(usd>=JW_MIN_USD)){ dust++; base.why='dust'; base.usd=usd; skips.push(base); return; }
       entries.push({id:jwHash(r.key),key:r.key,date:String(r.ts).slice(0,10),ts:r.ts,type:r.dir,amountUSD:Math.round(usd*100)/100,source:'wallet',
@@ -12056,7 +12057,7 @@ async function jwImport(manual){
 }
 function jwDetails(){
   var arr=[]; try{ arr=JSON.parse(localStorage.getItem('defi_jw_dbg')||'[]'); }catch(e){}
-  var why={ADD:'добавлено',have:'уже в журнале',contract:'пропуск: контракт',own:'пропуск: свой кошелёк',nopr:'нет цены',dust:'пыль <$1'};
+  var why={receipt:'пропуск: долговой/aToken Aave',ADD:'добавлено',have:'уже в журнале',contract:'пропуск: контракт',own:'пропуск: свой кошелёк',nopr:'нет цены',dust:'пыль <$1'};
   var old=document.getElementById('jwdet'); if(old) old.remove();
   var box=document.createElement('div'); box.id='jwdet';
   box.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(5,8,19,.97);color:#e2e8f7;padding:calc(16px + env(safe-area-inset-top)) 14px 14px;display:flex;flex-direction:column;gap:10px';
