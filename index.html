@@ -1406,7 +1406,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       <div class="hxjw" id="jw_card">
         <svg class="hxjw-ic" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="hxjwg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect x="4" y="10" width="40" height="30" rx="7" fill="rgba(125,211,252,.12)" stroke="url(#hxjwg)" stroke-width="3"/><path d="M4 18h40" stroke="url(#hxjwg)" stroke-width="3"/><rect x="29" y="25" width="15" height="9" rx="4" fill="url(#hxjwg)"/><circle cx="34" cy="29.500" r="1.800" fill="#0b1230"/></svg>
         <div class="hxjw-tx"><b id="jw_title">Кошелёк → журнал</b><span id="jw_status">Импорт переводов: «Внесено» и «Снято»</span><span id="jw_log"></span></div>
-        <button id="jw_btn" onclick="jwImport(true)">Импорт</button>
+        <div class="hxjw-btns"><button id="jw_btn" onclick="jwImport(true)">Импорт</button><button id="jw_det" onclick="jwDetails()">Детали</button></div>
       </div>
 
 
@@ -11845,6 +11845,8 @@ function _renderWalletSolana(){
 #jw_log{font-size:10.5px!important;color:#7f8fb5!important;word-break:break-word}
 #jw_btn{flex-shrink:0;padding:9px 14px;border-radius:14px;border:1px solid rgba(34,240,154,.6);background:rgba(34,240,154,.1);color:#bfffe6;font-weight:700;font-size:13px;box-shadow:0 0 12px rgba(34,240,154,.25)}
 #jw_btn[disabled]{opacity:.55}
+.hxjw-btns{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+#jw_det{padding:6px 10px;border-radius:12px;border:1px solid rgba(125,160,255,.4);background:rgba(20,30,70,.6);color:#b9c8f5;font-size:11.5px}
 </style>
 <script>
 /* Кошелёк → журнал: авто-импорт «Внесено/Снято» из публичного Blockscout */
@@ -11885,27 +11887,33 @@ async function jwPages(base,firstQS){
   return {items:items, truncated:more};
 }
 function jwAddr(o){ return ((o&&(o.hash||o.address_hash||o.address))||'').toLowerCase(); }
-async function jwChain(ch,me){
+async function jwChain(ch,me,ctx){
+  ctx=ctx||{own:{},skips:[],wl:''};
   var base='https://'+ch.host+'/api/v2/addresses/'+me;
-  var res={chain:ch,rows:[],skipContract:0,truncated:false};
+  var res={chain:ch,rows:[],skipContract:0,truncated:false,fetched:0};
   var tt=await jwPages(base+'/token-transfers','type=ERC-20');
   var nt=await jwPages(base+'/transactions','');
-  res.truncated=tt.truncated||nt.truncated;
+  res.truncated=tt.truncated||nt.truncated; res.fetched=tt.items.length+nt.items.length;
   tt.items.forEach(function(x){
     var from=jwAddr(x.from), to=jwAddr(x.to); if(from===to) return;
     var inn=(to===me), out=(from===me); if(!inn&&!out) return;
-    var cp=inn?x.from:x.to; if(cp&&cp.is_contract){ res.skipContract++; return; }
-    var tk=x.token||{}; var dec=parseInt((x.total&&x.total.decimals)||tk.decimals||18,10);
+    var cp=inn?x.from:x.to; var cpa=jwAddr(cp);
+    var tk=x.token||{};
+    if(ctx.own[cpa]){ ctx.skips.push({ts:x.timestamp,c:ch.n,dir:inn?'deposit':'withdraw',sym:String(tk.symbol||''),why:'own',cp:cpa}); return; }
+    if(cp&&cp.is_contract){ res.skipContract++; ctx.skips.push({ts:x.timestamp,c:ch.n,dir:inn?'deposit':'withdraw',sym:String(tk.symbol||''),amt:Number((x.total&&x.total.value)||0)/Math.pow(10,parseInt((x.total&&x.total.decimals)||tk.decimals||18,10)),why:'contract',cp:cpa}); return; }
+     var dec=parseInt((x.total&&x.total.decimals)||tk.decimals||18,10);
     var amt=Number((x.total&&x.total.value)||0)/Math.pow(10,dec);
-    res.rows.push({key:ch.k+'|'+x.transaction_hash+'|'+(x.log_index!==undefined?x.log_index:''),ts:x.timestamp,dir:inn?'deposit':'withdraw',sym:String(tk.symbol||'').toLowerCase(),amt:amt,native:false,chain:ch.n});
+    res.rows.push({key:ch.k+'|'+x.transaction_hash+'|'+(x.log_index!==undefined?x.log_index:''),ts:x.timestamp,dir:inn?'deposit':'withdraw',sym:String(tk.symbol||'').toLowerCase(),amt:amt,native:false,chain:ch.n,wl:ctx.wl});
   });
   nt.items.forEach(function(x){
     var ok=(x.status==='ok')||(x.result==='success'); if(!ok) return;
     var from=jwAddr(x.from), to=jwAddr(x.to); if(from===to) return;
     var inn=(to===me), out=(from===me); if(!inn&&!out) return;
     var v=Number(x.value||0)/1e18; if(!(v>0)) return;
-    var cp=inn?x.from:x.to; if(cp&&cp.is_contract){ res.skipContract++; return; }
-    res.rows.push({key:ch.k+'|'+x.hash+'|native',ts:x.timestamp,dir:inn?'deposit':'withdraw',sym:ch.nat.toLowerCase(),amt:v,native:true,chain:ch.n});
+    var cp=inn?x.from:x.to; var cpa=jwAddr(cp);
+    if(ctx.own[cpa]){ ctx.skips.push({ts:x.timestamp,c:ch.n,dir:inn?'deposit':'withdraw',sym:ch.nat,amt:v,why:'own',cp:cpa}); return; }
+    if(cp&&cp.is_contract){ res.skipContract++; ctx.skips.push({ts:x.timestamp,c:ch.n,dir:inn?'deposit':'withdraw',sym:ch.nat,amt:v,why:'contract',cp:cpa}); return; }
+    res.rows.push({key:ch.k+'|'+x.hash+'|native',ts:x.timestamp,dir:inn?'deposit':'withdraw',sym:ch.nat.toLowerCase(),amt:v,native:true,chain:ch.n,wl:ctx.wl});
   });
   return res;
 }
@@ -11940,29 +11948,33 @@ function jwPriceOf(r,maps){
 }
 var JW_SOL_MINT={'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':'usdc','Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB':'usdt','So11111111111111111111111111111111111111112':'sol','2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo':'pyusd'};
 function jwIsSol(a){ return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a); }
-async function jwSolana(me){
-  var ch={k:'solana',n:'Solana'}; var res={chain:ch,rows:[],skipContract:0,truncated:false};
+async function jwSolana(me,ctx){
+  ctx=ctx||{own:{},skips:[],wl:''};
+  var ch={k:'solana',n:'Solana'}; var res={chain:ch,rows:[],skipContract:0,truncated:false,fetched:0};
   var before='', pages=0;
   while(pages<10){
     var url='https://api.helius.xyz/v0/addresses/'+me+'/transactions?api-key='+HELIUS_KEY+'&limit=100'+(before?'&before='+before:'');
     var j=await jwGet(url);
     if(!Array.isArray(j)) throw new Error('bad response');
+    res.fetched+=j.length;
     j.forEach(function(t){
       if(t.transactionError) return;
-      if(t.type!=='TRANSFER'){ if((t.nativeTransfers&&t.nativeTransfers.length)||(t.tokenTransfers&&t.tokenTransfers.length)) res.skipContract++; return; }
+      if(t.type!=='TRANSFER'){ if((t.nativeTransfers&&t.nativeTransfers.length)||(t.tokenTransfers&&t.tokenTransfers.length)){ res.skipContract++; ctx.skips.push({ts:new Date((t.timestamp||0)*1000).toISOString(),c:'Solana',dir:'?',sym:String(t.type||''),why:'contract',cp:String(t.source||'')}); } return; }
       var ts=new Date((t.timestamp||0)*1000).toISOString(), idx=0;
       (t.nativeTransfers||[]).forEach(function(x){
         var f=x.fromUserAccount, o=x.toUserAccount; idx++;
         if(f===o) return; var inn=(o===me), out=(f===me); if(!inn&&!out) return;
         var v=Number(x.amount||0)/1e9; if(!(v>0)) return;
-        res.rows.push({key:'solana|'+t.signature+'|n'+idx,ts:ts,dir:inn?'deposit':'withdraw',sym:'sol',amt:v,native:true,chain:'Solana'});
+        if(ctx.own[inn?f:o]){ ctx.skips.push({ts:ts,c:'Solana',dir:inn?'deposit':'withdraw',sym:'SOL',amt:v,why:'own',cp:inn?f:o}); return; }
+        res.rows.push({key:'solana|'+t.signature+'|n'+idx,ts:ts,dir:inn?'deposit':'withdraw',sym:'sol',amt:v,native:true,chain:'Solana',wl:ctx.wl});
       });
       (t.tokenTransfers||[]).forEach(function(x){
         var f=x.fromUserAccount, o=x.toUserAccount; idx++;
         if(f===o) return; var inn=(o===me), out=(f===me); if(!inn&&!out) return;
         var sym=JW_SOL_MINT[x.mint]||('mint:'+String(x.mint||'').slice(0,4));
         var a=Number(x.tokenAmount||0); if(!(a>0)) return;
-        res.rows.push({key:'solana|'+t.signature+'|t'+idx,ts:ts,dir:inn?'deposit':'withdraw',sym:sym,amt:a,native:false,chain:'Solana'});
+        if(ctx.own[inn?f:o]){ ctx.skips.push({ts:ts,c:'Solana',dir:inn?'deposit':'withdraw',sym:sym.toUpperCase(),amt:a,why:'own',cp:inn?f:o}); return; }
+        res.rows.push({key:'solana|'+t.signature+'|t'+idx,ts:ts,dir:inn?'deposit':'withdraw',sym:sym,amt:a,native:false,chain:'Solana',wl:ctx.wl});
       });
     });
     pages++;
@@ -11971,24 +11983,37 @@ async function jwSolana(me){
   }
   return res;
 }
+function jwWallets(){
+  var out=[], seen={};
+  try{ if(!_walletBookLoaded) walletBookLoad(); }catch(e){}
+  (_walletBook||[]).forEach(function(w){ var a=(w.addr||'').trim(); if(a&&!seen[a.toLowerCase()]){ seen[a.toLowerCase()]=1; out.push({addr:a,label:w.label||''}); } });
+  var cur=''; try{ cur=(localStorage.getItem('defi_wallet_addr')||'').trim(); }catch(e){}
+  if(cur&&!seen[cur.toLowerCase()]) out.push({addr:cur,label:''});
+  return out.filter(function(w){ return /^0x[0-9a-fA-F]{40}$/.test(w.addr)||jwIsSol(w.addr); });
+}
 async function jwImport(manual){
   if(_jwBusy) return;
-  var ru=jwRu(), addr=''; try{ addr=(localStorage.getItem('defi_wallet_addr')||'').trim(); }catch(e){}
-  var isSol=jwIsSol(addr);
-  if(!isSol && !/^0x[0-9a-fA-F]{40}$/.test(addr)){ jwSet('jw_status',ru?'Нужен адрес кошелька (0x… или Solana) — введи его на вкладке «Позиции»':'Wallet address (0x… or Solana) required'); return; }
-  var me=isSol?addr:addr.toLowerCase();
+  var ru=jwRu(), wallets=jwWallets();
+  if(!wallets.length){ jwSet('jw_status',ru?'Нет сохранённых кошельков — добавь адрес на вкладке «Позиции»':'No saved wallets'); return; }
+  var own={}; wallets.forEach(function(w){ own[jwIsSol(w.addr)&&!/^0x/.test(w.addr)?w.addr:w.addr.toLowerCase()]=1; });
   _jwBusy=true; var btn=document.getElementById('jw_btn'); if(btn) btn.disabled=true;
-  jwSet('jw_status',ru?'Читаю переводы кошелька…':'Reading wallet transfers…'); jwSet('jw_log','');
+  jwSet('jw_status',ru?'Читаю переводы кошельков…':'Reading wallet transfers…'); jwSet('jw_log','');
   try{
-    var results=isSol ? [await jwSolana(me).catch(function(e){ return {chain:{k:'solana',n:'Solana'},err:String(e&&e.message||e),rows:[],skipContract:0}; })] : await Promise.all(JW_CHAINS.map(function(ch){ return jwChain(ch,me).catch(function(e){ return {chain:ch,err:String(e&&e.message||e),rows:[],skipContract:0}; }); }));
+    var results=[], skips=[];
+    for(var wi=0;wi<wallets.length;wi++){
+      var w=wallets[wi], isSol=!/^0x/.test(w.addr), me=isSol?w.addr:w.addr.toLowerCase();
+      var ctx={own:own,skips:skips,wl:w.label||(me.slice(0,6)+'…')};
+      var rs = isSol ? [await jwSolana(me,ctx).catch(function(e){ return {chain:{k:'solana',n:'Solana'},err:String(e&&e.message||e),rows:[],skipContract:0,fetched:0}; })]
+                     : await Promise.all(JW_CHAINS.map(function(ch){ return jwChain(ch,me,ctx).catch(function(e){ return {chain:ch,err:String(e&&e.message||e),rows:[],skipContract:0,fetched:0}; }); }));
+      rs.forEach(function(r){ r.wl=ctx.wl; results.push(r); });
+    }
     var errs=results.filter(function(r){return r.err;});
     if(errs.length===results.length){
       jwSet('jw_status',ru?'Не удалось получить данные ни из одной сети':'No network responded');
-      jwSet('jw_log',errs.map(function(r){return r.chain.n+': '+r.err;}).join(' · '));
+      jwSet('jw_log',errs.map(function(r){return r.wl+' · '+r.chain.n+': '+r.err;}).join(' · '));
       return;
     }
     var rows=[]; results.forEach(function(r){ rows=rows.concat(r.rows); });
-    // цены: суточные свечи Binance по нужным тикерам
     var need={}; rows.forEach(function(r){
       if(JW_STABLE[r.sym]) return;
       var sym=r.native?JW_NAT_SYM[r.sym.toUpperCase()]:(HX_NAME2SYM[r.sym]||null);
@@ -12000,31 +12025,47 @@ async function jwImport(manual){
     var added=0,noPrice=0,dust=0,dep=0,wd=0;
     rows.sort(function(a,b){return new Date(a.ts)-new Date(b.ts);});
     rows.forEach(function(r){
-      if(have[r.key]) return;
-      var pr=jwPriceOf(r,maps); if(pr===null){ noPrice++; return; }
-      var usd=r.amt*pr; if(!(usd>=JW_MIN_USD)){ dust++; return; }
+      var base={ts:r.ts,c:r.chain,dir:r.dir,sym:r.sym.toUpperCase(),amt:r.amt,wl:r.wl};
+      if(have[r.key]){ base.why='have'; skips.push(base); return; }
+      var pr=jwPriceOf(r,maps); if(pr===null){ noPrice++; base.why='nopr'; skips.push(base); return; }
+      var usd=r.amt*pr; if(!(usd>=JW_MIN_USD)){ dust++; base.why='dust'; base.usd=usd; skips.push(base); return; }
       entries.push({id:jwHash(r.key),key:r.key,date:String(r.ts).slice(0,10),ts:r.ts,type:r.dir,amountUSD:Math.round(usd*100)/100,source:'wallet',
-        note:r.sym.toUpperCase()+' '+(r.amt>=1?r.amt.toFixed(4):r.amt.toPrecision(3))+' · '+r.chain+(ru?' (авто)':' (auto)'),auto:true});
+        note:r.sym.toUpperCase()+' '+(r.amt>=1?r.amt.toFixed(4):r.amt.toPrecision(3))+' · '+r.chain+(r.wl?' · '+r.wl:'')+(ru?' (авто)':' (auto)'),auto:true});
+      base.why='ADD'; base.usd=usd; skips.push(base);
       added++; if(r.dir==='deposit') dep++; else wd++;
     });
     entries.sort(function(a,b){return new Date(b.ts||b.date)-new Date(a.ts||a.date);});
     localStorage.setItem('defi_journal',JSON.stringify(entries));
     localStorage.setItem('defi_jw_enabled','1'); _jwLast=Date.now();
+    try{ skips.sort(function(a,b){return new Date(b.ts)-new Date(a.ts);}); localStorage.setItem('defi_jw_dbg',JSON.stringify(skips.slice(0,80))); }catch(e){}
     try{ renderJournal(); }catch(e){}
     var skipC=0; results.forEach(function(r){skipC+=r.skipContract||0;});
-    var used=results.filter(function(r){return !r.err&&r.rows.length;}).map(function(r){return r.chain.n;});
+    var used=results.filter(function(r){return !r.err&&r.rows.length;}).map(function(r){return r.wl+': '+r.chain.n;});
     var d=new Date(), hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
-    jwSet('jw_status',(ru?'Обновлено ':'Updated ')+hh+' · '+(ru?'новых: ':'new: ')+added+' ('+(ru?'внесено ':'in ')+dep+', '+(ru?'снято ':'out ')+wd+')');
+    jwSet('jw_status',(ru?'Обновлено ':'Updated ')+hh+' · '+(ru?'новых: ':'new: ')+added+' ('+(ru?'внесено ':'in ')+dep+', '+(ru?'снято ':'out ')+wd+') · '+(ru?'кошельков: ':'wallets: ')+wallets.length);
     var log=[]; if(used.length) log.push((ru?'сети: ':'chains: ')+used.join(', ')); else log.push(ru?'переводов не найдено':'no transfers found');
     if(skipC) log.push((ru?'пропущено переводов с контрактами: ':'skipped contract transfers: ')+skipC);
     if(noPrice) log.push((ru?'без цены: ':'no price: ')+noPrice);
     if(dust) log.push((ru?'пыль <$1: ':'dust <$1: ')+dust);
-    if(errs.length) log.push((ru?'ошибка: ':'errors: ')+errs.map(function(r){return r.chain.n+' ('+r.err+')';}).join(', '));
+    if(errs.length) log.push((ru?'ошибка: ':'errors: ')+errs.map(function(r){return r.wl+' · '+r.chain.n+' ('+r.err+')';}).join(', '));
     if(results.some(function(r){return r.truncated;})) log.push(ru?'история обрезана (старые переводы не загружены)':'history truncated');
     jwSet('jw_log',log.join(' · '));
   }catch(e){
     jwSet('jw_status',(ru?'Ошибка импорта: ':'Import error: ')+(e&&e.message||e));
   }finally{ _jwBusy=false; if(btn){ btn.disabled=false; } jwSet('jw_btn',jwRu()?'Обновить':'Refresh'); }
+}
+function jwDetails(){
+  var arr=[]; try{ arr=JSON.parse(localStorage.getItem('defi_jw_dbg')||'[]'); }catch(e){}
+  var why={ADD:'добавлено',have:'уже в журнале',contract:'пропуск: контракт',own:'пропуск: свой кошелёк',nopr:'нет цены',dust:'пыль <$1'};
+  var old=document.getElementById('jwdet'); if(old) old.remove();
+  var box=document.createElement('div'); box.id='jwdet';
+  box.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(5,8,19,.97);color:#e2e8f7;padding:calc(16px + env(safe-area-inset-top)) 14px 14px;display:flex;flex-direction:column;gap:10px';
+  var lines=arr.map(function(x){ return String(x.ts).slice(0,10)+' '+(x.wl?x.wl+' · ':'')+x.c+' · '+(x.dir==='deposit'?'ВХОД':x.dir==='withdraw'?'ВЫХОД':x.dir)+' '+(x.amt!==undefined?(x.amt>=1?x.amt.toFixed(2):Number(x.amt).toPrecision(2)):'')+' '+x.sym+(x.usd?' ≈$'+Math.round(x.usd):'')+' → '+(why[x.why]||x.why)+(x.why==='contract'&&x.cp?' ('+String(x.cp).slice(0,8)+'…'+String(x.cp).slice(-4)+')':''); });
+  box.innerHTML='<div style="font-size:18px;font-weight:800">Импорт кошельков: последние переводы</div><pre id="jwdet-out" style="flex:1;overflow:auto;margin:0;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-word;background:#0a1020;border:1px solid rgba(110,150,255,.3);border-radius:12px;padding:10px"></pre><div style="display:flex;gap:10px"><button id="jwdet-copy" style="flex:1;padding:13px;border-radius:14px;border:1px solid rgba(34,211,238,.6);background:#0b1a33;color:#fff;font-weight:700;font-size:15px">Копировать</button><button id="jwdet-close" style="flex:1;padding:13px;border-radius:14px;border:1px solid rgba(110,150,255,.4);background:#101634;color:#fff;font-weight:700;font-size:15px">Закрыть</button></div>';
+  document.body.appendChild(box);
+  document.getElementById('jwdet-out').textContent=lines.length?lines.join('\n'):'Данных нет. Сначала нажми «Импорт».';
+  document.getElementById('jwdet-close').onclick=function(){ box.remove(); };
+  document.getElementById('jwdet-copy').onclick=function(){ try{ navigator.clipboard.writeText(lines.join('\n')); this.textContent='Скопировано'; }catch(e){} };
 }
 function jwAuto(){
   try{
