@@ -4507,7 +4507,7 @@ function _renderWalletUniPositions(poolsEl, poolsTotEl){
 
   // Обновляем total баджик — прибавляем к уже отображённому
   if(poolsTotEl){
-    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[$,]/g,''))||0;
+    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[^0-9.\-]/g,''))||0;
     var newTot = cur + totalUni;
     if(newTot > 0) poolsTotEl.textContent = '$' + newTot.toFixed(2);
   }
@@ -7925,7 +7925,7 @@ function walletSnapshotSave(addr){
   if(!addr || !_walletBook || !_walletBook.some(function(w){ return w.addr===addr; })) return;
 
   var totalUSD   = parseFloat(document.getElementById('home_total')
-                    ? (document.getElementById('home_total').textContent||'0').replace(/[$,]/g,'') : 0) || 0;
+                    ? (document.getElementById('home_total').textContent||'0').replace(/[^0-9.\-]/g,'') : 0) || 0;
   var aaveTotal  = (_aaveContractAcct && _aaveContractAcct.totalCollUSD) || 0;
   var loan       = (_aaveContractAcct && _aaveContractAcct.totalDebtUSD) || 0;
   var hf         = (_aaveContractAcct && _aaveContractAcct.hf)           || 0;
@@ -7957,7 +7957,14 @@ function walletSnapshotGet(addr){
   try{
     var raw = localStorage.getItem('defi_snap_' + addr.toLowerCase());
     var arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
+    if(!Array.isArray(arr)) return [];
+    // старые снимки записывались с ошибкой разбора суммы ("2 533" → 2): восстанавливаем из залога, займа и пулов
+    arr.forEach(function(x){
+      if(x && x.aaveTotal > 10 && x.totalUSD < 10 && !x.fixed){
+        x.totalUSD = +((x.aaveTotal||0) - (x.loan||0) + (x.pools||0)).toFixed(2); x.fixed = true;
+      }
+    });
+    return arr;
   }catch(e){ return []; }
 }
 
@@ -10037,7 +10044,7 @@ function _renderWalletGMXPositions(poolsEl, poolsTotEl){
   });
 
   if(poolsTotEl && totalGMX > 0){
-    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[$,]/g,''))||0;
+    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[^0-9.\-]/g,''))||0;
     poolsTotEl.textContent = '$'+(cur+totalGMX).toFixed(2);
   }
 }
@@ -10257,7 +10264,7 @@ function _renderWalletMorphoPositions(poolsEl, poolsTotEl){
   });
 
   if(poolsTotEl && totalMorpho > 0){
-    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[$,]/g,''))||0;
+    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[^0-9.\-]/g,''))||0;
     poolsTotEl.textContent = '$'+(cur+totalMorpho).toFixed(2);
   }
 }
@@ -11537,7 +11544,7 @@ function _renderWalletEVM(ankrResult, hasProtocols){
 
   // Обновляем итог пулов
   if(poolsTotEl && grandTotal > 0){
-    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[$,]/g,''))||0;
+    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[^0-9.\-]/g,''))||0;
     poolsTotEl.textContent = '$'+(cur+grandTotal).toFixed(2);
   }
 }
@@ -11583,7 +11590,7 @@ function _renderWalletSolana(){
       '</div>';
     poolsEl.appendChild(card);
     if(poolsTotEl && solUSD > 0){
-      var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[$,]/g,''))||0;
+      var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[^0-9.\-]/g,''))||0;
       poolsTotEl.textContent = '$'+(cur+solUSD).toFixed(2);
     }
 
@@ -11636,7 +11643,7 @@ function _renderWalletSolana(){
       poolsEl.appendChild(tc);
       // Добавляем в итог пулов
       if(poolsTotEl && usd > 0.001){
-        var curTok = parseFloat((poolsTotEl.textContent||'0').replace(/[$,]/g,''))||0;
+        var curTok = parseFloat((poolsTotEl.textContent||'0').replace(/[^0-9.\-]/g,''))||0;
         poolsTotEl.textContent = '$'+(curTok+usd).toFixed(2);
       }
     });
@@ -11663,7 +11670,7 @@ function _renderWalletSolana(){
         );
       poolsEl.appendChild(dc);
       if(!isActiveOnly && poolsTotEl){
-        var cur2 = parseFloat((poolsTotEl.textContent||'0').replace(/[$,]/g,''))||0;
+        var cur2 = parseFloat((poolsTotEl.textContent||'0').replace(/[^0-9.\-]/g,''))||0;
         poolsTotEl.textContent = '$'+(cur2+pos.valueUSD).toFixed(2);
       }
     });
