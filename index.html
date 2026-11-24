@@ -11858,6 +11858,7 @@ var JW_CHAINS=[
   {k:'polygon',n:'Polygon',host:'polygon.blockscout.com',nat:'POL'},
   {k:'gnosis',n:'Gnosis',host:'gnosis.blockscout.com',nat:'XDAI'}
 ];
+var JW_BUILD='jw-2026-11-24c';
 var JW_MAX_PAGES=20, JW_MIN_USD=1, _jwBusy=false, _jwLast=0;
 var JW_STABLE={usdt0:1,usdtb:1,usd0:1,usdc:1,usdt:1,dai:1,usde:1,gho:1,fdusd:1,usds:1,pyusd:1,lusd:1,crvusd:1,xdai:1,'usdc.e':1,'usdt.e':1,usdbc:1,susd:1,frax:1,tusd:1};
 var JW_NAT_SYM={ETH:'ETHUSDT',POL:'POLUSDT',SOL:'SOLUSDT'};
@@ -12043,6 +12044,7 @@ async function jwImport(manual){
     var skipC=0; results.forEach(function(r){skipC+=r.skipContract||0;});
     var used=results.filter(function(r){return !r.err&&r.rows.length;}).map(function(r){return r.wl+': '+r.chain.n;});
     var d=new Date(), hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+    jwSet('jw_title','Кошелёк → журнал · '+JW_BUILD.slice(3));
     jwSet('jw_status',(ru?'Обновлено ':'Updated ')+hh+' · '+(ru?'новых: ':'new: ')+added+' ('+(ru?'внесено ':'in ')+dep+', '+(ru?'снято ':'out ')+wd+') · '+(ru?'кошельков: ':'wallets: ')+wallets.length);
     var log=[]; if(used.length) log.push((ru?'сети: ':'chains: ')+used.join(', ')); else log.push(ru?'переводов не найдено':'no transfers found');
     if(skipC) log.push((ru?'пропущено переводов с контрактами: ':'skipped contract transfers: ')+skipC);
@@ -12062,7 +12064,7 @@ function jwDetails(){
   var box=document.createElement('div'); box.id='jwdet';
   box.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(5,8,19,.97);color:#e2e8f7;padding:calc(16px + env(safe-area-inset-top)) 14px 14px;display:flex;flex-direction:column;gap:10px';
   var lines=arr.map(function(x){ return String(x.ts).slice(0,10)+' '+(x.wl?x.wl+' · ':'')+x.c+' · '+(x.dir==='deposit'?'ВХОД':x.dir==='withdraw'?'ВЫХОД':x.dir)+' '+(x.amt!==undefined?(x.amt>=1?x.amt.toFixed(2):Number(x.amt).toPrecision(2)):'')+' '+x.sym+(x.usd?' ≈$'+Math.round(x.usd):'')+' → '+(why[x.why]||x.why)+(x.why==='contract'&&x.cp?' ('+String(x.cp).slice(0,8)+'…'+String(x.cp).slice(-4)+')':''); });
-  box.innerHTML='<div style="font-size:18px;font-weight:800">Импорт кошельков: последние переводы</div><pre id="jwdet-out" style="flex:1;overflow:auto;margin:0;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-word;background:#0a1020;border:1px solid rgba(110,150,255,.3);border-radius:12px;padding:10px"></pre><div style="display:flex;gap:10px"><button id="jwdet-copy" style="flex:1;padding:13px;border-radius:14px;border:1px solid rgba(34,211,238,.6);background:#0b1a33;color:#fff;font-weight:700;font-size:15px">Копировать</button><button id="jwdet-close" style="flex:1;padding:13px;border-radius:14px;border:1px solid rgba(110,150,255,.4);background:#101634;color:#fff;font-weight:700;font-size:15px">Закрыть</button></div>';
+  box.innerHTML='<div style="font-size:18px;font-weight:800">Импорт кошельков: последние переводы <span style="font-size:11px;color:#8b9bc4;font-weight:400">'+JW_BUILD+'</span></div><pre id="jwdet-out" style="flex:1;overflow:auto;margin:0;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-word;background:#0a1020;border:1px solid rgba(110,150,255,.3);border-radius:12px;padding:10px"></pre><div style="display:flex;gap:10px"><button id="jwdet-copy" style="flex:1;padding:13px;border-radius:14px;border:1px solid rgba(34,211,238,.6);background:#0b1a33;color:#fff;font-weight:700;font-size:15px">Копировать</button><button id="jwdet-close" style="flex:1;padding:13px;border-radius:14px;border:1px solid rgba(110,150,255,.4);background:#101634;color:#fff;font-weight:700;font-size:15px">Закрыть</button></div>';
   document.body.appendChild(box);
   document.getElementById('jwdet-out').textContent=lines.length?lines.join('\n'):'Данных нет. Сначала нажми «Импорт».';
   document.getElementById('jwdet-close').onclick=function(){ box.remove(); };
