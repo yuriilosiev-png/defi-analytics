@@ -1886,29 +1886,65 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <!-- ─── ЭКРАН 5: СВЯЗЬ ─── -->
   <div class="screen" id="screen-contact">
     <div class="screen-header hxal-head">
-      <svg class="hxal-art" viewBox="0 0 220 120" preserveAspectRatio="xMaxYMid meet" aria-hidden="true"><defs><radialGradient id="hxalg" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#ffe9a8"/><stop offset=".55" stop-color="#f5b021"/><stop offset="1" stop-color="#b8710a"/></radialGradient><filter id="hxalb"><feGaussianBlur stdDeviation="6"/></filter></defs><circle cx="150" cy="58" r="42" fill="#7c3aed" opacity=".35" filter="url(#hxalb)"/><path d="M150 18c-20 0-32 15-32 34 0 18-6 26-12 32h88c-6-6-12-14-12-32 0-19-12-34-32-34z" fill="url(#hxalg)" stroke="#8a5207" stroke-width="1.5"/><circle cx="150" cy="14" r="5" fill="#f5b021"/><path d="M139 92a11 11 0 0 0 22 0z" fill="#d98c0b"/><g fill="none" stroke="#7dffd0" stroke-width="3" stroke-linecap="round" opacity=".85"><path d="M104 40q-8 12 0 24"/><path d="M94 32q-14 20 0 40"/><path d="M196 40q8 12 0 24"/><path d="M206 32q14 20 0 40"/></g></svg>
-      <div class="hxal-head-l"><span class="screen-title" id="sh-contact">🔔 Алерты</span><span class="hxal-sub" id="al-sub">Пуш на телефон: падение Health Factor и движение цены</span></div>
+      <div class="hxal-planet"></div>
+      <svg class="hxal-bigbell" viewBox="0 0 220 190" aria-hidden="true"><defs>
+<linearGradient id="alg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c4"/><stop offset=".35" stop-color="#ffd24a"/><stop offset=".75" stop-color="#f59a14"/><stop offset="1" stop-color="#b85d06"/></linearGradient>
+<linearGradient id="alr1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7a5cff" stop-opacity="0"/><stop offset=".25" stop-color="#8f7bff"/><stop offset=".6" stop-color="#3fe0ff"/><stop offset="1" stop-color="#7dffd0" stop-opacity=".2"/></linearGradient>
+<radialGradient id="alh" cx=".35" cy=".25" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<filter id="alb1"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<circle cx="112" cy="84" r="62" fill="#ffb02e" opacity=".28" filter="url(#alb1)"/>
+<ellipse cx="108" cy="92" rx="104" ry="30" transform="rotate(-14 108 92)" fill="none" stroke="url(#alr1)" stroke-width="3.5" opacity=".9"/>
+<ellipse cx="108" cy="92" rx="92" ry="24" transform="rotate(-14 108 92)" fill="none" stroke="#9b7bff" stroke-width="1.4" opacity=".6"/>
+<g transform="translate(8 2)"><path d="M100 22c-26 0-42 19-42 44 0 24-8 34-16 42h116c-8-8-16-18-16-42 0-25-16-44-42-44z" fill="url(#alg1)" stroke="#9a5206" stroke-width="2"/>
+<path d="M58 108c8-8 16-18 16-42 0-22 12-38 28-43-30 0-44 20-44 43 0 24-8 34-16 42z" fill="url(#alh)" opacity=".75"/>
+<rect x="44" y="104" width="112" height="9" rx="4.5" fill="#f0a21e" stroke="#9a5206" stroke-width="1.5"/>
+<rect x="52" y="14" width="96" height="1" fill="none"/><circle cx="100" cy="15" r="7" fill="#ffd24a" stroke="#9a5206" stroke-width="1.6"/>
+<circle cx="100" cy="124" r="13" fill="url(#alg1)" stroke="#9a5206" stroke-width="1.8"/><circle cx="96" cy="120" r="4" fill="#fff" opacity=".8"/></g>
+<path d="M18 112C60 128 150 124 204 82" fill="none" stroke="url(#alr1)" stroke-width="3.5" stroke-linecap="round"/></svg>
+      <div class="hxal-head-l">
+        <div class="hxal-titlerow"><svg class="hxal-smbell" viewBox="0 0 200 150" aria-hidden="true"><defs>
+<linearGradient id="alg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfeaff"/><stop offset=".4" stop-color="#3fa0ff"/><stop offset="1" stop-color="#1535b5"/></linearGradient>
+<filter id="alb2"><feGaussianBlur stdDeviation="8"/></filter></defs>
+<circle cx="100" cy="76" r="52" fill="#2f7bff" opacity=".45" filter="url(#alb2)"/>
+<path d="M100 22c-26 0-42 19-42 44 0 24-8 34-16 42h116c-8-8-16-18-16-42 0-25-16-44-42-44z" fill="url(#alg2)" stroke="#0e2a8a" stroke-width="2"/>
+<path d="M58 108c8-8 16-18 16-42 0-22 12-38 28-43-30 0-44 20-44 43 0 24-8 34-16 42z" fill="#fff" opacity=".5"/>
+<rect x="44" y="104" width="112" height="9" rx="4.5" fill="#2b66e0" stroke="#0e2a8a" stroke-width="1.5"/>
+<circle cx="100" cy="124" r="13" fill="url(#alg2)" stroke="#0e2a8a" stroke-width="1.8"/></svg><span class="screen-title" id="sh-contact">Алерты</span></div>
+        <span class="hxal-sub" id="al-sub">Пуш на телефон: падение Health Factor и движение цены</span>
+      </div>
     </div>
 
     <div class="hxal-wrap" id="al-wrap">
-      <div class="hxal-card" id="al-status-card">
-        <div class="hxal-card-h"><span class="hxal-ic">📡</span><b id="al-status-title">Пуш-уведомления</b><span class="hxal-dot" id="al-dot"></span></div>
-        <div id="al-status-lines" class="hxal-lines"></div>
-        <div class="hxal-btns">
-          <button class="hxal-btn main" id="al-enable" onclick="alEnable()">Включить пуш</button>
-          <button class="hxal-btn" id="al-test" onclick="alTest()">Тест</button>
+      <div class="hxal-card hxal-push" id="al-status-card">
+        <div class="hxal-push-row">
+          <svg class="hxal-phone" viewBox="0 0 150 150" aria-hidden="true"><defs>
+<linearGradient id="alp1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9b6bff"/><stop offset="1" stop-color="#2a5bff"/></linearGradient>
+<linearGradient id="alp2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1f58"/><stop offset="1" stop-color="#0a0d30"/></linearGradient>
+<linearGradient id="alg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#ffc23a"/><stop offset="1" stop-color="#d9800a"/></linearGradient>
+<filter id="alb3"><feGaussianBlur stdDeviation="7"/></filter></defs>
+<ellipse cx="78" cy="132" rx="58" ry="10" fill="#6a4bff" opacity=".5" filter="url(#alb3)"/>
+<g transform="rotate(-16 60 80)"><rect x="14" y="22" width="68" height="108" rx="13" fill="#141a55" stroke="#5b6cff" stroke-width="2.5" opacity=".9"/></g>
+<g transform="rotate(8 90 80)"><rect x="46" y="14" width="70" height="116" rx="14" fill="url(#alp2)" stroke="url(#alp1)" stroke-width="3.5"/>
+<rect x="54" y="26" width="54" height="86" rx="8" fill="#0b1040"/>
+<rect x="70" y="18" width="22" height="4" rx="2" fill="#2c3a9a"/>
+<g transform="translate(81 69) scale(.30) translate(-100 -66)"><path d="M100 22c-26 0-42 19-42 44 0 24-8 34-16 42h116c-8-8-16-18-16-42 0-25-16-44-42-44z" fill="url(#alg3)" stroke="#8a4a05" stroke-width="5"/><circle cx="100" cy="124" r="13" fill="url(#alg3)" stroke="#8a4a05" stroke-width="5"/></g>
+<path d="M58 96q23 12 46 0" stroke="#7dffd0" stroke-width="2" fill="none" opacity=".7"/></g></svg>
+          <div class="hxal-push-t"><b id="al-status-title">Пуш-уведомления</b><span id="al-push-desc">Получайте важные сигналы в реальном времени</span></div>
+          <button class="hxal-bigsw" id="al-push-sw" onclick="alPushToggle()" aria-label="push on/off"></button>
         </div>
+        <div id="al-status-lines" class="hxal-pills"></div>
+        <div class="hxal-btns"><button class="hxal-btn" id="al-test" onclick="alTest()">Отправить тест</button></div>
         <div id="al-msg" class="hxal-msg"></div>
       </div>
 
-      <div class="hxal-card">
-        <div class="hxal-card-h"><span class="hxal-ic">🔔</span><b id="al-list-title">Мои алерты</b>
+      <div class="hxal-card hxal-list">
+        <div class="hxal-card-h"><span class="hxal-bellmini"></span><b id="al-list-title">Мои алерты</b>
           <button class="hxal-add" id="al-add-btn" onclick="alToggleForm()">+ Добавить</button></div>
         <div id="al-form" class="hxal-form" style="display:none"></div>
         <div id="al-list"></div>
       </div>
 
-      <div class="hxal-note" id="al-note"></div>
+      <div class="hxal-card hxal-info"><svg class="hxal-bolt" viewBox="0 0 48 60" aria-hidden="true"><defs><linearGradient id="alb4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9c8ff"/><stop offset=".5" stop-color="#a45cff"/><stop offset="1" stop-color="#5a2fe0"/></linearGradient><filter id="alb5"><feGaussianBlur stdDeviation="3"/></filter></defs><path d="M28 2L6 34h16l-4 24 24-34H26z" fill="#a45cff" opacity=".6" filter="url(#alb5)"/><path d="M28 2L6 34h16l-4 24 24-34H26z" fill="url(#alb4)" stroke="#f1dcff" stroke-width="1.4" stroke-linejoin="round"/></svg><div class="hxal-note" id="al-note"></div><span class="hxal-i">i</span></div>
     </div>
 
     <div id="al-legacy" style="display:none">
@@ -12183,63 +12219,81 @@ function jrnPick(k){
 }
 </script>
 <style id="hxal-style">
-#screen-contact{background:radial-gradient(120% 60% at 85% 0%,rgba(40,90,200,.28),transparent 60%),radial-gradient(90% 50% at 0% 35%,rgba(124,58,237,.16),transparent 65%),#050a1c}
-.hxal-head{position:relative;overflow:hidden;min-height:92px;display:flex;align-items:center;padding:18px 16px 10px}
-.hxal-art{position:absolute;right:0;top:0;height:100%;width:62%;pointer-events:none}
-.hxal-head-l{position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;min-width:0}
-#screen-contact .screen-title{font-size:30px;font-weight:800;background:linear-gradient(90deg,#fff,#8fd0ff 60%,#b88cff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
-.hxal-sub{display:block;font-size:12.5px;color:#9fb0d8;max-width:190px;line-height:1.3}
-.hxal-wrap{padding:6px 16px 20px;display:flex;flex-direction:column;gap:12px;font-family:var(--hx-font)}
-.hxal-card{border-radius:22px;padding:14px;background:linear-gradient(160deg,rgba(18,30,72,.72),rgba(8,14,36,.82));border:1px solid rgba(110,150,255,.25);box-shadow:0 0 18px rgba(60,100,230,.14),inset 0 0 22px rgba(90,130,255,.05)}
-.hxal-card-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.hxal-card-h b{font-size:17px;flex:1;color:#fff}
-.hxal-ic{font-size:20px}
-.hxal-dot{width:11px;height:11px;border-radius:50%;background:#64748b;box-shadow:0 0 0 3px rgba(100,116,139,.2)}
-.hxal-dot.ok{background:#22f09a;box-shadow:0 0 12px #22f09a}
-.hxal-dot.warn{background:#ffb02e;box-shadow:0 0 12px #ffb02e}
-.hxal-lines{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-.hxal-line{display:flex;align-items:center;gap:8px;font-size:13px;color:#c9d6ff;padding:8px 10px;border-radius:12px;background:rgba(8,14,40,.55);border:1px solid rgba(110,150,255,.15)}
-.hxal-line i{font-style:normal;width:18px;text-align:center}
-.hxal-line span{margin-left:auto;font-weight:700}
-.hxal-line .y{color:#22f09a}.hxal-line .n{color:#ff8d9a}.hxal-line .w{color:#ffb02e}
-.hxal-btns{display:flex;gap:10px}
-.hxal-btn{flex:1;padding:12px;border-radius:14px;border:1px solid rgba(125,160,255,.4);background:rgba(20,30,70,.6);color:#d6e2ff;font-weight:700;font-size:14px}
-.hxal-btn.main{border-color:#22f09a;background:linear-gradient(180deg,rgba(20,60,70,.75),rgba(10,26,50,.85));color:#e9fff6;box-shadow:0 0 14px rgba(34,240,154,.35)}
-.hxal-btn[disabled]{opacity:.5}
-.hxal-msg{font-size:12px;color:#9fb0d8;margin-top:10px;line-height:1.4;word-break:break-word}
+#screen-contact{background-color:#04061a;background-image:radial-gradient(70% 38% at 0% 28%,rgba(124,58,237,.30),transparent 70%),radial-gradient(60% 34% at 100% 12%,rgba(30,110,255,.30),transparent 70%),radial-gradient(80% 30% at 50% 78%,rgba(80,40,200,.18),transparent 75%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Ccircle cx='165' cy='77' r='1' fill='%23ffffff' opacity='0.35'/%3E%3Ccircle cx='274' cy='48' r='0.8' fill='%23cfe3ff' opacity='0.35'/%3E%3Ccircle cx='19' cy='44' r='1' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='123' cy='46' r='1.3' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='289' cy='63' r='0.6' fill='%23bff6ff' opacity='0.35'/%3E%3Ccircle cx='25' cy='113' r='0.5' fill='%23e6d3ff' opacity='0.5'/%3E%3Ccircle cx='214' cy='73' r='1.3' fill='%23e6d3ff' opacity='0.35'/%3E%3Ccircle cx='286' cy='92' r='0.5' fill='%23e6d3ff' opacity='0.5'/%3E%3Ccircle cx='49' cy='280' r='0.5' fill='%23cfe3ff' opacity='0.35'/%3E%3Ccircle cx='254' cy='272' r='1' fill='%23bff6ff' opacity='0.7'/%3E%3Ccircle cx='299' cy='232' r='0.8' fill='%23cfe3ff' opacity='0.7'/%3E%3Ccircle cx='92' cy='124' r='0.5' fill='%23bff6ff' opacity='0.7'/%3E%3Ccircle cx='175' cy='229' r='0.8' fill='%23ffffff' opacity='0.35'/%3E%3Ccircle cx='262' cy='214' r='0.6' fill='%23cfe3ff' opacity='0.7'/%3E%3Ccircle cx='250' cy='215' r='0.5' fill='%23e6d3ff' opacity='0.35'/%3E%3Ccircle cx='174' cy='179' r='1.3' fill='%23bff6ff' opacity='0.9'/%3E%3Ccircle cx='35' cy='47' r='0.8' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='31' cy='158' r='1.3' fill='%23e6d3ff' opacity='0.9'/%3E%3Ccircle cx='197' cy='177' r='0.5' fill='%23e6d3ff' opacity='0.9'/%3E%3Ccircle cx='86' cy='312' r='0.5' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='111' cy='147' r='0.6' fill='%23bff6ff' opacity='0.5'/%3E%3Ccircle cx='200' cy='254' r='0.5' fill='%23bff6ff' opacity='0.5'/%3E%3Ccircle cx='205' cy='281' r='0.8' fill='%23bff6ff' opacity='0.5'/%3E%3Ccircle cx='281' cy='142' r='1' fill='%23bff6ff' opacity='0.7'/%3E%3Ccircle cx='118' cy='77' r='0.5' fill='%23cfe3ff' opacity='0.5'/%3E%3Ccircle cx='118' cy='119' r='0.5' fill='%23cfe3ff' opacity='0.9'/%3E%3Ccircle cx='134' cy='144' r='0.5' fill='%23bff6ff' opacity='0.5'/%3E%3Ccircle cx='273' cy='189' r='1.3' fill='%23cfe3ff' opacity='0.7'/%3E%3Ccircle cx='263' cy='316' r='0.5' fill='%23bff6ff' opacity='0.9'/%3E%3Ccircle cx='203' cy='204' r='1' fill='%23bff6ff' opacity='0.35'/%3E%3Ccircle cx='205' cy='31' r='0.6' fill='%23cfe3ff' opacity='0.35'/%3E%3Ccircle cx='225' cy='83' r='0.5' fill='%23ffffff' opacity='0.7'/%3E%3Ccircle cx='52' cy='0' r='1.3' fill='%23ffffff' opacity='0.5'/%3E%3Ccircle cx='186' cy='314' r='0.5' fill='%23cfe3ff' opacity='0.35'/%3E%3Ccircle cx='314' cy='192' r='0.6' fill='%23e6d3ff' opacity='0.7'/%3E%3Ccircle cx='308' cy='186' r='1' fill='%23ffffff' opacity='0.35'/%3E%3Ccircle cx='249' cy='238' r='1' fill='%23e6d3ff' opacity='0.9'/%3E%3Ccircle cx='43' cy='73' r='0.5' fill='%23e6d3ff' opacity='0.7'/%3E%3Ccircle cx='245' cy='82' r='1.3' fill='%23cfe3ff' opacity='0.35'/%3E%3Ccircle cx='270' cy='185' r='0.6' fill='%23e6d3ff' opacity='0.35'/%3E%3Ccircle cx='46' cy='133' r='1.3' fill='%23cfe3ff' opacity='0.7'/%3E%3Ccircle cx='182' cy='114' r='1.3' fill='%23cfe3ff' opacity='0.7'/%3E%3Ccircle cx='313' cy='99' r='0.6' fill='%23cfe3ff' opacity='0.9'/%3E%3Ccircle cx='102' cy='265' r='1' fill='%23ffffff' opacity='0.7'/%3E%3Ccircle cx='14' cy='143' r='1' fill='%23cfe3ff' opacity='0.7'/%3E%3Ccircle cx='309' cy='176' r='1' fill='%23e6d3ff' opacity='0.7'/%3E%3Ccircle cx='41' cy='112' r='0.5' fill='%23bff6ff' opacity='0.5'/%3E%3Ccircle cx='100' cy='172' r='0.6' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='245' cy='176' r='0.5' fill='%23bff6ff' opacity='0.35'/%3E%3Ccircle cx='102' cy='244' r='0.6' fill='%23e6d3ff' opacity='0.9'/%3E%3Ccircle cx='44' cy='202' r='1' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='81' cy='87' r='0.6' fill='%23cfe3ff' opacity='0.35'/%3E%3Ccircle cx='302' cy='238' r='0.6' fill='%23e6d3ff' opacity='0.9'/%3E%3Ccircle cx='79' cy='280' r='1.3' fill='%23ffffff' opacity='0.5'/%3E%3Ccircle cx='7' cy='52' r='1.3' fill='%23bff6ff' opacity='0.5'/%3E%3Ccircle cx='99' cy='108' r='0.5' fill='%23cfe3ff' opacity='0.7'/%3E%3Ccircle cx='149' cy='256' r='0.6' fill='%23e6d3ff' opacity='0.7'/%3E%3Ccircle cx='278' cy='214' r='0.6' fill='%23e6d3ff' opacity='0.35'/%3E%3Ccircle cx='234' cy='298' r='1.3' fill='%23cfe3ff' opacity='0.9'/%3E%3Ccircle cx='272' cy='77' r='1.3' fill='%23bff6ff' opacity='0.35'/%3E%3Ccircle cx='93' cy='311' r='0.5' fill='%23cfe3ff' opacity='0.5'/%3E%3Ccircle cx='72' cy='242' r='1.3' fill='%23ffffff' opacity='0.35'/%3E%3Ccircle cx='166' cy='265' r='1.3' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='286' cy='29' r='0.6' fill='%23e6d3ff' opacity='0.5'/%3E%3Ccircle cx='21' cy='50' r='1.3' fill='%23ffffff' opacity='0.9'/%3E%3Ccircle cx='32' cy='226' r='0.8' fill='%23e6d3ff' opacity='0.5'/%3E%3Ccircle cx='231' cy='260' r='1.3' fill='%23cfe3ff' opacity='0.9'/%3E%3Ccircle cx='267' cy='132' r='1.3' fill='%23bff6ff' opacity='0.5'/%3E%3Ccircle cx='70' cy='213' r='0.5' fill='%23bff6ff' opacity='0.9'/%3E%3Ccircle cx='161' cy='37' r='0.6' fill='%23ffffff' opacity='0.9'/%3E%3Cpath d='M128 170L129.2 173.8L133 175L129.2 176.2L128 180L126.8 176.2L123 175L126.8 173.8Z' fill='%23fff' opacity='.85'/%3E%3Cpath d='M82 94L83.2 97.8L87 99L83.2 100.2L82 104L80.8 100.2L77 99L80.8 97.8Z' fill='%23fff' opacity='.85'/%3E%3Cpath d='M207 88L208.2 91.8L212 93L208.2 94.2L207 98L205.8 94.2L202 93L205.8 91.8Z' fill='%23fff' opacity='.85'/%3E%3Cpath d='M149 85L150.2 88.8L154 90L150.2 91.2L149 95L147.8 91.2L144 90L147.8 88.8Z' fill='%23fff' opacity='.85'/%3E%3Cpath d='M259 127L260.2 130.8L264 132L260.2 133.2L259 137L257.8 133.2L254 132L257.8 130.8Z' fill='%23fff' opacity='.85'/%3E%3C/svg%3E");background-repeat:no-repeat,no-repeat,no-repeat,repeat}
+.hxal-head{position:relative;overflow:hidden;min-height:222px;display:flex;align-items:flex-start;padding:22px 16px 10px;border-bottom:none!important;background:transparent!important}
+.hxal-planet{position:absolute;left:-30%;right:-30%;top:168px;height:340px;border-radius:50%;background:radial-gradient(ellipse at 50% 0%,rgba(20,40,110,.95),#050824 60%);border-top:2px solid rgba(120,210,255,.8);box-shadow:0 -4px 22px rgba(80,170,255,.65),0 -16px 60px rgba(124,80,255,.45);pointer-events:none}
+.hxal-bigbell{position:absolute;right:-6px;top:-4px;width:210px;height:182px;pointer-events:none;filter:drop-shadow(0 0 14px rgba(255,170,40,.45))}
+.hxal-head-l{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;min-width:0;max-width:62%}
+.hxal-titlerow{display:flex;align-items:center;gap:8px}
+.hxal-smbell{width:62px;height:46px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(60,140,255,.7))}
+#screen-contact .screen-title{font-size:38px;line-height:1.05;font-weight:800;letter-spacing:.2px;background:linear-gradient(90deg,#7df0ff,#6aa8ff 55%,#c18bff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 10px rgba(90,170,255,.45))}
+.hxal-sub{display:block;font-size:14px;color:#aebce6;line-height:1.35;max-width:240px}
+.hxal-wrap{position:relative;z-index:2;padding:0 14px 22px;margin-top:0;display:flex;flex-direction:column;gap:14px;font-family:var(--hx-font)}
+.hxal-card{position:relative;border-radius:26px;padding:16px;background:linear-gradient(155deg,rgba(24,22,84,.78),rgba(8,12,44,.86));border:1.5px solid transparent;background-clip:padding-box;box-shadow:0 0 0 1.5px rgba(122,100,255,.55),0 0 26px rgba(110,80,255,.28),inset 0 0 30px rgba(120,90,255,.10)}
+.hxal-card::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.10),transparent 28%,transparent 72%,rgba(80,200,255,.10))}
+.hxal-push{box-shadow:0 0 0 1.5px rgba(150,90,255,.7),0 0 30px rgba(140,70,255,.38),inset 0 0 34px rgba(120,90,255,.12)}
+.hxal-push-row{display:flex;align-items:center;gap:12px}
+.hxal-phone{width:80px;height:80px;flex-shrink:0;margin:-4px 0 -4px -6px}
+.hxal-push-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.hxal-push-t b{font-size:19px;white-space:nowrap;color:#fff;line-height:1.1}
+.hxal-push-t span{font-size:13px;color:#b6c2ec;line-height:1.35}
+.hxal-bigsw{position:relative;width:66px;height:38px;border-radius:19px;border:none;flex-shrink:0;background:linear-gradient(180deg,#2a3158,#1b2142);box-shadow:inset 0 2px 6px rgba(0,0,0,.5);transition:.2s}
+.hxal-bigsw::after{content:'';position:absolute;top:4px;left:4px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#d6dcf5);box-shadow:0 2px 8px rgba(0,0,0,.45);transition:.2s}
+.hxal-bigsw.on{background:linear-gradient(180deg,#27ff9c,#0fcf74);box-shadow:0 0 22px rgba(39,255,156,.75),inset 0 2px 6px rgba(0,60,30,.35)}
+.hxal-bigsw.on::after{left:32px}
+.hxal-pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.hxal-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#c9d6ff;background:rgba(10,14,50,.7);border:1px solid rgba(120,150,255,.28)}
+.hxal-pill i{width:8px;height:8px;border-radius:50%;background:#64748b}
+.hxal-pill.y i{background:#22f09a;box-shadow:0 0 8px #22f09a}.hxal-pill.y{color:#caffea}
+.hxal-pill.n i{background:#ff5470;box-shadow:0 0 8px #ff5470}.hxal-pill.n{color:#ffc2cb}
+.hxal-pill.w i{background:#ffb02e;box-shadow:0 0 8px #ffb02e}.hxal-pill.w{color:#ffe2b0}
+.hxal-btns{display:flex;gap:10px;margin-top:12px}
+.hxal-btn{flex:1;padding:11px;border-radius:15px;border:1px solid rgba(125,160,255,.45);background:rgba(20,28,74,.6);color:#d6e2ff;font-weight:700;font-size:14px}
+.hxal-btn[disabled]{opacity:.45}
+.hxal-msg{font-size:12.5px;color:#9fb0d8;margin-top:10px;line-height:1.4;word-break:break-word}.hxal-msg:empty{display:none}
 .hxal-msg.err{color:#ff8d9a}.hxal-msg.ok{color:#22f09a}
-.hxal-add{padding:7px 12px;border-radius:12px;border:1px solid rgba(34,240,154,.5);background:rgba(34,240,154,.1);color:#bfffe6;font-weight:700;font-size:13px}
-.hxal-form{display:flex;flex-direction:column;gap:10px;padding:12px;margin-bottom:10px;border-radius:16px;background:rgba(8,14,40,.6);border:1px solid rgba(110,150,255,.22)}
+.hxal-card-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.hxal-card-h b{font-size:20px;flex:1;color:#fff}
+.hxal-bellmini{width:34px;height:34px;flex-shrink:0;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 150'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23fff6c4'/%3E%3Cstop offset='.45' stop-color='%23ffc23a'/%3E%3Cstop offset='1' stop-color='%23c06a08'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M100 22c-26 0-42 19-42 44 0 24-8 34-16 42h116c-8-8-16-18-16-42 0-25-16-44-42-44z' fill='url(%23g)' stroke='%239a5206' stroke-width='3'/%3E%3Ccircle cx='100' cy='126' r='14' fill='url(%23g)' stroke='%239a5206' stroke-width='3'/%3E%3C/svg%3E");filter:drop-shadow(0 0 8px rgba(255,170,40,.55))}
+.hxal-add{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:999px;border:1.5px solid #22f0c8;background:rgba(10,40,60,.55);color:#eafffb;font-weight:800;font-size:15px;box-shadow:0 0 16px rgba(34,240,200,.5),inset 0 0 12px rgba(34,240,200,.18)}
+.hxal-form{display:flex;flex-direction:column;gap:10px;padding:14px;margin-bottom:12px;border-radius:20px;background:rgba(6,10,40,.7);border:1px solid rgba(120,150,255,.28)}
 .hxal-seg{display:flex;gap:6px}
-.hxal-seg button{flex:1;padding:9px;border-radius:12px;border:1px solid rgba(110,150,255,.25);background:transparent;color:#9fb0d8;font-weight:700;font-size:13px}
-.hxal-seg button.on{color:#e9fff6;border-color:#22f09a;background:rgba(34,240,154,.1);box-shadow:0 0 12px rgba(34,240,154,.3)}
-.hxal-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#c9d6ff}
-.hxal-row input,.hxal-row select{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid rgba(110,150,255,.3);background:#0a1020;color:#fff;font-size:15px;font-weight:700;outline:none}
-.hxal-hint{font-size:11.5px;color:#8b9bc4}
-.hxal-item{display:flex;align-items:center;gap:10px;padding:12px;margin-top:8px;border-radius:16px;background:rgba(8,14,40,.55);border:1px solid rgba(110,150,255,.18)}
+.hxal-seg button{flex:1;padding:10px;border-radius:14px;border:1px solid rgba(110,150,255,.28);background:transparent;color:#9fb0d8;font-weight:700;font-size:13.5px}
+.hxal-seg button.on{color:#eafff6;border-color:#22f09a;background:rgba(34,240,154,.1);box-shadow:0 0 14px rgba(34,240,154,.35)}
+.hxal-row{display:flex;align-items:center;gap:8px;font-size:14px;color:#c9d6ff}
+.hxal-row input,.hxal-row select{flex:1;min-width:0;padding:11px 12px;border-radius:14px;border:1px solid rgba(120,150,255,.35);background:#080c2c;color:#fff;font-size:16px;font-weight:700;outline:none}
+.hxal-hint{font-size:12px;color:#8b9bc4}
+.hxal-item{position:relative;display:flex;align-items:center;gap:9px;padding:11px 10px 11px 15px;margin-top:10px;border-radius:22px;background:linear-gradient(135deg,rgba(18,24,78,.85),rgba(8,12,44,.9));border:1px solid rgba(120,150,255,.22);box-shadow:0 0 14px rgba(90,110,255,.15)}
+.hxal-item::before{content:'';position:absolute;left:-1px;top:10px;bottom:10px;width:5px;border-radius:4px;background:linear-gradient(180deg,#27ff9c,#12b5a5);box-shadow:0 0 12px rgba(39,255,156,.9)}
+.hxal-item.alt::before{background:linear-gradient(180deg,#ff8de0,#a05cff);box-shadow:0 0 12px rgba(200,110,255,.9)}
+.hxal-item.off{opacity:.55}
+.hxal-ico{width:38px;height:38px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(255,120,150,.45))}
 .hxal-item .t{flex:1;min-width:0}
-.hxal-item .t b{display:block;font-size:15px;color:#fff}
-.hxal-item .t small{font-size:11.5px;color:#8b9bc4}
-.hxal-sw{position:relative;width:46px;height:26px;border-radius:13px;background:#334155;flex-shrink:0;border:none;transition:.2s}
-.hxal-sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
-.hxal-sw.on{background:#22c987;box-shadow:0 0 12px rgba(34,240,154,.5)}
-.hxal-sw.on::after{left:23px}
-.hxal-del{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,77,99,.35);background:rgba(255,77,99,.08);color:#ff8d9a;font-size:15px;flex-shrink:0}
-.hxal-empty{padding:18px 8px;text-align:center;font-size:13px;color:#8b9bc4}
-.hxal-note{font-size:11.5px;color:#7f8fb5;line-height:1.5;padding:0 6px}
+.hxal-item .t b{display:block;font-size:16.5px;white-space:nowrap;color:#fff;line-height:1.2}
+.hxal-item .t small{font-size:12px;color:#9fb0d8}
+.hxal-sw{position:relative;width:54px;height:32px;border-radius:16px;background:#2a3158;flex-shrink:0;border:none;transition:.2s;box-shadow:inset 0 2px 5px rgba(0,0,0,.45)}
+.hxal-sw::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#d6dcf5);transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.hxal-sw.on{background:linear-gradient(180deg,#22d98a,#0fa866);box-shadow:0 0 16px rgba(34,240,154,.6),inset 0 2px 5px rgba(0,60,30,.3)}
+.hxal-sw.on::after{left:25px}
+.hxal-del{width:40px;height:40px;border-radius:14px;border:1.5px solid rgba(255,64,100,.75);background:rgba(255,40,90,.10);color:#ff3d6e;font-size:19px;font-weight:700;flex-shrink:0;box-shadow:0 0 14px rgba(255,50,100,.45),inset 0 0 10px rgba(255,50,100,.15)}
+.hxal-empty{padding:20px 8px;text-align:center;font-size:14px;color:#8b9bc4}
+.hxal-info{display:flex;align-items:flex-start;gap:12px;box-shadow:0 0 0 1.5px rgba(130,80,255,.65),0 0 30px rgba(120,60,255,.35),inset 0 0 40px rgba(130,70,255,.18);background:linear-gradient(145deg,rgba(60,28,130,.7),rgba(10,14,56,.88))}
+.hxal-bolt{width:40px;height:50px;flex-shrink:0;margin-top:2px}
+.hxal-note{flex:1;font-size:13.5px;color:#c5d0f5;line-height:1.55}
+.hxal-i{width:26px;height:26px;border-radius:50%;border:1.5px solid #6b8cff;color:#8fb0ff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-style:italic;font-family:Georgia,serif;box-shadow:0 0 10px rgba(80,120,255,.5)}
 </style>
 <script>
 /* Алерты: правила хранятся на телефоне и синхронизируются с воркером defi-alerts, который проверяет их каждые 5 минут и шлёт пуш (FCM) */
 var DEFI_WORKER_URL='https://defi-alerts.yuriilosiev.workers.dev';
 var AL_KEY='defi_alerts_v2';
 var AL_ASSETS=['BTC','ETH','SOL','BNB','AVAX','LINK','AAVE','UNI','ARB','OP','POL'];
-var _al={alerts:[],token:'',perm:null,fb:null,srv:null,form:null,lastSync:0,msg:'',msgType:''};
+var _al={off:false,alerts:[],token:'',perm:null,fb:null,srv:null,form:null,lastSync:0,msg:'',msgType:''};
 function alRu(){ try{ return lang==='ru'; }catch(e){ return true; } }
 function alEl(id){ return document.getElementById(id); }
 function alLoad(){
-  try{ var o=JSON.parse(localStorage.getItem(AL_KEY)||'{}'); _al.alerts=Array.isArray(o.alerts)?o.alerts:[]; _al.token=o.token||''; _al.lastSync=o.lastSync||0; }catch(e){}
+  try{ var o=JSON.parse(localStorage.getItem(AL_KEY)||'{}'); _al.alerts=Array.isArray(o.alerts)?o.alerts:[]; _al.token=o.token||''; _al.lastSync=o.lastSync||0; _al.off=!!o.off; }catch(e){}
 }
-function alSave(){ try{ localStorage.setItem(AL_KEY,JSON.stringify({alerts:_al.alerts,token:_al.token,lastSync:_al.lastSync})); }catch(e){} }
+function alSave(){ try{ localStorage.setItem(AL_KEY,JSON.stringify({alerts:_al.alerts,token:_al.token,lastSync:_al.lastSync,off:!!_al.off})); }catch(e){} }
 function alBridge(){ return (window.AndroidBridge && typeof AndroidBridge.pushStatus==='function') ? window.AndroidBridge : null; }
 function alStatusNative(){
   var b=alBridge(); if(!b){ _al.perm=null; _al.fb=null; return; }
@@ -12259,27 +12313,34 @@ function alEvmWallets(){
   return out;
 }
 /* ─── отрисовка ─── */
+function alHeartSvg(){ return '<svg class="hxal-ico" viewBox="0 0 48 48"><defs><radialGradient id="alh1" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ff9bb8"/><stop offset=".45" stop-color="#ff2b6a"/><stop offset="1" stop-color="#a80838"/></radialGradient></defs><path d="M24 42C10 31 4 24 4 16c0-6 4.5-10 10-10 4 0 7.5 2.3 10 6 2.5-3.7 6-6 10-6 5.500 0 10 4 10 10 0 8-6 15-20 26z" fill="url(#alh1)" stroke="#7a0828" stroke-width="1.5"/><path d="M12 12c2-3 6-3.500 8-1" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".85"/></svg>'; }
+function alCoinSvg(a){
+  var c={BTC:['#ffd37a','#f7931a','#b25d05','B'],ETH:['#c7d3ff','#627eea','#2b3f9c','◆'],SOL:['#c3ffe9','#14f195','#7a3fe0','S'],BNB:['#fff0a8','#f3ba2f','#a8780a','B'],AVAX:['#ffc2c2','#e84142','#8a1214','A'],LINK:['#b9d0ff','#2a5ada','#12307f','L'],AAVE:['#d9c3ff','#b6509e','#4f2a9a','A'],UNI:['#ffc2e6','#ff007a','#900046','U'],ARB:['#bfe6ff','#28a0f0','#124f80','A'],OP:['#ffc2c2','#ff0420','#8a0012','O'],POL:['#e2c8ff','#8247e5','#3d1f85','P']}[a]||['#ddd','#888','#444','?'];
+  var id='alc'+a;
+  var sym=a==='BTC'?'<text x="24" y="32" text-anchor="middle" font-size="26" font-weight="800" fill="#fff" font-family="Arial,sans-serif">B</text><path d="M20 8v5M26 8v5M20 35v5M26 35v5" stroke="#fff" stroke-width="2.200" stroke-linecap="round"/>':a==='ETH'?'<path d="M24 9l-9 15 9 5 9-5z" fill="#fff" opacity=".95"/><path d="M24 31l-9-5.500 9 13 9-13z" fill="#fff" opacity=".8"/>':'<text x="24" y="31" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="Arial,sans-serif">'+c[3]+'</text>';
+  return '<svg class="hxal-ico" viewBox="0 0 48 48" style="filter:drop-shadow(0 0 8px '+c[1]+'88)"><defs><radialGradient id="'+id+'" cx=".35" cy=".28" r=".85"><stop offset="0" stop-color="'+c[0]+'"/><stop offset=".5" stop-color="'+c[1]+'"/><stop offset="1" stop-color="'+c[2]+'"/></radialGradient></defs><circle cx="24" cy="24" r="21" fill="url(#'+id+')" stroke="'+c[2]+'" stroke-width="2"/><circle cx="24" cy="24" r="16.500" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.200"/>'+sym+'<ellipse cx="17" cy="13" rx="8" ry="4" fill="#fff" opacity=".35" transform="rotate(-25 17 13)"/></svg>';
+}
+function alPill(st,label){ return '<span class="hxal-pill '+st+'"><i></i>'+label+'</span>'; }
 function alRender(){
   var ru=alRu();
   alStatusNative();
   var lines=alEl('al-status-lines'); if(!lines) return;
-  function ln(icon,label,val,cls){ return '<div class="hxal-line"><i>'+icon+'</i>'+label+'<span class="'+cls+'">'+val+'</span></div>'; }
+  var b=alBridge();
   var h='';
-  if(!alBridge()){
-    h+=ln('📱',ru?'Приложение':'App',ru?'только в APK':'APK only','w');
+  if(!b){
+    h+=alPill('w',ru?'Только в APK-приложении':'APK app only');
   } else {
-    h+=ln('🔔',ru?'Уведомления':'Notifications',_al.perm?(ru?'разрешены':'allowed'):(ru?'не разрешены':'not allowed'),_al.perm?'y':'n');
-    h+=ln('🔥','Firebase',_al.fb?(ru?'подключён':'connected'):(ru?'не подключён':'not connected'),_al.fb?'y':'n');
-    h+=ln('🔑',ru?'Токен устройства':'Device token',_al.token?(ru?'есть':'ok'):(ru?'нет':'none'),_al.token?'y':'w');
+    h+=alPill(_al.perm?'y':'n',ru?'Уведомления':'Notifications');
+    h+=alPill(_al.fb?'y':'n','Firebase');
+    h+=alPill(_al.token?'y':'w',ru?'Токен':'Token');
   }
-  h+=ln('☁️',ru?'Сервер алертов':'Alert server',_al.srv===null?'…':(_al.srv?(ru?'доступен':'online'):(ru?'не отвечает':'offline')),_al.srv===null?'w':(_al.srv?'y':'n'));
+  h+=alPill(_al.srv===null?'w':(_al.srv?'y':'n'),ru?'Сервер':'Server');
   var wl=alEvmWallets().length;
-  h+=ln('👛',ru?'Кошельки для HF':'Wallets for HF',String(wl),wl?'y':'w');
+  h+=alPill(wl?'y':'w',(ru?'Кошельки: ':'Wallets: ')+wl);
   lines.innerHTML=h;
-  var ready=alBridge() && _al.perm && _al.fb && _al.token && _al.srv;
-  var dot=alEl('al-dot'); if(dot) dot.className='hxal-dot '+(ready?'ok':'warn');
-  var en=alEl('al-enable'); if(en){ en.textContent=(_al.perm&&_al.token)?(ru?'Обновить подключение':'Reconnect'):(ru?'Включить пуш':'Enable push'); }
-  var tb=alEl('al-test'); if(tb) tb.disabled=!(_al.token);
+  var on=!!(b && _al.perm && _al.token && !_al.off);
+  var sw=alEl('al-push-sw'); if(sw) sw.className='hxal-bigsw'+(on?' on':'');
+  var tb=alEl('al-test'); if(tb){ tb.disabled=!_al.token; tb.textContent=ru?'Отправить тест':'Send test'; }
   alRenderList();
   var note=alEl('al-note');
   if(note) note.textContent=ru
@@ -12287,25 +12348,41 @@ function alRender(){
     : 'The server checks alerts every 5 minutes, even when the app is closed. HF uses your saved EVM wallets (lowest across Aave networks with debt). While HF stays below the threshold a reminder comes every 3 hours; the alert re-arms when HF rises 0.05 above it. A price alert fires once when the level is crossed.';
   var sub=alEl('al-sub'); if(sub) sub.textContent=ru?'Пуш на телефон: падение Health Factor и движение цены':'Phone push: Health Factor drop and price moves';
   var tt=alEl('al-status-title'); if(tt) tt.textContent=ru?'Пуш-уведомления':'Push notifications';
+  var pd=alEl('al-push-desc'); if(pd) pd.textContent=ru?'Получайте важные сигналы в реальном времени':'Get important signals in real time';
   var lt=alEl('al-list-title'); if(lt) lt.textContent=ru?'Мои алерты':'My alerts';
   var ab=alEl('al-add-btn'); if(ab) ab.textContent=_al.form?(ru?'Закрыть':'Close'):(ru?'+ Добавить':'+ Add');
+  var sht=alEl('sh-contact'); if(sht) sht.textContent=ru?'Алерты':'Alerts';
 }
 function alDescribe(a){
   var ru=alRu();
-  if(a.type==='hf') return {t:'❤️ Health Factor < '+a.below, s:ru?'Падение ниже порога':'Drops below threshold'};
+  if(a.type==='hf') return {t:'Health Factor < '+a.below, s:ru?'Падение ниже порога':'Drops below threshold'};
   var p=a.price>=1000?Math.round(a.price).toLocaleString('en-US'):String(a.price);
-  return {t:'🎯 '+a.asset+(a.dir==='above'?' ≥ $':' ≤ $')+p, s:a.dir==='above'?(ru?'Цена поднимется до уровня':'Price rises to level'):(ru?'Цена опустится до уровня':'Price falls to level')};
+  return {t:a.asset+(a.dir==='above'?' ≥ $':' ≤ $')+p, s:a.dir==='above'?(ru?'Рост до уровня':'Rises to level'):(ru?'Падение до уровня':'Falls to level')};
 }
 function alRenderList(){
   var box=alEl('al-list'); if(!box) return;
   var ru=alRu();
   if(!_al.alerts.length){ box.innerHTML='<div class="hxal-empty">'+(ru?'Алертов пока нет. Нажми «+ Добавить».':'No alerts yet. Tap “+ Add”.')+'</div>'; return; }
-  box.innerHTML=_al.alerts.map(function(a){
+  box.innerHTML=_al.alerts.map(function(a,i){
     var d=alDescribe(a);
-    return '<div class="hxal-item"><div class="t"><b>'+d.t+'</b><small>'+d.s+'</small></div>'
+    return '<div class="hxal-item'+(i%2?' alt':'')+(a.on?'':' off')+'">'+(a.type==='hf'?alHeartSvg():alCoinSvg(a.asset))
+      +'<div class="t"><b>'+d.t+'</b><small>'+d.s+'</small></div>'
       +'<button class="hxal-sw'+(a.on?' on':'')+'" onclick="alToggle(\''+a.id+'\')" aria-label="on/off"></button>'
-      +'<button class="hxal-del" onclick="alDelete(\''+a.id+'\')">✕</button></div>';
+      +'<button class="hxal-del" onclick="alDelete(\''+a.id+'\')" aria-label="delete">✕</button></div>';
   }).join('');
+}
+async function alPushToggle(){
+  var ru=alRu(), b=alBridge();
+  if(!b){ alMsg(ru?'Пуш работает только в установленном приложении':'Push works only in the installed app','err'); return; }
+  var on=!!(_al.perm && _al.token && !_al.off);
+  if(on){
+    _al.off=true; alSave(); alRender();
+    try{ await fetch(DEFI_WORKER_URL+'/unsubscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:_al.token})}); }catch(e){}
+    alMsg(ru?'Пуш выключен. Алерты на сервере больше не проверяются.':'Push is off. Alerts are no longer checked on the server.','');
+    return;
+  }
+  _al.off=false; alSave();
+  if(_al.perm && _al.token){ alRender(); alSync(true); } else alEnable();
 }
 function alToggleForm(){
   if(_al.form){ _al.form=null; alEl('al-form').style.display='none'; alRender(); return; }
@@ -12355,6 +12432,7 @@ function alToggle(id){ _al.alerts.forEach(function(a){ if(a.id===id) a.on=!a.on;
 function alDelete(id){ _al.alerts=_al.alerts.filter(function(a){ return a.id!==id; }); alSave(); alRender(); alSyncSoon(); }
 /* ─── подключение пуша ─── */
 function alEnable(){
+  _al.off=false; alSave();
   var ru=alRu(), b=alBridge();
   if(!b){ alMsg(ru?'Пуш работает только в установленном приложении':'Push works only in the installed app','err'); return; }
   alMsg(ru?'Запрашиваю разрешение…':'Requesting permission…','');
@@ -12382,7 +12460,7 @@ window.onPushTokenError=function(msg){
 var _alSyncT=null;
 function alSyncSoon(){ clearTimeout(_alSyncT); _alSyncT=setTimeout(function(){ alSync(false); },800); }
 async function alSync(verbose){
-  var ru=alRu(); if(!_al.token){ if(verbose) alMsg(ru?'Нет токена устройства':'No device token','err'); return false; }
+  var ru=alRu(); if(_al.off){ return false; } if(!_al.token){ if(verbose) alMsg(ru?'Нет токена устройства':'No device token','err'); return false; }
   try{
     var ctl=new AbortController(); var to=setTimeout(function(){ctl.abort();},12000);
     var r=await fetch(DEFI_WORKER_URL+'/sync',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
@@ -12418,7 +12496,7 @@ async function alTest(){
     // при запуске обновляем токен и синхронизируем (только если пуш уже включали)
     setTimeout(function(){
       alStatusNative();
-      if(alBridge() && _al.perm && _al.fb && (_al.token||_al.alerts.length)){ try{ AndroidBridge.requestPushToken(); }catch(e){} }
+      if(!_al.off && alBridge() && _al.perm && _al.fb && (_al.token||_al.alerts.length)){ try{ AndroidBridge.requestPushToken(); }catch(e){} }
     },4000);
     var tab=alEl('tab-contact'); if(tab) tab.addEventListener('click',function(){ alStatusNative(); alRender(); alPing().then(alRender); });
   }
