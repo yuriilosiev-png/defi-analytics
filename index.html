@@ -1885,10 +1885,33 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
   <!-- ─── ЭКРАН 5: СВЯЗЬ ─── -->
   <div class="screen" id="screen-contact">
-    <div class="screen-header">
-      <span class="screen-title" id="sh-contact">✈️ Связь и помощь</span>
+    <div class="screen-header hxal-head">
+      <svg class="hxal-art" viewBox="0 0 220 120" preserveAspectRatio="xMaxYMid meet" aria-hidden="true"><defs><radialGradient id="hxalg" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#ffe9a8"/><stop offset=".55" stop-color="#f5b021"/><stop offset="1" stop-color="#b8710a"/></radialGradient><filter id="hxalb"><feGaussianBlur stdDeviation="6"/></filter></defs><circle cx="150" cy="58" r="42" fill="#7c3aed" opacity=".35" filter="url(#hxalb)"/><path d="M150 18c-20 0-32 15-32 34 0 18-6 26-12 32h88c-6-6-12-14-12-32 0-19-12-34-32-34z" fill="url(#hxalg)" stroke="#8a5207" stroke-width="1.5"/><circle cx="150" cy="14" r="5" fill="#f5b021"/><path d="M139 92a11 11 0 0 0 22 0z" fill="#d98c0b"/><g fill="none" stroke="#7dffd0" stroke-width="3" stroke-linecap="round" opacity=".85"><path d="M104 40q-8 12 0 24"/><path d="M94 32q-14 20 0 40"/><path d="M196 40q8 12 0 24"/><path d="M206 32q14 20 0 40"/></g></svg>
+      <div class="hxal-head-l"><span class="screen-title" id="sh-contact">🔔 Алерты</span><span class="hxal-sub" id="al-sub">Пуш на телефон: падение Health Factor и движение цены</span></div>
     </div>
 
+    <div class="hxal-wrap" id="al-wrap">
+      <div class="hxal-card" id="al-status-card">
+        <div class="hxal-card-h"><span class="hxal-ic">📡</span><b id="al-status-title">Пуш-уведомления</b><span class="hxal-dot" id="al-dot"></span></div>
+        <div id="al-status-lines" class="hxal-lines"></div>
+        <div class="hxal-btns">
+          <button class="hxal-btn main" id="al-enable" onclick="alEnable()">Включить пуш</button>
+          <button class="hxal-btn" id="al-test" onclick="alTest()">Тест</button>
+        </div>
+        <div id="al-msg" class="hxal-msg"></div>
+      </div>
+
+      <div class="hxal-card">
+        <div class="hxal-card-h"><span class="hxal-ic">🔔</span><b id="al-list-title">Мои алерты</b>
+          <button class="hxal-add" id="al-add-btn" onclick="alToggleForm()">+ Добавить</button></div>
+        <div id="al-form" class="hxal-form" style="display:none"></div>
+        <div id="al-list"></div>
+      </div>
+
+      <div class="hxal-note" id="al-note"></div>
+    </div>
+
+    <div id="al-legacy" style="display:none">
     <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
 
       <!-- ── TELEGRAM АЛЕРТЫ ── -->
@@ -2051,6 +2074,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       </div>
 
     </div>
+    </div>
   </div>
 
   <!-- ЭКРАН: ДОКУМЕНТАЦИЯ -->
@@ -2089,8 +2113,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
     <span class="tab-label">Стратегия</span>
   </div>
   <div class="tab" onclick="switchTab('contact')" id="tab-contact">
-    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3L2 11l7 3 3 7 3-5 7-13z"/><path d="M9 14l13-11"/></svg></div>
-    <span class="tab-label">Связь</span>
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+    <span class="tab-label">Алерты</span>
   </div>
   <div class="tab" onclick="switchTab('docs')" id="tab-docs">
     <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 21a2 2 0 0 1 2-2h12"/></svg></div>
@@ -2187,7 +2211,7 @@ var lang = 'ru';
 var TR = {
   ru: {
     tab_home:'Главная',tab_positions:'Позиции',
-    tab_journal:'Журнал',tab_strategy:'Стратегия',tab_contact:'Связь',
+    tab_journal:'Журнал',tab_strategy:'Стратегия',tab_contact:'Алерты',
     portfolio_value:'Стоимость портфеля',no_data:'— нет данных',
     collateral:'Залог',loan:'Займ',pools:'Пулы',aave:'Aave',active:'Активный',balance:'Баланс',
     needs_attention:'⚠️ Требует внимания',
@@ -2259,11 +2283,11 @@ var TR = {
     lp_mark_1d:'1д', lp_calc_btn:'Рассчитать',
     lend_suffix:'(лендинг)', custom_source:'— Другой источник —',
     qty_placeholder:'введи кол-во',
-    contact_title_full:'✈️ Связь и помощь',
+    contact_title_full:'🔔 Алерты',
     support_dev_full:'☕ Поддержать разработку'
   },
   en: {
-    tab_home:'Home',tab_positions:'Positions',tab_journal:'Journal',tab_strategy:'Strategy',tab_contact:'Contact',
+    tab_home:'Home',tab_positions:'Positions',tab_journal:'Journal',tab_strategy:'Strategy',tab_contact:'Alerts',
     portfolio_value:'Portfolio Value',no_data:'no data',
     collateral:'Collateral',loan:'Loan',pools:'Pools',aave:'Aave',active:'Active',balance:'Balance',
     needs_attention:'⚠️ Needs Attention',enter_data:'Enter collateral and loan data',
@@ -2317,7 +2341,7 @@ var TR = {
     lp_mark_1d:'1d', lp_calc_btn:'Calculate',
     lend_suffix:'(lending)', custom_source:'— Other source —',
     qty_placeholder:'enter qty',
-    contact_title_full:'✈️ Contact & Support',
+    contact_title_full:'🔔 Alerts',
     support_dev_full:'☕ Support development'
   }
 };
@@ -12157,6 +12181,249 @@ function jrnPick(k){
   else { jrnViewYear=k; jrnPeriod='year'; }
   try{ renderJournal(); }catch(e){}
 }
+</script>
+<style id="hxal-style">
+#screen-contact{background:radial-gradient(120% 60% at 85% 0%,rgba(40,90,200,.28),transparent 60%),radial-gradient(90% 50% at 0% 35%,rgba(124,58,237,.16),transparent 65%),#050a1c}
+.hxal-head{position:relative;overflow:hidden;min-height:92px;display:flex;align-items:center;padding:18px 16px 10px}
+.hxal-art{position:absolute;right:0;top:0;height:100%;width:62%;pointer-events:none}
+.hxal-head-l{position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+#screen-contact .screen-title{font-size:30px;font-weight:800;background:linear-gradient(90deg,#fff,#8fd0ff 60%,#b88cff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.hxal-sub{display:block;font-size:12.5px;color:#9fb0d8;max-width:190px;line-height:1.3}
+.hxal-wrap{padding:6px 16px 20px;display:flex;flex-direction:column;gap:12px;font-family:var(--hx-font)}
+.hxal-card{border-radius:22px;padding:14px;background:linear-gradient(160deg,rgba(18,30,72,.72),rgba(8,14,36,.82));border:1px solid rgba(110,150,255,.25);box-shadow:0 0 18px rgba(60,100,230,.14),inset 0 0 22px rgba(90,130,255,.05)}
+.hxal-card-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hxal-card-h b{font-size:17px;flex:1;color:#fff}
+.hxal-ic{font-size:20px}
+.hxal-dot{width:11px;height:11px;border-radius:50%;background:#64748b;box-shadow:0 0 0 3px rgba(100,116,139,.2)}
+.hxal-dot.ok{background:#22f09a;box-shadow:0 0 12px #22f09a}
+.hxal-dot.warn{background:#ffb02e;box-shadow:0 0 12px #ffb02e}
+.hxal-lines{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.hxal-line{display:flex;align-items:center;gap:8px;font-size:13px;color:#c9d6ff;padding:8px 10px;border-radius:12px;background:rgba(8,14,40,.55);border:1px solid rgba(110,150,255,.15)}
+.hxal-line i{font-style:normal;width:18px;text-align:center}
+.hxal-line span{margin-left:auto;font-weight:700}
+.hxal-line .y{color:#22f09a}.hxal-line .n{color:#ff8d9a}.hxal-line .w{color:#ffb02e}
+.hxal-btns{display:flex;gap:10px}
+.hxal-btn{flex:1;padding:12px;border-radius:14px;border:1px solid rgba(125,160,255,.4);background:rgba(20,30,70,.6);color:#d6e2ff;font-weight:700;font-size:14px}
+.hxal-btn.main{border-color:#22f09a;background:linear-gradient(180deg,rgba(20,60,70,.75),rgba(10,26,50,.85));color:#e9fff6;box-shadow:0 0 14px rgba(34,240,154,.35)}
+.hxal-btn[disabled]{opacity:.5}
+.hxal-msg{font-size:12px;color:#9fb0d8;margin-top:10px;line-height:1.4;word-break:break-word}
+.hxal-msg.err{color:#ff8d9a}.hxal-msg.ok{color:#22f09a}
+.hxal-add{padding:7px 12px;border-radius:12px;border:1px solid rgba(34,240,154,.5);background:rgba(34,240,154,.1);color:#bfffe6;font-weight:700;font-size:13px}
+.hxal-form{display:flex;flex-direction:column;gap:10px;padding:12px;margin-bottom:10px;border-radius:16px;background:rgba(8,14,40,.6);border:1px solid rgba(110,150,255,.22)}
+.hxal-seg{display:flex;gap:6px}
+.hxal-seg button{flex:1;padding:9px;border-radius:12px;border:1px solid rgba(110,150,255,.25);background:transparent;color:#9fb0d8;font-weight:700;font-size:13px}
+.hxal-seg button.on{color:#e9fff6;border-color:#22f09a;background:rgba(34,240,154,.1);box-shadow:0 0 12px rgba(34,240,154,.3)}
+.hxal-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#c9d6ff}
+.hxal-row input,.hxal-row select{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid rgba(110,150,255,.3);background:#0a1020;color:#fff;font-size:15px;font-weight:700;outline:none}
+.hxal-hint{font-size:11.5px;color:#8b9bc4}
+.hxal-item{display:flex;align-items:center;gap:10px;padding:12px;margin-top:8px;border-radius:16px;background:rgba(8,14,40,.55);border:1px solid rgba(110,150,255,.18)}
+.hxal-item .t{flex:1;min-width:0}
+.hxal-item .t b{display:block;font-size:15px;color:#fff}
+.hxal-item .t small{font-size:11.5px;color:#8b9bc4}
+.hxal-sw{position:relative;width:46px;height:26px;border-radius:13px;background:#334155;flex-shrink:0;border:none;transition:.2s}
+.hxal-sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.hxal-sw.on{background:#22c987;box-shadow:0 0 12px rgba(34,240,154,.5)}
+.hxal-sw.on::after{left:23px}
+.hxal-del{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,77,99,.35);background:rgba(255,77,99,.08);color:#ff8d9a;font-size:15px;flex-shrink:0}
+.hxal-empty{padding:18px 8px;text-align:center;font-size:13px;color:#8b9bc4}
+.hxal-note{font-size:11.5px;color:#7f8fb5;line-height:1.5;padding:0 6px}
+</style>
+<script>
+/* Алерты: правила хранятся на телефоне и синхронизируются с воркером defi-alerts, который проверяет их каждые 5 минут и шлёт пуш (FCM) */
+var DEFI_WORKER_URL='https://defi-alerts.yuriilosiev.workers.dev';
+var AL_KEY='defi_alerts_v2';
+var AL_ASSETS=['BTC','ETH','SOL','BNB','AVAX','LINK','AAVE','UNI','ARB','OP','POL'];
+var _al={alerts:[],token:'',perm:null,fb:null,srv:null,form:null,lastSync:0,msg:'',msgType:''};
+function alRu(){ try{ return lang==='ru'; }catch(e){ return true; } }
+function alEl(id){ return document.getElementById(id); }
+function alLoad(){
+  try{ var o=JSON.parse(localStorage.getItem(AL_KEY)||'{}'); _al.alerts=Array.isArray(o.alerts)?o.alerts:[]; _al.token=o.token||''; _al.lastSync=o.lastSync||0; }catch(e){}
+}
+function alSave(){ try{ localStorage.setItem(AL_KEY,JSON.stringify({alerts:_al.alerts,token:_al.token,lastSync:_al.lastSync})); }catch(e){} }
+function alBridge(){ return (window.AndroidBridge && typeof AndroidBridge.pushStatus==='function') ? window.AndroidBridge : null; }
+function alStatusNative(){
+  var b=alBridge(); if(!b){ _al.perm=null; _al.fb=null; return; }
+  try{ var j=JSON.parse(b.pushStatus()); _al.perm=!!j.permission; _al.fb=!!j.firebase; }catch(e){ _al.perm=null; _al.fb=null; }
+}
+function alMsg(t,type){ _al.msg=t||''; _al.msgType=type||''; var m=alEl('al-msg'); if(m){ m.textContent=_al.msg; m.className='hxal-msg '+(_al.msgType||''); } }
+async function alPing(){
+  try{
+    var ctl=new AbortController(); var to=setTimeout(function(){ctl.abort();},6000);
+    var r=await fetch(DEFI_WORKER_URL+'/health',{signal:ctl.signal}); clearTimeout(to);
+    _al.srv=r.ok;
+  }catch(e){ _al.srv=false; }
+}
+function alEvmWallets(){
+  var out=[]; try{ if(!_walletBookLoaded) walletBookLoad(); (_walletBook||[]).forEach(function(w){ if(/^0x[0-9a-fA-F]{40}$/.test((w.addr||'').trim())) out.push(w.addr.trim()); }); }catch(e){}
+  try{ var cur=(localStorage.getItem('defi_wallet_addr')||'').trim(); if(/^0x[0-9a-fA-F]{40}$/.test(cur) && out.map(function(x){return x.toLowerCase();}).indexOf(cur.toLowerCase())<0) out.push(cur); }catch(e){}
+  return out;
+}
+/* ─── отрисовка ─── */
+function alRender(){
+  var ru=alRu();
+  alStatusNative();
+  var lines=alEl('al-status-lines'); if(!lines) return;
+  function ln(icon,label,val,cls){ return '<div class="hxal-line"><i>'+icon+'</i>'+label+'<span class="'+cls+'">'+val+'</span></div>'; }
+  var h='';
+  if(!alBridge()){
+    h+=ln('📱',ru?'Приложение':'App',ru?'только в APK':'APK only','w');
+  } else {
+    h+=ln('🔔',ru?'Уведомления':'Notifications',_al.perm?(ru?'разрешены':'allowed'):(ru?'не разрешены':'not allowed'),_al.perm?'y':'n');
+    h+=ln('🔥','Firebase',_al.fb?(ru?'подключён':'connected'):(ru?'не подключён':'not connected'),_al.fb?'y':'n');
+    h+=ln('🔑',ru?'Токен устройства':'Device token',_al.token?(ru?'есть':'ok'):(ru?'нет':'none'),_al.token?'y':'w');
+  }
+  h+=ln('☁️',ru?'Сервер алертов':'Alert server',_al.srv===null?'…':(_al.srv?(ru?'доступен':'online'):(ru?'не отвечает':'offline')),_al.srv===null?'w':(_al.srv?'y':'n'));
+  var wl=alEvmWallets().length;
+  h+=ln('👛',ru?'Кошельки для HF':'Wallets for HF',String(wl),wl?'y':'w');
+  lines.innerHTML=h;
+  var ready=alBridge() && _al.perm && _al.fb && _al.token && _al.srv;
+  var dot=alEl('al-dot'); if(dot) dot.className='hxal-dot '+(ready?'ok':'warn');
+  var en=alEl('al-enable'); if(en){ en.textContent=(_al.perm&&_al.token)?(ru?'Обновить подключение':'Reconnect'):(ru?'Включить пуш':'Enable push'); }
+  var tb=alEl('al-test'); if(tb) tb.disabled=!(_al.token);
+  alRenderList();
+  var note=alEl('al-note');
+  if(note) note.textContent=ru
+    ? 'Сервер проверяет алерты каждые 5 минут, даже когда приложение закрыто. HF считается по сохранённым EVM-кошелькам (минимум среди сетей Aave, где есть долг). Пока HF ниже порога, напоминание приходит раз в 3 часа; алерт «перезаряжается», когда HF поднимается выше порога на 0.05. Ценовой алерт срабатывает один раз при пересечении уровня.'
+    : 'The server checks alerts every 5 minutes, even when the app is closed. HF uses your saved EVM wallets (lowest across Aave networks with debt). While HF stays below the threshold a reminder comes every 3 hours; the alert re-arms when HF rises 0.05 above it. A price alert fires once when the level is crossed.';
+  var sub=alEl('al-sub'); if(sub) sub.textContent=ru?'Пуш на телефон: падение Health Factor и движение цены':'Phone push: Health Factor drop and price moves';
+  var tt=alEl('al-status-title'); if(tt) tt.textContent=ru?'Пуш-уведомления':'Push notifications';
+  var lt=alEl('al-list-title'); if(lt) lt.textContent=ru?'Мои алерты':'My alerts';
+  var ab=alEl('al-add-btn'); if(ab) ab.textContent=_al.form?(ru?'Закрыть':'Close'):(ru?'+ Добавить':'+ Add');
+}
+function alDescribe(a){
+  var ru=alRu();
+  if(a.type==='hf') return {t:'❤️ Health Factor < '+a.below, s:ru?'Падение ниже порога':'Drops below threshold'};
+  var p=a.price>=1000?Math.round(a.price).toLocaleString('en-US'):String(a.price);
+  return {t:'🎯 '+a.asset+(a.dir==='above'?' ≥ $':' ≤ $')+p, s:a.dir==='above'?(ru?'Цена поднимется до уровня':'Price rises to level'):(ru?'Цена опустится до уровня':'Price falls to level')};
+}
+function alRenderList(){
+  var box=alEl('al-list'); if(!box) return;
+  var ru=alRu();
+  if(!_al.alerts.length){ box.innerHTML='<div class="hxal-empty">'+(ru?'Алертов пока нет. Нажми «+ Добавить».':'No alerts yet. Tap “+ Add”.')+'</div>'; return; }
+  box.innerHTML=_al.alerts.map(function(a){
+    var d=alDescribe(a);
+    return '<div class="hxal-item"><div class="t"><b>'+d.t+'</b><small>'+d.s+'</small></div>'
+      +'<button class="hxal-sw'+(a.on?' on':'')+'" onclick="alToggle(\''+a.id+'\')" aria-label="on/off"></button>'
+      +'<button class="hxal-del" onclick="alDelete(\''+a.id+'\')">✕</button></div>';
+  }).join('');
+}
+function alToggleForm(){
+  if(_al.form){ _al.form=null; alEl('al-form').style.display='none'; alRender(); return; }
+  var ru=alRu();
+  var hf=0; try{ if(_aaveContractAcct && _aaveContractAcct.hf && _aaveContractAcct.hf<900) hf=_aaveContractAcct.hf; }catch(e){}
+  _al.form={type:'hf',hf:hf?Math.max(1.1,Math.round((hf-0.3)*10)/10):1.5,asset:'BTC',dir:'below',price:''};
+  alRenderForm(); alEl('al-form').style.display='flex'; alRender();
+}
+function alCurPrice(asset){
+  try{ var id=ASSET_MAP[asset.toLowerCase()]; var v=id&&livePrices&&livePrices[id]; return v>0?v:0; }catch(e){ return 0; }
+}
+function alRenderForm(){
+  var f=_al.form, box=alEl('al-form'); if(!f||!box) return; var ru=alRu();
+  var h='<div class="hxal-seg"><button class="'+(f.type==='hf'?'on':'')+'" onclick="alFormType(\'hf\')">Health Factor</button><button class="'+(f.type==='price'?'on':'')+'" onclick="alFormType(\'price\')">'+(ru?'Цена актива':'Asset price')+'</button></div>';
+  if(f.type==='hf'){
+    var hf=0; try{ if(_aaveContractAcct && _aaveContractAcct.hf && _aaveContractAcct.hf<900) hf=_aaveContractAcct.hf; }catch(e){}
+    h+='<div class="hxal-row">HF &lt;<input id="al-f-hf" type="number" inputmode="decimal" step="0.1" min="1.05" max="9" value="'+f.hf+'"></div>';
+    h+='<div class="hxal-hint">'+(hf?(ru?'Сейчас HF: ':'Current HF: ')+hf.toFixed(2):(ru?'Текущий HF появится после загрузки кошелька':'Current HF appears after wallet loads'))+'</div>';
+  } else {
+    var cp=alCurPrice(f.asset);
+    h+='<div class="hxal-row"><select id="al-f-asset" onchange="alFormAsset(this.value)">'+AL_ASSETS.map(function(a){ return '<option value="'+a+'"'+(a===f.asset?' selected':'')+'>'+a+'</option>'; }).join('')+'</select>'
+      +'<select id="al-f-dir"><option value="below"'+(f.dir==='below'?' selected':'')+'>'+(ru?'упадёт до':'falls to')+'</option><option value="above"'+(f.dir==='above'?' selected':'')+'>'+(ru?'вырастет до':'rises to')+'</option></select></div>';
+    h+='<div class="hxal-row">$<input id="al-f-price" type="number" inputmode="decimal" step="any" min="0" placeholder="'+(cp?Math.round(cp):'')+'" value="'+(f.price||'')+'"></div>';
+    h+='<div class="hxal-hint">'+(cp?(ru?'Сейчас ':'Now ')+f.asset+' ≈ $'+(cp>=1000?Math.round(cp).toLocaleString('en-US'):cp.toFixed(2)):(ru?'Текущая цена недоступна':'Current price unavailable'))+'</div>';
+  }
+  h+='<div class="hxal-btns"><button class="hxal-btn main" onclick="alFormSave()">'+(ru?'Сохранить':'Save')+'</button></div>';
+  box.innerHTML=h;
+}
+function alFormType(t){ _al.form.type=t; alRenderForm(); }
+function alFormAsset(a){ var pr=alEl('al-f-price'); _al.form.price=pr?pr.value:''; var d=alEl('al-f-dir'); if(d) _al.form.dir=d.value; _al.form.asset=a; alRenderForm(); }
+function alFormSave(){
+  var f=_al.form; if(!f) return; var ru=alRu();
+  if(_al.alerts.length>=20){ alMsg(ru?'Максимум 20 алертов':'Max 20 alerts','err'); return; }
+  var id='a'+Date.now().toString(36)+Math.floor(Math.random()*1000).toString(36), a;
+  if(f.type==='hf'){
+    var v=parseFloat((alEl('al-f-hf')||{}).value);
+    if(!(v>1&&v<10)){ alMsg(ru?'HF должен быть между 1 и 10':'HF must be between 1 and 10','err'); return; }
+    a={id:id,on:true,type:'hf',below:Math.round(v*100)/100};
+  } else {
+    var pv=parseFloat((alEl('al-f-price')||{}).value), asset=(alEl('al-f-asset')||{}).value||f.asset, dir=(alEl('al-f-dir')||{}).value||f.dir;
+    if(!(pv>0)){ alMsg(ru?'Введи цену':'Enter a price','err'); return; }
+    a={id:id,on:true,type:'price',asset:asset,dir:dir,price:pv};
+  }
+  _al.alerts.push(a); alSave(); _al.form=null; alEl('al-form').style.display='none'; alMsg('',''); alRender(); alSyncSoon();
+}
+function alToggle(id){ _al.alerts.forEach(function(a){ if(a.id===id) a.on=!a.on; }); alSave(); alRender(); alSyncSoon(); }
+function alDelete(id){ _al.alerts=_al.alerts.filter(function(a){ return a.id!==id; }); alSave(); alRender(); alSyncSoon(); }
+/* ─── подключение пуша ─── */
+function alEnable(){
+  var ru=alRu(), b=alBridge();
+  if(!b){ alMsg(ru?'Пуш работает только в установленном приложении':'Push works only in the installed app','err'); return; }
+  alMsg(ru?'Запрашиваю разрешение…':'Requesting permission…','');
+  try{ b.requestPushPermission(); }catch(e){ alMsg(String(e),'err'); }
+}
+window.onPushPermission=function(granted){
+  var ru=alRu();
+  alStatusNative();
+  if(!granted){ alMsg(ru?'Уведомления не разрешены. Включи их в настройках Android для приложения.':'Notifications are not allowed. Enable them in Android settings for this app.','err'); alRender(); return; }
+  alMsg(ru?'Получаю токен устройства…':'Getting device token…','');
+  try{ AndroidBridge.requestPushToken(); }catch(e){ alMsg(String(e),'err'); }
+  alRender();
+};
+window.onPushToken=function(token){
+  var ru=alRu(); _al.token=token; alSave(); alRender();
+  alMsg(ru?'Токен получен, синхронизирую с сервером…':'Token received, syncing…','');
+  alSync(true);
+};
+window.onPushTokenError=function(msg){
+  var ru=alRu();
+  if(msg==='firebase_not_configured') alMsg(ru?'Firebase ещё не подключён к этой сборке: нужен файл google-services.json (см. инструкцию) и новая сборка APK.':'Firebase is not connected to this build: google-services.json and a new APK build are required.','err');
+  else alMsg((ru?'Не удалось получить токен: ':'Token error: ')+msg,'err');
+  alRender();
+};
+var _alSyncT=null;
+function alSyncSoon(){ clearTimeout(_alSyncT); _alSyncT=setTimeout(function(){ alSync(false); },800); }
+async function alSync(verbose){
+  var ru=alRu(); if(!_al.token){ if(verbose) alMsg(ru?'Нет токена устройства':'No device token','err'); return false; }
+  try{
+    var ctl=new AbortController(); var to=setTimeout(function(){ctl.abort();},12000);
+    var r=await fetch(DEFI_WORKER_URL+'/sync',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
+      body:JSON.stringify({token:_al.token,wallets:alEvmWallets(),alerts:_al.alerts,lang:ru?'ru':'en'})});
+    clearTimeout(to);
+    var j=await r.json();
+    if(!r.ok||!j.ok) throw new Error(j.error||('HTTP '+r.status));
+    _al.srv=true; _al.lastSync=Date.now(); alSave(); alRender();
+    if(verbose) alMsg(ru?'Готово: алертов на сервере — '+j.alerts+', кошельков — '+j.wallets:'Done: alerts on server — '+j.alerts+', wallets — '+j.wallets,'ok');
+    return true;
+  }catch(e){
+    _al.srv=false; alRender();
+    alMsg((ru?'Сервер не принял синхронизацию: ':'Sync failed: ')+(e&&e.message||e),'err');
+    return false;
+  }
+}
+async function alTest(){
+  var ru=alRu(); if(!_al.token){ alMsg(ru?'Сначала включи пуш':'Enable push first','err'); return; }
+  var btn=alEl('al-test'); if(btn) btn.disabled=true;
+  alMsg(ru?'Отправляю тест…':'Sending test…','');
+  try{
+    if(!(await alSync(false))) return;
+    var r=await fetch(DEFI_WORKER_URL+'/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:_al.token})});
+    var j=await r.json();
+    if(j.ok) alMsg(ru?'Тест отправлен — уведомление должно прийти за несколько секунд':'Test sent — you should get it in a few seconds','ok');
+    else alMsg((ru?'Сервер не смог отправить пуш: ':'Server could not push: ')+(j.detail||j.error||r.status),'err');
+  }catch(e){ alMsg((ru?'Ошибка: ':'Error: ')+(e&&e.message||e),'err'); }
+  finally{ if(btn) btn.disabled=!_al.token; }
+}
+(function(){
+  function boot(){
+    alLoad(); alRender(); alPing().then(alRender);
+    // при запуске обновляем токен и синхронизируем (только если пуш уже включали)
+    setTimeout(function(){
+      alStatusNative();
+      if(alBridge() && _al.perm && _al.fb && (_al.token||_al.alerts.length)){ try{ AndroidBridge.requestPushToken(); }catch(e){} }
+    },4000);
+    var tab=alEl('tab-contact'); if(tab) tab.addEventListener('click',function(){ alStatusNative(); alRender(); alPing().then(alRender); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
 </script>
 </body>
 </html>

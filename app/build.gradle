@@ -1,4 +1,9 @@
 apply plugin: 'com.android.application'
+// Пуш-алерты (FCM): плагин включается, только когда в app/ лежит google-services.json.
+// Без файла сборка проходит как раньше, просто без пушей.
+if (file('google-services.json').exists()) {
+    apply plugin: 'com.google.gms.google-services'
+}
 
 android {
     namespace "com.losiev.defianalytics"
@@ -72,4 +77,7 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.12.1'
     // Play In-App Updates: кнопка «Установить» в баннере обновления
     implementation 'com.google.android.play:app-update:2.1.0'
+    // Firebase Cloud Messaging: пуш-алерты (Health Factor, цена активов)
+    implementation platform('com.google.firebase:firebase-bom:32.7.4')
+    implementation 'com.google.firebase:firebase-messaging'
 }

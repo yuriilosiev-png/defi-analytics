@@ -7,6 +7,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.9.1'
+        // Firebase (пуш-алерты). Плагин применяется в app/build.gradle только если рядом лежит google-services.json
+        classpath 'com.google.gms:google-services:4.4.2'
     }
 }
 allprojects {
