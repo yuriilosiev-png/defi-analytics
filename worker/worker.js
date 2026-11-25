@@ -257,6 +257,7 @@ async function runCron(env) {
   for (const { key, sub } of subs) {
     const hfs = sub.wallets.map(w => hfByWallet[w.toLowerCase()]).filter(Boolean);
     const hf = hfs.length ? hfs.reduce((m, x) => (x.hf < m.hf ? x : m)) : null;
+    const before = JSON.stringify(sub.fired);
     const msgs = evaluate(sub, { prices, hf }, now);
     let gone = false;
     for (const m of msgs) {
@@ -264,7 +265,8 @@ async function runCron(env) {
       if (r.gone) { gone = true; break; }
       if (!r.ok) { const id = m.tag.replace(/^(hf|px)_/, ''); delete sub.fired[id]; }   // не доставили — повторим на следующем тике
     }
-    if (gone) await env.DEFI_KV.delete(key); else await env.DEFI_KV.put(key, JSON.stringify(sub));
+    // На бесплатном тарифе KV лимит 1000 записей в сутки, поэтому пишем только если состояние изменилось
+    if (gone) await env.DEFI_KV.delete(key); else if (JSON.stringify(sub.fired) !== before) await env.DEFI_KV.put(key, JSON.stringify(sub));
   }
 }
 
