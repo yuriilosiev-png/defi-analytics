@@ -4843,8 +4843,12 @@ function renderStaticTexts(){
 }
 
 function renderDocsScreen(){
+  if(typeof window.hxDocRender==='function') return window.hxDocRender();
+  return renderDocsScreenLegacy();
+}
+function renderDocsScreenLegacy(target){
   var ru = (lang === 'ru');
-  var el = document.getElementById('docs-content');
+  var el = target || document.getElementById('docs-content');
   if(!el) return;
   var shDocs = document.getElementById('sh-docs');
   if(shDocs) shDocs.textContent = ru ? '📚 Инструкция' : '📚 Guide';
@@ -5133,7 +5137,7 @@ function renderDocsScreen(){
     'Займ не превышает 60–65% от максимального LTV протокола',
     'Знаешь цену BTC/ETH при которой начнётся ликвидация',
     'Доход пулов покрывает стоимость займа — стратегия в плюс',
-    'Telegram алерт на HF настроен и проверен тест-уведомлением',
+    'Пуш-алерт на HF настроен и проверен кнопкой «Отправить тест»',
     'LP диапазоны периодически проверяешь — цена не вышла за границы',
     'В журнале фиксируешь каждый вывод дохода и пополнение',
     'Есть резерв стейблов — если рынок падает, можно докинуть залог',
@@ -5143,7 +5147,7 @@ function renderDocsScreen(){
     'Loan doesn\'t exceed 60–65% of max protocol LTV',
     'Know the BTC/ETH price at which liquidation starts',
     'Pool income covers debt cost — strategy is profitable',
-    'Telegram HF alert is configured and tested',
+    'Push alert on HF is set up and checked with “Send test”',
     'Check LP ranges periodically — price hasn\'t exited bounds',
     'Log every income withdrawal and deposit in the journal',
     'Have a stablecoin reserve — if market drops, can top up collateral',
@@ -12552,5 +12556,384 @@ async function alTest(){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
 })();
 </script>
+<!-- ═══════════════ ИНСТРУКЦИЯ: блоки со слайдами (hxd) ═══════════════ -->
+<style id="hxdoc-style">
+#screen-docs #docs-content{padding:12px 14px 24px!important;gap:14px!important}
+.hxd-hero{position:relative;border-radius:22px;padding:16px 16px 14px;overflow:hidden;border:1px solid rgba(125,160,255,.25);background:radial-gradient(120% 140% at 90% 0%,rgba(80,60,200,.35),transparent 60%),linear-gradient(160deg,rgba(18,30,72,.85),rgba(8,14,36,.92))}
+.hxd-hero h3{margin:0 0 4px;font-size:19px;color:#fff;letter-spacing:.01em}
+.hxd-hero p{margin:0 0 12px;font-size:12.5px;line-height:1.5;color:#a9b8e0}
+.hxd-jump{display:flex;flex-wrap:wrap;gap:8px}
+.hxd-jump button{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:12px;border:1px solid rgba(125,160,255,.3);background:rgba(20,30,70,.6);color:#dbe4ff;font:600 12px inherit;font-family:inherit;cursor:pointer;touch-action:manipulation}
+.hxd-blk{--c:#22d3ee;border-radius:22px;border:1px solid rgba(125,160,255,.22);background:linear-gradient(160deg,rgba(18,30,72,.72),rgba(8,14,36,.85));overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+.hxd-bh{display:flex;align-items:center;gap:11px;padding:13px 14px 11px}
+.hxd-bi{width:42px;height:42px;flex-shrink:0;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:21px;background:color-mix(in srgb,var(--c) 18%,transparent);border:1px solid color-mix(in srgb,var(--c) 50%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--c) 30%,transparent)}
+.hxd-bt{flex:1;min-width:0}
+.hxd-bt b{display:block;font-size:15.5px;color:#fff}
+.hxd-bt span{display:block;font-size:11.5px;color:#9fb0d8;margin-top:1px}
+.hxd-cnt{font:700 11px 'Space Mono',monospace;color:var(--c);white-space:nowrap}
+.hxd-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain}
+.hxd-track::-webkit-scrollbar{display:none}
+.hxd-sl{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;padding:2px 14px 4px;box-sizing:border-box}
+.hxd-art{width:100%;height:auto;display:block;border-radius:16px;border:1px solid rgba(125,160,255,.18)}
+.hxd-st{font:700 10px 'Space Mono',monospace;color:var(--c);letter-spacing:.08em;margin:12px 0 3px;text-transform:uppercase}
+.hxd-sl h4{margin:0 0 6px;font-size:15.5px;line-height:1.3;color:#fff}
+.hxd-sl p{margin:0;font-size:13px;line-height:1.6;color:#b7c3e6}
+.hxd-sl p b{color:#fff;font-weight:700}
+.hxd-tip{margin-top:9px;padding:8px 11px;border-radius:0 10px 10px 0;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 9%,transparent);font-size:12px;line-height:1.5;color:#cfe0ff}
+.hxd-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 14px;gap:10px}
+.hxd-dots{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;flex:1}
+.hxd-dots i{display:block;width:7px;height:7px;border-radius:4px;background:rgba(160,180,255,.28);transition:all .2s;cursor:pointer}
+.hxd-dots i.on{width:20px;background:var(--c);box-shadow:0 0 8px var(--c)}
+.hxd-nb{width:40px;height:34px;flex-shrink:0;border-radius:12px;border:1px solid rgba(125,160,255,.3);background:rgba(20,30,70,.6);color:#fff;font-size:15px;cursor:pointer;touch-action:manipulation;font-family:inherit}
+.hxd-nb[disabled]{opacity:.3}
+.hxd-ref{border-radius:20px;border:1px solid rgba(125,160,255,.22);background:rgba(12,20,50,.6);overflow:hidden}
+.hxd-ref summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:14px 16px;font-size:14px;font-weight:700;color:#fff}
+.hxd-ref summary::-webkit-details-marker{display:none}
+.hxd-ref summary small{display:block;font-size:11px;font-weight:500;color:#9fb0d8;margin-top:1px}
+.hxd-ref summary:after{content:'▾';margin-left:auto;color:#9fb0d8;transition:transform .2s}
+.hxd-ref[open] summary:after{transform:rotate(180deg)}
+.hxd-ref-in{display:flex;flex-direction:column;gap:10px;padding:0 10px 12px}
+@keyframes hxdp{0%,100%{opacity:1}50%{opacity:.35}}
+.hxd-pulse{animation:hxdp 1.7s ease-in-out infinite}
+</style>
+<script>
+(function(){
+  function RU(){ try{ return lang==='ru'; }catch(e){ return true; } }
+  function L(a,b){ return RU()?a:b; }
+  var C={cy:'#22d3ee',gr:'#22f09a',or:'#f59e0b',rd:'#ef4444',vi:'#a45cff',tx:'#e6ecff',mu:'#8c9ac4',bl:'#6fb6ff',go:'#ffd24a'};
+  var _u=0;
+
+  /* ── мини-библиотека рисования (viewBox 320×150) ── */
+  function R(x,y,w,h,r,f,s,sw){ return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+(r||0)+'" fill="'+(f||'rgba(255,255,255,.06)')+'" stroke="'+(s||'rgba(125,160,255,.28)')+'" stroke-width="'+(sw||1)+'"/>'; }
+  function T(x,y,s,sz,f,a,w){ return '<text x="'+x+'" y="'+y+'" font-size="'+(sz||10)+'" fill="'+(f||C.tx)+'" text-anchor="'+(a||'start')+'" font-weight="'+(w||600)+'" font-family="Inter,Arial,sans-serif">'+s+'</text>'; }
+  function CH(x,y,w,s,c,on){ return R(x,y,w,16,8,c+(on?'55':'22'),c+(on?'ee':'77'),on?1.4:1)+T(x+w/2,y+11.2,s,8.5,on?'#fff':c,'middle',700); }
+  function HL(x,y,w,h,r,c){ c=c||C.go; return '<rect x="'+(x-2)+'" y="'+(y-2)+'" width="'+(w+4)+'" height="'+(h+4)+'" rx="'+(r+2)+'" fill="none" stroke="'+c+'" stroke-width="5" opacity=".5" filter="url(#@G)"/><rect class="hxd-pulse" x="'+(x-2)+'" y="'+(y-2)+'" width="'+(w+4)+'" height="'+(h+4)+'" rx="'+(r+2)+'" fill="none" stroke="'+c+'" stroke-width="1.7"/>'; }
+  function TOG(x,y,on,w,h){ w=w||34; h=h||18; return R(x,y,w,h,h/2,on?C.gr+'44':'rgba(255,255,255,.08)',on?C.gr:'rgba(125,160,255,.4)',1.2)+'<circle cx="'+(on?x+w-h/2:x+h/2)+'" cy="'+(y+h/2)+'" r="'+(h/2-2.5)+'" fill="'+(on?C.gr:C.mu)+'"/>'; }
+  function PILL(x,y,w,s,st){ var c=st==='y'?C.gr:(st==='n'?C.rd:C.or); return R(x,y,w,17,8.5,c+'1f',c+'88')+'<circle cx="'+(x+9)+'" cy="'+(y+8.5)+'" r="3" fill="'+c+'"/>'+T(x+16,y+11.6,s,8.5,'#dfe8ff','start',600); }
+  function BELL(x,y,s,c){ s=s||1; c=c||C.go; return '<g transform="translate('+x+' '+y+') scale('+s+')"><path d="M0 -10c-5 0-8 4-8 9v6l-3 4h22l-3-4v-6c0-5-3-9-8-9z" fill="'+c+'" stroke="#fff" stroke-width="1" stroke-opacity=".6"/><circle cx="0" cy="12" r="3" fill="'+c+'"/></g>'; }
+  function ARW(x1,y1,x2,y2,c){ c=c||C.cy; return '<line x1="'+x1+'" y1="'+y1+'" x2="'+(x2-5)+'" y2="'+y2+'" stroke="'+c+'" stroke-width="2" stroke-dasharray="4 3"/><path d="M'+(x2-7)+' '+(y2-5)+'L'+x2+' '+y2+'L'+(x2-7)+' '+(y2+5)+'z" fill="'+c+'"/>'; }
+  var STARS='<g fill="#fff"><circle cx="30" cy="10" r=".8" opacity=".6"/><circle cx="110" cy="6" r=".6" opacity=".5"/><circle cx="200" cy="12" r=".8" opacity=".5"/><circle cx="290" cy="8" r=".7" opacity=".6"/><circle cx="12" cy="140" r=".7" opacity=".4"/><circle cx="305" cy="142" r=".8" opacity=".5"/></g>';
+  function SVG(inner){
+    var id='hd'+(++_u);
+    return '<svg class="hxd-art" viewBox="0 0 320 150" role="img" aria-hidden="true"><defs><linearGradient id="'+id+'b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#121c4a"/><stop offset="1" stop-color="#070c24"/></linearGradient><filter id="'+id+'g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter></defs><rect width="320" height="150" rx="16" fill="url(#'+id+'b)"/>'+STARS+inner.replace(/@G/g,id+'g')+'</svg>';
+  }
+
+  /* ── иллюстрации ── */
+  var A={};
+  A.what=function(){
+    var s='';
+    [[16,'📱',L('На телефоне','On your phone'),L('данные у тебя','data stays with you'),C.cy],[114,'👁',L('Только чтение','Read-only'),L('кошелёк без ключей','wallet, no keys'),C.gr],[212,'🔔',L('Пуш-алерты','Push alerts'),L('через сервер','via a server'),C.vi]].forEach(function(t){
+      s+=R(t[0],20,92,110,16,t[4]+'14',t[4]+'66')+T(t[0]+46,66,t[1],30,C.tx,'middle')+T(t[0]+46,96,t[2],10.5,'#fff','middle',700)+T(t[0]+46,111,t[3],8.5,C.mu,'middle',500);
+    });
+    return s;
+  };
+  A.tabs=function(){
+    var tabs=[['🏠',L('Главная','Home')],['📊',L('Позиции','Positions')],['📓',L('Журнал','Journal')],['⚡',L('Стратегия','Strategy')],['🔔',L('Алерты','Alerts')],['📚',L('Инструкция','Guide')]];
+    var s=R(12,52,296,62,16,'rgba(10,16,44,.9)','rgba(125,160,255,.32)');
+    tabs.forEach(function(t,i){ var x=12+i*49.3+24.6; s+=T(x,80,t[0],17,C.tx,'middle')+T(x,100,t[1],6.8,i===0?C.cy:C.mu,'middle',700); });
+    s+=R(14,56,46,54,13,C.cy+'18',C.cy+'66');
+    s+=T(160,34,L('нижнее меню — 6 вкладок','bottom bar — 6 tabs'),10,C.mu,'middle',600);
+    s+=T(160,136,L('язык: флаг 🇷🇺/🇬🇧 на Главной','language: 🇷🇺/🇬🇧 flag on Home'),9,C.mu,'middle',500);
+    return s;
+  };
+  A.wallet=function(){
+    var s=R(12,10,296,130,16);
+    s+=T(26,30,'🔗 '+L('Подключить кошелёк','Connect wallet'),11.5,'#fff','start',700);
+    s+=R(26,40,188,26,9,'rgba(255,255,255,.05)')+T(36,57,L('0x… или адрес Solana','0x… or Solana address'),9,C.mu,'start',500);
+    s+=R(222,40,72,26,9,C.gr+'33',C.gr)+T(258,57,L('Загрузить','Load'),9.5,'#eafff6','middle',700)+HL(222,40,72,26,9,C.go);
+    s+=CH(26,76,44,'Aave',C.vi)+CH(76,76,58,'Uniswap',C.vi)+CH(140,76,40,'GMX',C.gr)+CH(186,76,48,'Merkl',C.or)+CH(240,76,54,'Compound',C.cy);
+    s+=CH(26,98,54,'Morpho',C.bl)+CH(86,98,50,'Solana',C.gr);
+    s+=T(26,128,L('Учитывать Uniswap/GMX в стоимости портфеля','Count Uniswap/GMX in portfolio value'),8.2,C.mu,'start',500)+TOG(272,119,true,24,13);
+    return s;
+  };
+  A.manual=function(){
+    var s=R(12,8,296,134,16);
+    s+=T(26,28,'⚙️ '+L('Настройки','Settings'),11.5,'#fff','start',700)+HL(20,14,100,20,8,C.go);
+    s+=T(26,48,'📊 '+L('Активы в залоге Aave','Aave collateral assets'),8.8,C.mu,'start',700)+R(246,38,48,15,7.5,C.gr+'22',C.gr+'88')+T(270,48.6,'= 100%',8,C.gr,'middle',700);
+    [['BTC','#f7931a','60'],['ETH','#627eea','30'],['USDC','#2775ca','10']].forEach(function(a,i){ var y=56+i*22;
+      s+=R(22,y,272,20,8,'rgba(255,255,255,.05)')+'<circle cx="34" cy="'+(y+10)+'" r="5" fill="'+a[1]+'"/>'+T(46,y+13.5,a[0],9.5,'#fff','start',700)+R(206,y+3,40,14,6,'rgba(255,255,255,.08)')+T(226,y+13,a[2]+' %',8.5,C.tx,'middle',700)+T(280,y+13.5,'✕',8.5,C.mu,'middle');
+    });
+    s+=CH(22,123,86,'+ '+L('Добавить актив','Add asset'),C.cy)+CH(228,123,66,'💾 '+L('Сохранить','Save'),C.vi,true);
+    return s;
+  };
+  A.hf=function(){
+    var s=T(160,26,L('Health Factor — расстояние до ликвидации','Health Factor — distance to liquidation'),9.5,C.mu,'middle',600);
+    var seg=[[24,68,C.rd],[92,34,C.or],[126,68,C.cy],[194,102,C.gr]];
+    seg.forEach(function(g,i){ s+='<rect x="'+g[0]+'" y="66" width="'+g[1]+'" height="18" '+(i===0?'rx="9"':(i===3?'rx="9"':''))+' fill="'+g[2]+'" opacity=".85"/>'; });
+    s+=R(24,66,272,18,9,'none','rgba(255,255,255,.25)');
+    [['1.0',24],['1.4',92],['1.6',126],['2.0',194]].forEach(function(m){ s+='<line x1="'+m[1]+'" y1="62" x2="'+m[1]+'" y2="92" stroke="#fff" stroke-width="1" opacity=".6"/>'+T(m[1],104,m[0],9.5,'#fff','middle',700); });
+    s+=T(58,122,L('опасно','danger'),9,C.rd,'middle',700)+T(109,122,L('напряжённо','tense'),8.5,C.or,'middle',700)+T(160,122,L('тесно','tight'),9,C.cy,'middle',700)+T(245,122,L('безопасно','safe'),9,C.gr,'middle',700);
+    s+='<path d="M232 52l-6-9h12z" fill="#fff"/>'+T(232,40,L('твой HF','your HF'),8.5,'#fff','middle',700);
+    s+=T(24,138,L('< 1.0 — протокол забирает залог','< 1.0 — protocol seizes collateral'),8.2,C.rd,'start',600);
+    return s;
+  };
+  A.home=function(){
+    var s='';
+    ['BTC','ETH','SOL','BNB','XRP','AVAX','GOLD'].forEach(function(n,i){ s+=R(12+i*43,10,39,16,8,'rgba(255,255,255,.06)')+T(31.5+i*43,21,n,7.5,C.tx,'middle',700); });
+    s+=R(12,34,296,106,16)+T(26,54,L('Стоимость портфеля','Portfolio value'),9,C.mu,'start',600)+T(26,80,'$12 480',22,'#fff','start',800)+T(26,96,'+$320  ·  +2.6%',9.5,C.gr,'start',700);
+    s+='<path d="M170 100 L190 92 L206 96 L226 76 L246 82 L270 58 L292 48" fill="none" stroke="'+C.gr+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+    ['1D','1W','1M','3M','1Y'].forEach(function(p,i){ s+=CH(26+i*38,112,34,p,C.cy,i===2); });
+    s+=T(298,54,'👁',11,C.mu,'end');
+    return s;
+  };
+  A.cards=function(){
+    var s='';
+    [[14,L('Залог','Collateral'),'$18 200','Aave',C.or],[112,L('Займ','Loan'),'$6 100',L('Активный','Active'),C.rd],[210,L('Пулы','Pools'),'$4 300',L('Баланс','Balance'),C.vi]].forEach(function(c){
+      s+=R(c[0],12,96,62,14,c[4]+'14',c[4]+'66')+T(c[0]+10,30,c[1],9,C.mu,'start',600)+T(c[0]+10,52,c[2],13,'#fff','start',800)+T(c[0]+10,66,c[3],8,c[4],'start',700);
+    });
+    s+=R(14,84,292,24,12,C.or+'1a',C.or+'88')+T(28,100,'⚠️ '+L('Требует внимания','Needs attention'),9.5,C.or,'start',700)+HL(14,84,292,24,12,C.go);
+    s+=R(14,116,292,24,12,C.gr+'14',C.gr+'66')+T(28,132,L('Общий P&amp;L','Total P&amp;L'),9.5,C.mu,'start',600)+T(294,132,'+$1 240',11,C.gr,'end',800);
+    return s;
+  };
+  A.hfcard=function(){
+    var s=R(12,10,296,130,16)+T(26,30,'Health Factor',10,C.mu,'start',700);
+    s+='<circle cx="90" cy="86" r="38" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="9"/><path d="M52 86a38 38 0 1 1 76 0" fill="none" stroke="'+C.gr+'" stroke-width="9" stroke-linecap="round" filter="url(#@G)" opacity=".5"/><path d="M52 86a38 38 0 1 1 76 0" fill="none" stroke="'+C.gr+'" stroke-width="9" stroke-linecap="round"/>';
+    s+=T(90,92,'2.14',22,'#fff','middle',800);
+    s+=T(176,56,L('Цвет показывает зону:','Colour shows the zone:'),9,C.mu,'start',600);
+    [[C.gr,L('2.0 и выше — спокойно','2.0+ — calm')],[C.cy,L('1.6–2.0 — тесновато','1.6–2.0 — tight')],[C.or,L('1.4–1.6 — следи','1.4–1.6 — watch')],[C.rd,L('ниже 1.4 — риск','below 1.4 — risk')]].forEach(function(z,i){ s+='<circle cx="182" cy="'+(70+i*17)+'" r="4" fill="'+z[0]+'"/>'+T(192,73.5+i*17,z[1],8.8,'#dfe8ff','start',600); });
+    s+=CH(232,16,64,'+ '+L('Залог','Collateral'),C.cy,true);
+    return s;
+  };
+  A.income=function(){
+    var s='',t=[[14,12,L('Доход / мес','Income / mo'),L('из пулов','from pools'),'+$210',C.gr],[164,12,L('Чистая / мес','Net / mo'),L('после долга','after debt'),'+$140',C.gr],[14,52,L('Доход / год','Income / yr'),L('прогноз','forecast'),'+$2 520',C.cy],[164,52,L('Стоимость долга','Debt cost'),L('в мес','per month'),'$70',C.or]];
+    t.forEach(function(c){ s+=R(c[0],c[1],142,34,11,c[5]+'12',c[5]+'55')+T(c[0]+9,c[1]+14,c[2],8.2,C.mu,'start',600)+T(c[0]+9,c[1]+27,c[3],7.2,C.mu,'start',500)+T(c[0]+134,c[1]+23,c[4],11.5,c[5],'end',800); });
+    s+=R(14,94,292,46,14)+T(26,110,'📊 '+L('ROI на вложенный капитал','ROI on invested capital'),9,C.mu,'start',700);
+    [[L('ROI/мес','ROI/mo'),'0.8%'],[L('ROI/год','ROI/yr'),'9.6%'],[L('Доход/деп','Income/dep'),'1.2%']].forEach(function(r,i){ s+=T(26+i*96,124,r[0],8,C.mu,'start',600)+T(26+i*96,136,r[1],11,'#fff','start',800); });
+    return s;
+  };
+  A.pos=function(){
+    var s='';
+    [['Aave',true],['Compound'],['Euler'],['Morpho']].forEach(function(p,i){ s+=R(14+i*74,10,68,22,11,p[1]?C.cy+'33':'rgba(255,255,255,.05)',p[1]?C.cy:'rgba(125,160,255,.3)')+T(48+i*74,25,p[0],9,p[1]?'#fff':C.mu,'middle',700); });
+    s+=R(14,40,292,24,10)+T(26,56,L('Займ','Loan'),9,C.mu,'start',600)+T(294,56,'$ 5 000',11,'#fff','end',800);
+    [[14,'HF 2.0','$6 200',L('Безопасно','Safe'),C.gr],[114,'HF 1.6','$7 400',L('Следи','Watch'),C.or],[214,'HF 1.4','$8 100',L('Риск','Risk'),C.rd]].forEach(function(z,i){
+      s+=R(z[0],72,92,52,12,z[4]+'14',z[4]+'66')+T(z[0]+46,86,z[1],8,z[4],'middle',700)+T(z[0]+46,104,z[2],11.5,z[4],'middle',800)+T(z[0]+46,117,z[3],8,C.mu,'middle',600);
+    });
+    s+=HL(14,72,92,52,12,C.go)+R(14,130,292,14,7,C.vi+'55',C.vi)+T(160,140.5,'💾 '+L('Сохранить','Save'),8.5,'#fff','middle',700);
+    return s;
+  };
+  A.jrn1=function(){
+    var s=R(12,8,296,44,14,'rgba(255,255,255,.05)')+T(24,26,'🔗 '+L('Кошелёк → журнал','Wallet → journal'),9.5,'#fff','start',700)+T(24,40,L('Импорт переводов: «Внесено» и «Снято»','Import transfers: Deposited / Withdrawn'),7.6,C.mu,'start',500)+CH(222,16,40,L('Импорт','Import'),C.gr,true)+HL(222,16,40,16,8,C.go)+CH(266,16,36,L('Детали','Info'),C.bl);
+    [['💰',L('Пополнение','Deposit'),'+$1 000',C.gr],['📈',L('Доход с пула','Pool income'),'+$42',C.gr],['🎁',L('Награды','Rewards'),'+$9',C.cy],['💸',L('Комиссия','Fee'),'−$3',C.rd]].forEach(function(e,i){ var y=58+i*21; s+=R(12,y,296,19,8)+T(24,y+13.5,e[0]+'  '+e[1],9,'#fff','start',600)+T(296,y+13.5,e[2],9.5,e[3],'end',800); });
+    return s;
+  };
+  A.jrn2=function(){
+    var s='';
+    [L('Месяц','Month'),L('Год','Year'),L('Всё время','All time')].forEach(function(p,i){ s+=CH(14+i*70,8,64,p,C.cy,i===0); });
+    [[L('Внёс','In'),'$5 000',C.cy],[L('Заработано','Earned'),'$420',C.gr],[L('Снято','Out'),'$300',C.or],[L('Чистая','Net'),'$120',C.gr]].forEach(function(c,i){ s+=R(14+i*73,30,67,32,10,c[2]+'12',c[2]+'55')+T(22+i*73,43,c[0],7.2,C.mu,'start',600)+T(22+i*73,56,c[1],10,c[2],'start',800); });
+    s+=R(14,70,292,72,14)+T(24,84,L('P&amp;L — кривая прибыльности','P&amp;L — profit curve'),8.5,C.mu,'start',700);
+    s+='<path d="M26 130 L70 124 L110 118 L150 104 L190 98 L230 86 L292 78" fill="none" stroke="'+C.gr+'" stroke-width="2.4" stroke-linecap="round" filter="url(#@G)" opacity=".5"/><path d="M26 130 L70 124 L110 118 L150 104 L190 98 L230 86 L292 78" fill="none" stroke="'+C.gr+'" stroke-width="2.4" stroke-linecap="round"/>';
+    s+=CH(190,110,106,'📸 '+L('История портфеля','Portfolio history'),C.bl);
+    return s;
+  };
+  A.loan=function(){
+    var s=R(12,8,296,100,16)+T(24,26,L('Стратегия сейчас','Strategy now'),10.5,'#fff','start',800);
+    [[L('Доход с пулов / мес','Pool income / mo'),'$210',C.gr],[L('Стоимость долга / мес','Debt cost / mo'),'$70',C.or],[L('Чистая прибыль / мес','Net profit / mo'),'$140',C.gr],[L('Чистая прибыль / год','Net profit / yr'),'$1 680',C.gr]].forEach(function(r,i){ var y=34+i*18; s+=T(24,y+10,r[0],8.8,C.mu,'start',600)+T(296,y+10,r[1],10.5,r[2],'end',800)+'<line x1="24" y1="'+(y+15)+'" x2="296" y2="'+(y+15)+'" stroke="rgba(125,160,255,.15)"/>'; });
+    s+=R(12,114,296,28,12)+T(24,132,L('Ставка займа','Borrow rate'),9,C.mu,'start',600)+R(214,118,56,20,8,'rgba(255,255,255,.08)')+T(242,132,'4.5',10,'#fff','middle',800)+T(280,132,'%/'+L('год','yr'),8,C.mu,'start',600)+HL(214,118,56,20,8,C.go);
+    return s;
+  };
+  A.crash=function(){
+    var s=R(12,8,296,134,16)+T(24,26,L('Симулятор падения','Crash simulator'),10.5,'#fff','start',800);
+    s+=T(24,46,L('Падение','Drop'),9,C.mu,'start',600)+T(296,46,'−20%',11,C.rd,'end',800);
+    s+=R(24,54,272,6,3,'rgba(255,255,255,.12)','none')+R(24,54,70,6,3,C.rd+'cc','none')+'<circle cx="94" cy="57" r="8" fill="#fff" stroke="'+C.rd+'" stroke-width="2.5"/>'+HL(84,47,20,20,10,C.go);
+    [[L('Залог после','Collateral after'),'$14 560',C.tx],['Health Factor','1.71',C.cy],[L('До ликвидации','To liquidation'),'−38%',C.or],[L('BTC при ликв.','BTC at liq.'),'$54 300',C.rd]].forEach(function(r,i){ var y=74+i*16; s+=T(24,y+10,r[0],9,C.mu,'start',600)+T(296,y+10,r[1],10.5,r[2],'end',800); });
+    s+=R(20,121,280,16,6,C.rd+'1a',C.rd+'66');
+    return s;
+  };
+  A.lpparams=function(){
+    var s=CH(14,8,70,'🦄 Uniswap v3',C.vi,true)+CH(90,8,70,'🦄 Uniswap v4',C.vi);
+    ['ETH','BTC','SOL','BNB'].forEach(function(a,i){ s+=CH(14+i*40,30,36,a,C.cy,i===0); });
+    ['USDC','USDT','DAI'].forEach(function(a,i){ s+=CH(184+i*42,30,38,a,C.bl,i===0); });
+    ['0.01%','0.05%','0.3%','1%'].forEach(function(a,i){ s+=CH(14+i*48,52,44,a,C.or,i===2); });
+    [[L('Сумма $','Amount $'),'5 000'],['APR %','28'],[L('Нижняя','Lower'),'2 400'],[L('Текущая','Current'),'3 000'],[L('Верхняя','Upper'),'3 600']].forEach(function(f,i){ var x=14+i*59.5; s+=T(x+2,84,f[0],7.5,C.mu,'start',600)+R(x,88,55,20,8,'rgba(255,255,255,.07)')+T(x+27.5,102,f[1],9.5,'#fff','middle',800); });
+    s+=R(14,116,292,26,13,C.vi+'55',C.vi,1.4)+T(160,133,'📊 '+L('Рассчитать','Calculate'),11,'#fff','middle',800)+HL(14,116,292,26,13,C.go);
+    return s;
+  };
+  A.lpchart=function(){
+    var s=R(12,8,252,112,12)+T(22,22,L('График P&amp;L','P&amp;L chart'),8.5,C.mu,'start',700)+CH(204,12,54,'⛶ '+L('экран','full'),C.bl)+'<line x1="22" y1="82" x2="256" y2="82" stroke="rgba(255,255,255,.25)" stroke-dasharray="3 3"/>';
+    s+='<path d="M24 108 C70 96 100 60 140 56 C180 52 210 66 254 100" fill="none" stroke="'+C.gr+'" stroke-width="2.4" filter="url(#@G)" opacity=".5"/><path d="M24 108 C70 96 100 60 140 56 C180 52 210 66 254 100" fill="none" stroke="'+C.gr+'" stroke-width="2.4"/>';
+    s+='<line x1="22" y1="44" x2="256" y2="44" stroke="'+C.go+'" stroke-width="1.6" stroke-dasharray="6 3"/>'+R(228,37,26,14,6,C.go+'33',C.go)+T(241,47,L('выход','exit'),7,C.go,'middle',700)+HL(22,40,234,8,4,C.go);
+    s+=R(274,8,32,112,12)+T(290,22,'↑',11,C.mu,'middle',800)+'<line x1="290" y1="28" x2="290" y2="104" stroke="rgba(255,255,255,.18)" stroke-width="4" stroke-linecap="round"/><circle cx="290" cy="50" r="7" fill="'+C.or+'" stroke="#fff" stroke-width="1.5"/>'+T(290,116,'↓',11,C.mu,'middle',800);
+    s+=T(14,134,L('Период','Period'),8,C.mu,'start',700)+R(50,129,200,5,2.5,'rgba(255,255,255,.12)','none')+R(50,129,70,5,2.5,C.cy+'cc','none')+'<circle cx="120" cy="131.5" r="6" fill="'+C.cy+'" stroke="#fff" stroke-width="1.5"/>';
+    [L('1д','1d'),L('нед','1w'),L('мес','1m'),L('3мес','3m'),L('год','1y'),L('5л','5y')].forEach(function(l,i){ s+=T(50+i*40,146,l,6.8,C.mu,'middle',600); });
+    return s;
+  };
+  A.lpres=function(){
+    var s='',t=[[L('P&amp;L итого','Total P&amp;L'),'+$412',C.gr],[L('Комиссии','Fees'),'+$538',C.gr],['IL','−$126',C.rd],[L('При выходе','On exit'),'$5 412',C.tx],[L('Безубыток','Break-even'),L('18 дн','18 d'),C.cy],[L('Обгон HODL','Beats HODL'),L('через 41 дн','in 41 d'),C.vi]];
+    t.forEach(function(c,i){ var x=14+(i%3)*100,y=14+Math.floor(i/3)*60; s+=R(x,y,92,52,13,c[2]+'14',c[2]+'55')+T(x+10,y+19,c[0],8.5,C.mu,'start',600)+T(x+10,y+40,c[1],13,c[2],'start',800); });
+    s+=T(160,142,L('📊 карточка «Результат» под графиком','📊 “Result” card under the chart'),8.5,C.mu,'middle',500);
+    return s;
+  };
+  A.flow=function(){
+    var s=R(10,40,84,70,16,C.cy+'14',C.cy+'66')+T(52,70,'📱',24,C.tx,'middle')+T(52,92,L('Приложение','App'),9.5,'#fff','middle',700)+T(52,103,L('правила + кошельки','rules + wallets'),7,C.mu,'middle',500);
+    s+=R(118,40,84,70,16,C.vi+'14',C.vi+'66')+T(160,70,'☁️',24,C.tx,'middle')+T(160,92,L('Сервер','Server'),9.5,'#fff','middle',700)+T(160,103,L('проверка раз в 5 мин','checks every 5 min'),7,C.mu,'middle',500);
+    s+=R(226,40,84,70,16,C.gr+'14',C.gr+'66')+T(268,70,'🔔',24,C.tx,'middle')+T(268,92,L('Пуш','Push'),9.5,'#fff','middle',700)+T(268,103,L('даже при закрытом','even when closed'),7,C.mu,'middle',500);
+    s+=ARW(96,75,116,75,C.cy)+ARW(204,75,224,75,C.gr);
+    s+=T(160,26,L('HF и цены проверяет сервер, а не телефон','The server checks HF and prices, not your phone'),9,C.mu,'middle',600);
+    s+=T(160,134,L('Только в установленном APK, в браузере пуша нет','Installed APK only — no push in a browser'),8.5,C.or,'middle',600);
+    return s;
+  };
+  A.status=function(){
+    var s=R(12,8,296,134,16)+T(24,26,L('Пуш-уведомления','Push notifications'),10.5,'#fff','start',800);
+    s+=PILL(24,36,98,L('Уведомления','Notifications'),'y')+PILL(128,36,70,'Firebase','y')+PILL(204,36,60,L('Токен','Token'),'y');
+    s+=PILL(24,60,66,L('Сервер','Server'),'y')+PILL(96,60,92,L('Кошельки: 1','Wallets: 1'),'y');
+    s+=T(24,100,L('зелёная точка — всё на месте','green dot — all good'),9,C.gr,'start',600)+T(24,116,L('жёлтая — чего-то пока нет','amber — something is missing'),9,C.or,'start',600)+T(24,132,L('красная — не работает','red — not working'),9,C.rd,'start',600);
+    return s;
+  };
+  A.enable=function(){
+    var s=R(12,8,296,78,16)+R(24,22,64,34,17,C.gr+'44',C.gr,1.6)+'<circle cx="71" cy="39" r="12" fill="'+C.gr+'"/>'+HL(24,22,64,34,17,C.go);
+    s+=T(100,36,L('Пуш-уведомления','Push notifications'),10.5,'#fff','start',800)+T(100,50,L('Получайте сигналы в реальном времени','Get signals in real time'),7.6,C.mu,'start',500)+CH(210,62,86,L('Отправить тест','Send test'),C.cy,true)+T(24,74,L('1. включи  2. разреши уведомления','1. switch on  2. allow notifications'),8,C.mu,'start',600);
+    s+=R(12,94,296,46,14,'rgba(255,255,255,.07)','rgba(125,160,255,.3)')+BELL(36,117,.9,C.go)+R(56,104,150,7,3.5,'rgba(255,255,255,.35)','none')+R(56,118,220,6,3,'rgba(255,255,255,.16)','none')+T(296,106,L('сейчас','now'),7,C.mu,'end',600);
+    return s;
+  };
+  A.alhf=function(){
+    var s=R(12,8,296,98,16)+R(22,16,138,18,9,C.cy+'33',C.cy)+T(91,28.5,'Health Factor',8.8,'#fff','middle',700)+R(164,16,132,18,9,'rgba(255,255,255,.05)')+T(230,28.5,L('Цена актива','Asset price'),8.8,C.mu,'middle',700);
+    s+=T(24,56,'HF &lt;',11,'#fff','start',800)+R(62,42,66,20,8,'rgba(255,255,255,.08)')+T(95,56.5,'1.8',11,'#fff','middle',800)+T(24,76,L('Сейчас HF: 2.14','Current HF: 2.14'),8.8,C.mu,'start',600);
+    s+=R(196,64,98,24,12,C.vi+'55',C.vi,1.4)+T(245,80,L('Сохранить','Save'),9.5,'#fff','middle',800)+HL(196,64,98,24,12,C.go);
+    s+=R(12,112,296,30,12,'rgba(255,255,255,.05)')+'<path d="M32 124c-5-3-8-6-8-10 0-3 2-5 5-5 2 0 3 1 3 2 0-1 1-2 3-2 3 0 5 2 5 5 0 4-3 7-8 10z" fill="#ff2b6a" transform="translate(0 4)"/>'+T(50,130,'Health Factor &lt; 1.8',9.5,'#fff','start',700)+T(50,139,L('Падение ниже порога','Drops below threshold'),6.8,C.mu,'start',500)+TOG(264,121,true,30,16);
+    return s;
+  };
+  A.alprice=function(){
+    var s=R(12,8,296,98,16)+R(22,16,138,18,9,'rgba(255,255,255,.05)')+T(91,28.5,'Health Factor',8.8,C.mu,'middle',700)+R(164,16,132,18,9,C.cy+'33',C.cy)+T(230,28.5,L('Цена актива','Asset price'),8.8,'#fff','middle',700);
+    s+=R(22,42,70,20,8,'rgba(255,255,255,.08)')+T(57,56,'BTC ▾',9.5,'#fff','middle',800)+R(98,42,100,20,8,'rgba(255,255,255,.08)')+T(148,56,L('упадёт до ▾','falls to ▾'),9,'#fff','middle',700)+T(24,80,'$',11,'#fff','start',800)+R(36,66,90,20,8,'rgba(255,255,255,.08)')+T(81,80.5,'90 000',10.5,'#fff','middle',800)+T(136,80,L('Сейчас BTC ≈ $97 400','Now BTC ≈ $97,400'),8.2,C.mu,'start',600)+HL(98,42,100,20,8,C.go);
+    s+=R(12,112,296,30,12,'rgba(255,255,255,.05)')+'<circle cx="34" cy="127" r="8" fill="#f7931a"/>'+T(34,130.5,'B',9,'#fff','middle',800)+T(50,126,'BTC ≤ $90 000',9.5,'#fff','start',700)+T(50,137,L('Падение до уровня','Falls to level'),6.8,C.mu,'start',500)+TOG(240,119,true,30,16)+T(288,131,'✕',9,C.mu,'middle');
+    return s;
+  };
+  A.rules=function(){
+    var s=R(12,8,296,92,14)+T(24,22,L('Health Factor','Health Factor'),8.5,C.mu,'start',700);
+    s+='<line x1="24" y1="56" x2="296" y2="56" stroke="'+C.rd+'" stroke-width="1.3" stroke-dasharray="5 3"/><line x1="24" y1="46" x2="296" y2="46" stroke="'+C.cy+'" stroke-width="1" stroke-dasharray="2 3"/>';
+    s+=T(150,66,L('порог','limit'),7.5,C.rd,'middle',700)+T(150,43,'+0.05',7.5,C.cy,'middle',700);
+    s+='<path d="M24 34 C50 36 70 50 92 64 C110 76 150 80 190 70 C215 64 232 48 250 38 L296 30" fill="none" stroke="'+C.gr+'" stroke-width="2.3"/>';
+    [[92,64,L('пуш','push')],[132,78,'+3'+L('ч','h')],[172,76,'+3'+L('ч','h')]].forEach(function(b){ s+=BELL(b[0],b[1]+14,.55,C.go)+T(b[0],b[1]+30,b[2],7,C.go,'middle',700); });
+    s+=T(266,28,L('перевзвод','re-arm'),7.5,C.cy,'middle',700);
+    s+=R(12,108,296,34,14)+T(24,122,L('Цена','Price'),8.5,C.mu,'start',700)+'<line x1="60" y1="130" x2="150" y2="130" stroke="rgba(255,255,255,.25)"/><circle cx="150" cy="130" r="3" fill="'+C.go+'"/>'+BELL(150,123,.5,C.go)+T(176,133,L('один раз при пересечении','once on crossing'),8.5,'#dfe8ff','start',600);
+    return s;
+  };
+  A.trouble=function(){
+    var s=R(12,8,296,134,16),rows=[['n',L('Уведомления','Notifications'),L('разреши в настройках Android','allow in Android settings')],['n','Firebase',L('поставь свежий APK','install the latest APK')],['w',L('Токен','Token'),L('выключи и включи пуш','switch push off and on')],['w',L('Кошельки: 0','Wallets: 0'),L('загрузи EVM-кошелёк','load an EVM wallet')],['n',L('Сервер','Server'),L('проверь интернет','check your internet')]];
+    rows.forEach(function(r,i){ var y=16+i*25; s+=PILL(22,y,92,r[1],r[0])+T(122,y+12.5,'→ '+r[2],8.6,'#dfe8ff','start',600); });
+    return s;
+  };
+
+  /* ── содержание блоков ── */
+  function blocks(){ return [
+    {c:'#22d3ee',ico:'🚀',t:L('Быстрый старт','Quick start'),sub:L('С нуля до первой проверки позиции','From zero to your first position check'),sl:[
+      {a:A.what,t:L('Что это за приложение','What this app is'),
+       d:L('Считает <b>Health Factor</b>, доход пулов и P&amp;L по твоим DeFi-позициям. <b>Данные хранятся на телефоне.</b> Кошелёк читается только на чтение, ключи не нужны.','Calculates <b>Health Factor</b>, pool income and P&amp;L for your DeFi positions. <b>Data is stored on your phone.</b> Wallets are read-only — no keys needed.'),
+       tip:L('Исключение — Алерты: серверу передаются токен пуша, адреса EVM-кошельков и правила алертов, чтобы он проверял их при закрытом приложении.','The exception is Alerts: the server receives your push token, EVM wallet addresses and alert rules so it can check them while the app is closed.')},
+      {a:A.tabs,t:L('Шесть вкладок','Six tabs'),
+       d:L('<b>Главная</b> — сводка, <b>Позиции</b> — залог, займ, пулы, <b>Журнал</b> — записи и P&amp;L, <b>Стратегия</b> — симуляторы, <b>Алерты</b> — пуш, <b>Инструкция</b> — эта страница.','<b>Home</b> — summary, <b>Positions</b> — collateral, loan, pools, <b>Journal</b> — entries and P&amp;L, <b>Strategy</b> — simulators, <b>Alerts</b> — push, <b>Guide</b> — this page.')},
+      {a:A.wallet,t:L('Способ 1: подключить кошелёк','Option 1: connect a wallet'),
+       d:L('<b>Главная → Подключить кошелёк.</b> Вставь адрес (0x… или Solana) и нажми «Загрузить». Приложение подтянет позиции Aave, Uniswap, GMX, Merkl, Compound, Morpho и Solana. Только чтение, транзакции не отправляются.','<b>Home → Connect wallet.</b> Paste an address (0x… or Solana) and tap “Load”. The app pulls positions from Aave, Uniswap, GMX, Merkl, Compound, Morpho and Solana. Read-only — no transactions are sent.'),
+       tip:L('Переключатель под полем решает, входят ли пулы Uniswap/GMX в стоимость портфеля. Загруженные EVM-адреса использует и сервер алертов.','The switch under the field decides whether Uniswap/GMX pools count toward portfolio value. Saved EVM addresses are also used by the alert server.')},
+      {a:A.manual,t:L('Способ 2: ввести вручную','Option 2: enter manually'),
+       d:L('<b>Позиции → ⚙️ Настройки:</b> добавь активы залога и пулы, задай долю каждого в % (в сумме 100%) и порог ликвидации, нажми «Сохранить». Потом впиши количество токенов в карточке «Залог Aave» и сумму в поле «Займ».','<b>Positions → ⚙️ Settings:</b> add collateral assets and pools, set each share in % (total 100%) and the liquidation threshold, then “Save”. Then enter token quantities in the “Aave collateral” card and the amount in the “Loan” field.')},
+      {a:A.hf,t:L('Первая проверка: Health Factor','First check: Health Factor'),
+       d:L('HF — одно число: насколько ты далеко от ликвидации. Ниже <b>1.0</b> протокол продаёт залог. Всё, что выше, — запас. Смотри цвет HF на Главной.','HF is one number: how far you are from liquidation. Below <b>1.0</b> the protocol sells your collateral. Everything above is buffer. Watch the HF colour on Home.'),
+       tip:L('Формулы по протоколам — в «Справочнике» внизу страницы.','Formulas per protocol are in the “Reference” at the bottom of this page.')}
+    ]},
+    {c:'#22f09a',ico:'🏠',t:L('Главная и Позиции','Home and Positions'),sub:L('Что где находится и как читать цифры','What is where and how to read the numbers'),sl:[
+      {a:A.home,t:L('Тикер и стоимость портфеля','Ticker and portfolio value'),
+       d:L('Сверху — живые цены BTC, ETH, SOL, BNB, XRP, AVAX, золота и серебра. Ниже — <b>стоимость портфеля</b> с переключателем периода 1D / 1W / 1M / 3M / 1Y.','At the top — live prices for BTC, ETH, SOL, BNB, XRP, AVAX, gold and silver. Below — <b>portfolio value</b> with a 1D / 1W / 1M / 3M / 1Y period switch.'),
+       tip:L('Глаз 👁 рядом с суммой скрывает цифры — удобно, когда рядом кто-то есть.','The eye 👁 next to the amount hides the numbers — handy when others are around.')},
+      {a:A.cards,t:L('Залог, Займ, Пулы','Collateral, Loan, Pools'),
+       d:L('Три карточки: что стоит <b>залог</b>, сколько ты должен (<b>займ</b>) и сколько в <b>пулах</b>. Полоса «Требует внимания» появляется, когда что-то надо проверить. Ниже — общий P&amp;L.','Three cards: what your <b>collateral</b> is worth, what you owe (<b>loan</b>) and what sits in <b>pools</b>. The “Needs attention” strip appears when something should be checked. Below — total P&amp;L.')},
+      {a:A.hfcard,t:'Health Factor',
+       d:L('Большая карточка HF меняет цвет по зоне: спокойно, тесновато, следи, риск. Пока залога нет, рядом стоит кнопка <b>«+ Залог»</b> — она ведёт в Позиции.','The big HF card changes colour by zone: calm, tight, watch, risk. While there is no collateral, a <b>“+ Collateral”</b> button leads to Positions.'),
+       tip:L('Держи HF не ниже 2.0 — тогда падение рынка на 20–30% не страшно.','Keep HF above 2.0 — then a 20–30% market drop is survivable.')},
+      {a:A.income,t:L('Доход и ROI','Income and ROI'),
+       d:L('<b>Доход / мес</b> — что дают пулы, <b>Чистая / мес</b> — то же после стоимости долга, <b>Доход / год</b> — прогноз. Блок ROI считает отдачу от <b>твоего</b> залога (займ своим капиталом не считается).','<b>Income / mo</b> is what pools earn, <b>Net / mo</b> is that after debt cost, <b>Income / yr</b> is a forecast. The ROI block is calculated on <b>your own</b> collateral (the loan is not counted as your capital).')},
+      {a:A.pos,t:L('Позиции: протокол и займ','Positions: protocol and loan'),
+       d:L('Выбери протокол: Aave, Compound, Euler или Morpho. В поле <b>«Займ»</b> впиши долг в $. Три плитки HF 2.0 / 1.6 / 1.4 показывают, какой займ даст такой HF — <b>тап по плитке подставляет сумму в поле</b>.','Pick a protocol: Aave, Compound, Euler or Morpho. Enter your debt in $ in the <b>“Loan”</b> field. The HF 2.0 / 1.6 / 1.4 tiles show the loan that gives that HF — <b>tap a tile to fill the field</b>.'),
+       tip:L('Не забудь «Сохранить» внизу карточки.','Do not forget “Save” at the bottom of the card.')}
+    ]},
+    {c:'#a45cff',ico:'⚡',t:L('Журнал и Стратегия','Journal and Strategy'),sub:L('Записи, P&L, симулятор падения и LP','Entries, P&L, crash simulator and LP'),sl:[
+      {a:A.jrn1,t:L('Журнал: записи','Journal: entries'),
+       d:L('Кнопка <b>«Запись»</b> добавляет вручную: 💰 Пополнение, 📤 Снятие, 📈 Доход с пула, 🎁 Награды, 💸 Комиссия. Блок <b>«Кошелёк → журнал»</b> импортирует переводы «Внесено» и «Снято» сам.','The <b>“Entry”</b> button adds manually: 💰 Deposit, 📤 Withdrawal, 📈 Pool income, 🎁 Rewards, 💸 Fee. The <b>“Wallet → journal”</b> block imports “Deposited” and “Withdrawn” transfers by itself.'),
+       tip:L('Импорт читает публичные данные Blockscout по Ethereum, Arbitrum, Base, Optimism, Polygon и Gnosis. «Детали» покажут, что именно пропущено.','The import reads public Blockscout data for Ethereum, Arbitrum, Base, Optimism, Polygon and Gnosis. “Info” shows what was skipped.')},
+      {a:A.jrn2,t:L('Журнал: итоги и P&L','Journal: totals and P&L'),
+       d:L('Переключай <b>Месяц / Год / Всё время</b>. Четыре плитки: внёс, заработано, снято, чистая прибыль. Ниже — кривая P&amp;L и <b>История портфеля</b>: она рисуется из снапшотов, которые пишутся при каждой загрузке кошелька.','Switch <b>Month / Year / All time</b>. Four tiles: deposited, earned, withdrawn, net profit. Below — the P&amp;L curve and <b>Portfolio history</b>, drawn from snapshots saved on every wallet load.')},
+      {a:A.loan,t:L('Стратегия: вкладка «$ Займ»','Strategy: the “$ Loan” tab'),
+       d:L('Карточки «Стратегия сейчас» и «Точка безубыточности» сводят доход пулов, стоимость долга и чистую прибыль за месяц и год. Впиши актуальную <b>ставку займа</b> — она меняется, бери её с дашборда протокола.','The “Strategy now” and “Break-even” cards combine pool income, debt cost and net profit per month and year. Enter the current <b>borrow rate</b> — it changes, take it from the protocol dashboard.')},
+      {a:A.crash,t:L('Симулятор падения','Crash simulator'),
+       d:L('Тяни ползунок «Падение» — увидишь залог после падения, Health Factor, запас до ликвидации и <b>цену BTC, при которой начнётся ликвидация</b>. Это главная цифра: запомни её.','Drag the “Drop” slider to see collateral after the fall, Health Factor, the cushion to liquidation and the <b>BTC price where liquidation starts</b>. That is the key number — remember it.')},
+      {a:A.lpparams,t:L('LP Симулятор: параметры','LP Simulator: parameters'),
+       d:L('Вкладка <b>«LP Симулятор»</b>. Выбери Uniswap v3 или v4, актив и пару, комиссию пула, впиши сумму, APR и границы диапазона (нижняя / текущая / верхняя) и нажми <b>«Рассчитать»</b>.','The <b>“LP Simulator”</b> tab. Choose Uniswap v3 or v4, asset and pair, pool fee, enter the amount, APR and range bounds (lower / current / upper) and tap <b>“Calculate”</b>.')},
+      {a:A.lpchart,t:L('LP Симулятор: график P&amp;L','LP Simulator: P&amp;L chart'),
+       d:L('Тяни <b>жёлтую линию</b> (вертикальный ползунок справа) — это цена выхода. Нижним ползунком выбери срок от 1 дня до 5 лет. Кнопка <b>⛶</b> открывает график на весь экран с зумом.','Drag the <b>yellow line</b> (vertical slider on the right) — that is the exit price. Use the bottom slider to set the period from 1 day to 5 years. The <b>⛶</b> button opens the chart fullscreen with zoom.')},
+      {a:A.lpres,t:L('LP Симулятор: результат','LP Simulator: result'),
+       d:L('Карточка «Результат»: итоговый P&amp;L, комиссии, <b>IL</b> (непостоянный убыток), сумма при выходе, срок безубытка и когда позиция обгонит простое удержание (<b>HODL</b>).','The “Result” card: total P&amp;L, fees, <b>IL</b> (impermanent loss), value on exit, time to break-even and when the position overtakes simply holding (<b>HODL</b>).')}
+    ]},
+    {c:'#ffd24a',ico:'🔔',t:L('Алерты и настройка пуша','Alerts and push setup'),sub:L('Пуш на телефон при падении HF и движении цены','Phone push on HF drops and price moves'),sl:[
+      {a:A.flow,t:L('Как это работает','How it works'),
+       d:L('Приложение отдаёт серверу твои правила и адреса кошельков. Сервер <b>каждые 5 минут</b> проверяет HF и цены и шлёт пуш на телефон — <b>даже когда приложение закрыто</b>.','The app gives the server your rules and wallet addresses. The server <b>checks HF and prices every 5 minutes</b> and sends a push to your phone — <b>even when the app is closed</b>.')},
+      {a:A.status,t:L('Что нужно для пуша','What push needs'),
+       d:L('Наверху вкладки «Алерты» пять индикаторов: <b>Уведомления</b>, <b>Firebase</b>, <b>Токен</b>, <b>Сервер</b>, <b>Кошельки</b>. Для HF-алертов нужен хотя бы один сохранённый EVM-кошелёк.','At the top of the “Alerts” tab there are five indicators: <b>Notifications</b>, <b>Firebase</b>, <b>Token</b>, <b>Server</b>, <b>Wallets</b>. HF alerts need at least one saved EVM wallet.')},
+      {a:A.enable,t:L('Включить и проверить','Switch on and test'),
+       d:L('Нажми большой переключатель «Пуш-уведомления» и разреши уведомления. Когда индикаторы позеленеют, нажми <b>«Отправить тест»</b> — на телефон должно прийти уведомление.','Tap the big “Push notifications” switch and allow notifications. When the indicators turn green, tap <b>“Send test”</b> — a notification should arrive on your phone.'),
+       tip:L('Выключатель останавливает проверку алертов на сервере, пока ты не включишь его снова.','Switching it off stops the server from checking your alerts until you switch it on again.')},
+      {a:A.alhf,t:L('Алерт на Health Factor','Health Factor alert'),
+       d:L('<b>«+ Добавить» → Health Factor.</b> Укажи порог (от 1 до 10) и сохрани. Подставляется текущий HF минус 0.3. Сервер берёт <b>минимальный HF среди сетей Aave</b>, где у тебя есть долг.','<b>“+ Add” → Health Factor.</b> Set a threshold (1 to 10) and save. It defaults to your current HF minus 0.3. The server uses the <b>lowest HF across Aave networks</b> where you have debt.')},
+      {a:A.alprice,t:L('Алерт на цену актива','Asset price alert'),
+       d:L('<b>«+ Добавить» → Цена актива.</b> Выбери монету (BTC, ETH, SOL, BNB, AVAX, LINK, AAVE, UNI, ARB, OP, POL), направление «упадёт до» или «вырастет до» и уровень в $.','<b>“+ Add” → Asset price.</b> Pick a coin (BTC, ETH, SOL, BNB, AVAX, LINK, AAVE, UNI, ARB, OP, POL), a direction — “falls to” or “rises to” — and a level in $.'),
+       tip:L('Переключатель в строке отключает алерт, ✕ удаляет его. Максимум 20 алертов.','The switch on a row disables the alert, ✕ deletes it. Maximum 20 alerts.')},
+      {a:A.rules,t:L('Когда приходит пуш','When a push arrives'),
+       d:L('<b>HF:</b> пуш при падении ниже порога, дальше напоминание <b>каждые 3 часа</b>, пока HF ниже. Алерт перевзводится, когда HF поднимется на <b>0.05</b> выше порога. <b>Цена:</b> один пуш при пересечении уровня.','<b>HF:</b> a push when it drops below the threshold, then a reminder <b>every 3 hours</b> while it stays below. The alert re-arms once HF rises <b>0.05</b> above the threshold. <b>Price:</b> one push when the level is crossed.')},
+      {a:A.trouble,t:L('Если пуш не приходит','If push does not arrive'),
+       d:L('Смотри индикаторы наверху вкладки «Алерты»: красный или жёлтый показывает, что именно не так. Подсказки слева направо — на схеме.','Check the indicators at the top of the “Alerts” tab: red or amber shows what is wrong. The fixes are on the diagram.'),
+       tip:L('После исправления нажми «Отправить тест».','After fixing it, tap “Send test”.')}
+    ]}
+  ]; }
+
+  /* ── сборка и поведение ── */
+  function esc(s){ return s; }
+  function blockHtml(b,bi){
+    var n=b.sl.length;
+    var sl=b.sl.map(function(s,i){
+      return '<div class="hxd-sl">'+SVG(s.a())+'<div class="hxd-st">'+L('Шаг ','Step ')+(i+1)+' / '+n+'</div><h4>'+s.t+'</h4><p>'+s.d+'</p>'+(s.tip?'<div class="hxd-tip">💡 '+s.tip+'</div>':'')+'</div>';
+    }).join('');
+    var dots=b.sl.map(function(s,i){ return '<i class="'+(i===0?'on':'')+'" onclick="hxdTo('+bi+','+i+')"></i>'; }).join('');
+    return '<section class="hxd-blk" id="hxd-b'+bi+'" style="--c:'+b.c+'"><div class="hxd-bh"><div class="hxd-bi">'+b.ico+'</div><div class="hxd-bt"><b>'+b.t+'</b><span>'+b.sub+'</span></div><div class="hxd-cnt" id="hxd-cn'+bi+'">1/'+n+'</div></div>'
+      +'<div class="hxd-track" id="hxd-t'+bi+'">'+sl+'</div>'
+      +'<div class="hxd-nav"><button class="hxd-nb" id="hxd-p'+bi+'" onclick="hxdGo('+bi+',-1)" disabled aria-label="prev">‹</button><div class="hxd-dots" id="hxd-d'+bi+'">'+dots+'</div><button class="hxd-nb" id="hxd-n'+bi+'" onclick="hxdGo('+bi+',1)" aria-label="next">›</button></div></section>';
+  }
+  function idx(bi){ var t=document.getElementById('hxd-t'+bi); if(!t) return 0; return Math.max(0,Math.round(t.scrollLeft/Math.max(1,t.clientWidth))); }
+  function sync(bi){
+    var t=document.getElementById('hxd-t'+bi); if(!t) return;
+    var n=t.children.length, i=Math.min(n-1,idx(bi));
+    var d=document.getElementById('hxd-d'+bi); if(d) for(var k=0;k<d.children.length;k++) d.children[k].className=(k===i?'on':'');
+    var c=document.getElementById('hxd-cn'+bi); if(c) c.textContent=(i+1)+'/'+n;
+    var p=document.getElementById('hxd-p'+bi), nx=document.getElementById('hxd-n'+bi);
+    if(p) p.disabled=(i===0); if(nx) nx.disabled=(i===n-1);
+  }
+  window.hxdTo=function(bi,i){ var t=document.getElementById('hxd-t'+bi); if(!t) return; t.scrollTo({left:i*t.clientWidth,behavior:'smooth'}); };
+  window.hxdGo=function(bi,dir){ var t=document.getElementById('hxd-t'+bi); if(!t) return; var n=t.children.length; hxdTo(bi,Math.max(0,Math.min(n-1,idx(bi)+dir))); };
+  window.hxdJump=function(bi){ var e=document.getElementById('hxd-b'+bi); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); };
+
+  window.hxDocRender=function(){
+    var el=document.getElementById('docs-content'); if(!el) return;
+    var B=blocks();
+    var html='<div class="hxd-hero"><h3>'+L('Как всё работает','How it all works')+'</h3><p>'+L('Четыре блока со слайдами. Листай пальцем влево-вправо или жми стрелки под слайдом.','Four blocks with slides. Swipe left-right or use the arrows under the slide.')+'</p><div class="hxd-jump">'
+      +B.map(function(b,i){ return '<button onclick="hxdJump('+i+')">'+b.ico+' '+b.t+'</button>'; }).join('')+'</div></div>';
+    html+=B.map(blockHtml).join('');
+    html+='<details class="hxd-ref"><summary><span style="font-size:20px">📖</span><span>'+L('Справочник','Reference')+'<small>'+L('Формулы HF, протоколы, чеклист, об авторе','HF formulas, protocols, checklist, about')+'</small></span></summary><div class="hxd-ref-in" id="hxd-ref-in"></div></details>';
+    var scrolls=B.map(function(b,i){ var t=document.getElementById('hxd-t'+i); return t?t.scrollLeft:0; });
+    el.innerHTML=html;
+    B.forEach(function(b,i){
+      var t=document.getElementById('hxd-t'+i); if(!t) return; var raf=0;
+      t.addEventListener('scroll',function(){ if(raf) return; raf=requestAnimationFrame(function(){ raf=0; sync(i); }); },{passive:true});
+    });
+    try{
+      if(typeof renderDocsScreenLegacy==='function'){
+        var tmp=document.createElement('div'); renderDocsScreenLegacy(tmp);
+        var ref=document.getElementById('hxd-ref-in'); var keep=[2,3,8,9];
+        var kids=Array.prototype.slice.call(tmp.children); keep.forEach(function(k){ if(kids[k]) ref.appendChild(kids[k]); });
+      }
+    }catch(e){ console.error(e); }
+    var sh=document.getElementById('sh-docs'); if(sh) sh.textContent='📚 '+L('Инструкция','Guide');
+  };
+  try{ window.hxDocRender(); }catch(e){ console.error(e); }
+})();
+</script>
+
 </body>
 </html>
