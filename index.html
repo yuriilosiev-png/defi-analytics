@@ -6113,7 +6113,7 @@ function lpCalc(){
   var r0=ilR.ratio0, r1=1-r0;
 
   var pnlEl=document.getElementById('lp_pnl_total');
-  if(pnlEl){pnlEl.textContent=(pnl>=0?'+':'')+' $'+Math.abs(pnl).toFixed(2);pnlEl.style.color=pnl>=0?'var(--green)':'var(--red)';}
+  if(pnlEl){pnlEl.textContent=(pnl>=0?'+':'-')+' $'+Math.abs(pnl).toFixed(2);pnlEl.style.color=pnl>=0?'var(--green)':'var(--red)';}
   var pnlPEl=document.getElementById('lp_pnl_pct');
   if(pnlPEl){pnlPEl.textContent=(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'% · '+Math.round(period)+' '+(ru?'дн':'d');pnlPEl.style.color=pnl>=0?'var(--green)':'var(--red)';}
 
@@ -6253,8 +6253,11 @@ function lpDrawChart(){
   var cssH=Math.round(cssW*0.95);
   var dpr=window.devicePixelRatio||1;
   canvas.style.width=cssW+'px'; canvas.style.height=cssH+'px';
-  canvas.width=Math.round(cssW*dpr); canvas.height=Math.round(cssH*dpr);
-  var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  var _bw=Math.round(cssW*dpr), _bh=Math.round(cssH*dpr);
+  if(canvas.width!==_bw) canvas.width=_bw;
+  if(canvas.height!==_bh) canvas.height=_bh;
+  var ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.setLineDash([]); ctx.shadowBlur=0; ctx.globalAlpha=1;
   var W=cssW,H=cssH,ru=lang==='ru';
 
   var pLow=parseFloat(document.getElementById('lp_price_low')?.value)||0;
@@ -6365,7 +6368,7 @@ function lpDrawChart(){
         if(beX>pL&&beX<pL+cW){
           ctx.beginPath();ctx.arc(beX,yZero,4,0,Math.PI*2);
           ctx.fillStyle='#f59e0b';ctx.shadowColor='#f59e0b';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;
-          (function(){var _a=arguments;_defer.push(function(){lpTag.apply(null,_a);});})(ctx,_tags,(ru?'б/у ':'b/e ')+lpFmtDays(beDays,ru),beX,yZero+16,'center','rgba(245,158,11,0.95)','bold 8px monospace',_tb);
+          (function(){var _a=arguments;_defer.push(function(){var b=Array.prototype.slice.call(_a);b[1]=b[1].slice();lpTag.apply(null,b);});})(ctx,_tags,(ru?'б/у ':'b/e ')+lpFmtDays(beDays,ru),beX,yZero+16,'center','rgba(245,158,11,0.95)','bold 8px monospace',_tb);
         }
       }
     }
@@ -6382,7 +6385,7 @@ function lpDrawChart(){
         ctx.beginPath();ctx.moveTo(pL,yHodl);ctx.lineTo(pL+cW,yHodl);ctx.stroke();ctx.setLineDash([]);
         // Подпись: HODL +$X (от $pEntry)
         var hodlLbl='HODL '+(hodlPnlC>=0?'+':'')+Math.round(hodlPnlC)+'$ ('+(ru?'от ':'from ')+'$'+Math.round(pEntry)+')';
-        (function(){var _a=arguments;_defer.push(function(){lpTag.apply(null,_a);});})(ctx,_tags,hodlLbl,pL+cW-4,yHodl-5,'right','rgba(196,176,255,0.95)','bold 8px monospace',_tb);
+        (function(){var _a=arguments;_defer.push(function(){var b=Array.prototype.slice.call(_a);b[1]=b[1].slice();lpTag.apply(null,b);});})(ctx,_tags,hodlLbl,pL+cW-4,yHodl-5,'right','rgba(196,176,255,0.95)','bold 8px monospace',_tb);
       }
 
       // Точка пересечения: fees(days) - IL = hodlPnl
@@ -6401,7 +6404,7 @@ function lpDrawChart(){
             ctx.beginPath();ctx.arc(vhX,vhY,5,0,Math.PI*2);
             ctx.fillStyle='#a78bfa';ctx.shadowColor='#a78bfa';ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
             // Время под точкой
-            (function(){var _a=arguments;_defer.push(function(){lpTag.apply(null,_a);});})(ctx,_tags,lpFmtDays(vsHodlDays,ru),vhX,vhY+(hodlPnlC>=0?15:-7),'center','rgba(196,176,255,0.95)','bold 8px monospace',_tb);
+            (function(){var _a=arguments;_defer.push(function(){var b=Array.prototype.slice.call(_a);b[1]=b[1].slice();lpTag.apply(null,b);});})(ctx,_tags,lpFmtDays(vsHodlDays,ru),vhX,vhY+(hodlPnlC>=0?15:-7),'center','rgba(196,176,255,0.95)','bold 8px monospace',_tb);
           }
         } else if(vsHodlDays<0){
           // LP лучше HODL с самого начала — маленькая пометка
@@ -6428,7 +6431,7 @@ function lpDrawChart(){
       ctx.fillText(lpFmtDays(_lpDays,ru),curX,pT+10);
 
       // Бейдж с vs HODL строкой
-      var pnlStr=(pnlCur>=0?'+':'')+' $'+Math.abs(pnlCur).toFixed(0);
+      var pnlStr=(pnlCur>=0?'+':'-')+' $'+Math.abs(pnlCur).toFixed(0);
       // Рассчитываем vs HODL для текущей позиции ползунка
       var hodlPnlBadge = (pEntry>0&&pExit>0) ? amount*(pExit/pEntry-1) : 0;
       var fpdBadge = amount*(apr/100)/365;
@@ -6453,9 +6456,8 @@ function lpDrawChart(){
         bw = Math.max(bw, ctx.measureText(vsHodlLine).width+16);
         ctx.font='bold 11px monospace';
       }
-      var bx=curX+10,by=ptY-bh/2;
-      if(bx+bw>W-4)bx=curX-bw-10;
-      if(by<pT+2)by=pT+2; if(by+bh>pT+cH)by=pT+cH-bh;
+      var bx=(curX<pL+cW/2)?(pL+cW-bw-6):(pL+6), by=pT+20;
+      if(by+bh>pT+cH)by=pT+cH-bh;
       _tags.push({x:bx,y:by,w:bw,h:bh});
       ctx.fillStyle=pnlCur>=0?'rgba(16,185,129,0.92)':'rgba(239,68,68,0.92)';
       ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,by,bw,bh,5);else ctx.rect(bx,by,bw,bh);ctx.fill();
@@ -6474,7 +6476,6 @@ function lpDrawChart(){
       }
     }
   }
-  _defer.forEach(function(f){f();});
 
   // Линия входа
   if(pEntry>0){
@@ -6483,6 +6484,8 @@ function lpDrawChart(){
     ctx.beginPath();ctx.moveTo(pL,yEnt);ctx.lineTo(pL+cW,yEnt);ctx.stroke();ctx.setLineDash([]);
     lpTag(ctx,_tags,ru?'вход':'entry',pL+cW-4,yEnt-4,'right','rgba(110,235,255,0.9)','8px monospace',_tb);
   }
+
+  _defer.forEach(function(f){f();});
 
   // Жёлтая линия б/у (цена выхода)
   if(pExit>0&&Math.abs(pExit-pEntry)>0.5){
@@ -6595,7 +6598,7 @@ function fsZoomStep(factor){
   var canvas=document.getElementById('lp_fs_canvas');
   var W=canvas?canvas.clientWidth:400;
   var H=canvas?canvas.clientHeight:300;
-  var pL=56,pR=14,pT=16,pB=38;
+  var pL=44,pR=12,pT=16,pB=38;
   var ym=fsGetYRange(), xm=fsGetXRange();
   var yMid=(ym.min+ym.max)/2, yRng=(ym.max-ym.min);
   var xMid=(xm.min+xm.max)/2, xRng=(xm.max-xm.min);
@@ -6705,6 +6708,11 @@ function lpFsSyncSliderLabels(){
   setEl('lp-fs-pnl-lbl',    'P&L');
 }
 
+var _lpFsRaf=0;
+function lpDrawFsChartSoon(){
+  if(_lpFsRaf) return;
+  _lpFsRaf=requestAnimationFrame(function(){ _lpFsRaf=0; lpDrawFsChart(); });
+}
 function lpFsPriceSlider(){
   var sl = document.getElementById('lp_fs_price_slider');
   if(!sl) return;
@@ -6724,7 +6732,7 @@ function lpFsPriceSlider(){
   if(maxEl) maxEl.textContent='$'+Math.round(slMax);
   if(minEl) minEl.textContent='$'+Math.round(slMin);
   lpSyncPriceSlider(); // sync main slider too
-  lpDrawFsChart();
+  lpDrawFsChartSoon();
 }
 
 function lpFsPeriodSlider(){
@@ -6732,7 +6740,7 @@ function lpFsPeriodSlider(){
   _lpDays = lpSliderToDays(v);
   setEl('lp_fs_period_lbl', lpFmtDays(_lpDays, lang==='ru'));
   setEl('lp-fs-mark-1d', lang==='ru'?'1д':'1d');
-  lpDrawFsChart();
+  lpDrawFsChartSoon();
 }
 
 function lpDrawFsChart(){
@@ -6747,9 +6755,11 @@ function lpDrawFsChart(){
   var dpr = window.devicePixelRatio||1;
   canvas.style.width  = cssW+'px';
   canvas.style.height = cssH+'px';
-  canvas.width  = Math.round(cssW*dpr);
-  canvas.height = Math.round(cssH*dpr);
-  var ctx = canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  var _bw = Math.round(cssW*dpr), _bh = Math.round(cssH*dpr);
+  if(canvas.width!==_bw) canvas.width=_bw;
+  if(canvas.height!==_bh) canvas.height=_bh;
+  var ctx = canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.setLineDash([]); ctx.shadowBlur=0; ctx.globalAlpha=1;
   var W=cssW, H=cssH, ru=lang==='ru';
 
   // Same data as main chart
@@ -6763,7 +6773,7 @@ function lpDrawFsChart(){
   var pEntry= pCur||((pLow+pHigh)/2)||1800;
   var pExit = (_lpExitPrice>0)?_lpExitPrice:pEntry;
 
-  var pL=56,pR=14,pT=16,pB=38;
+  var pL=44,pR=12,pT=16,pB=38;
   var cW=W-pL-pR, cH=H-pT-pB;
 
   var yCenter=pEntry||1800;
@@ -6877,7 +6887,7 @@ function lpDrawFsChart(){
         if(beX>pL&&beX<pL+cW){
           ctx.beginPath();ctx.arc(beX,yZero,5,0,Math.PI*2);
           ctx.fillStyle='#f59e0b';ctx.shadowColor='#f59e0b';ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
-          (function(){var _a=arguments;_defer.push(function(){lpTag.apply(null,_a);});})(ctx,_tags,(ru?'б/у ':'b/e ')+lpFmtDays(beDaysFs,ru),beX,yZero+17,'center','rgba(245,158,11,0.95)','bold 9px monospace',_tb);
+          (function(){var _a=arguments;_defer.push(function(){var b=Array.prototype.slice.call(_a);b[1]=b[1].slice();lpTag.apply(null,b);});})(ctx,_tags,(ru?'б/у ':'b/e ')+lpFmtDays(beDaysFs,ru),beX,yZero+17,'center','rgba(245,158,11,0.95)','bold 9px monospace',_tb);
         }
       }
     }
@@ -6892,7 +6902,7 @@ function lpDrawFsChart(){
         ctx.strokeStyle='rgba(167,139,250,0.5)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
         ctx.beginPath();ctx.moveTo(pL,yHodlFs);ctx.lineTo(pL+cW,yHodlFs);ctx.stroke();ctx.setLineDash([]);
         var hodlLblFs='HODL '+(hodlPnlFs>=0?'+':'')+Math.round(hodlPnlFs)+'$ ('+(ru?'от ':'from ')+'$'+Math.round(pEntry)+')';
-        (function(){var _a=arguments;_defer.push(function(){lpTag.apply(null,_a);});})(ctx,_tags,hodlLblFs,pL+cW-4,yHodlFs-5,'right','rgba(196,176,255,0.95)','bold 9px monospace',_tb);
+        (function(){var _a=arguments;_defer.push(function(){var b=Array.prototype.slice.call(_a);b[1]=b[1].slice();lpTag.apply(null,b);});})(ctx,_tags,hodlLblFs,pL+cW-4,yHodlFs-5,'right','rgba(196,176,255,0.95)','bold 9px monospace',_tb);
       }
       // Точка пересечения
       if(inRange&&fpdFs>0){
@@ -6904,7 +6914,7 @@ function lpDrawFsChart(){
             ctx.beginPath();ctx.moveTo(vhXfs,pT);ctx.lineTo(vhXfs,pT+cH);ctx.stroke();ctx.setLineDash([]);
             ctx.beginPath();ctx.arc(vhXfs,yHodlFs,6,0,Math.PI*2);
             ctx.fillStyle='#a78bfa';ctx.shadowColor='#a78bfa';ctx.shadowBlur=9;ctx.fill();ctx.shadowBlur=0;
-            (function(){var _a=arguments;_defer.push(function(){lpTag.apply(null,_a);});})(ctx,_tags,lpFmtDays(vhDaysFs,ru),vhXfs,yHodlFs+(hodlPnlFs>=0?16:-8),'center','rgba(196,176,255,0.95)','bold 9px monospace',_tb);
+            (function(){var _a=arguments;_defer.push(function(){var b=Array.prototype.slice.call(_a);b[1]=b[1].slice();lpTag.apply(null,b);});})(ctx,_tags,lpFmtDays(vhDaysFs,ru),vhXfs,yHodlFs+(hodlPnlFs>=0?16:-8),'center','rgba(196,176,255,0.95)','bold 9px monospace',_tb);
           }
         }
       }
@@ -6925,7 +6935,7 @@ function lpDrawFsChart(){
       ctx.fillStyle='rgba(0,229,255,0.7)';ctx.font='bold 10px monospace';ctx.textAlign='center';
       ctx.fillText(lpFmtDays(_lpDays,ru),curX,pT+12);
 
-      var pnlStr=(pnl>=0?'+':'')+' $'+Math.abs(pnl).toFixed(0);
+      var pnlStr=(pnl>=0?'+':'-')+' $'+Math.abs(pnl).toFixed(0);
       var hodlPnlFsB = (pEntry>0&&pExit>0) ? amount*(pExit/pEntry-1) : 0;
       var fpdFsB = amount*(apr/100)/365;
       var vhDaysFsB = (inRange&&fpdFsB>0) ? (il+hodlPnlFsB)/fpdFsB : 0;
@@ -6941,9 +6951,8 @@ function lpDrawFsChart(){
       var bh=showVsHodlFs?74:58;
       var bw=Math.max(ctx.measureText(pnlStr).width,76)+18;
       if(showVsHodlFs&&vsLinFs){ ctx.font='10px monospace'; bw=Math.max(bw,ctx.measureText(vsLinFs).width+18); ctx.font='bold 13px monospace'; }
-      var bx=curX+14, by=ptY-bh/2;
-      if(bx+bw>W-6)bx=curX-bw-14;
-      if(by<pT+2)by=pT+2; if(by+bh>pT+cH)by=pT+cH-bh;
+      var bx=(curX<pL+cW/2)?(pL+cW-bw-8):(pL+8), by=pT+22;
+      if(by+bh>pT+cH)by=pT+cH-bh;
       _tags.push({x:bx,y:by,w:bw,h:bh});
       ctx.fillStyle=pnl>=0?'rgba(16,185,129,0.92)':'rgba(239,68,68,0.92)';
       ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,by,bw,bh,6);else ctx.rect(bx,by,bw,bh);ctx.fill();
@@ -6960,7 +6969,6 @@ function lpDrawFsChart(){
       }
     }
   }
-  _defer.forEach(function(f){f();});
 
   // Entry line
   if(pEntry>0){
@@ -6969,6 +6977,8 @@ function lpDrawFsChart(){
     ctx.beginPath();ctx.moveTo(pL,yEnt);ctx.lineTo(pL+cW,yEnt);ctx.stroke();ctx.setLineDash([]);
     lpTag(ctx,_tags,ru?'вход':'entry',pL+cW-4,yEnt-5,'right','rgba(110,235,255,0.9)','9px monospace',_tb);
   }
+
+  _defer.forEach(function(f){f();});
 
   // Exit price line
   if(pExit>0&&Math.abs(pExit-pEntry)>0.5){
@@ -6987,16 +6997,13 @@ function lpDrawFsChart(){
     }
   }
 
-  // Axis labels
-  ctx.save();ctx.translate(11,pT+cH/2);ctx.rotate(-Math.PI/2);
-  ctx.fillStyle='rgba(100,116,139,0.4)';ctx.font='9px monospace';ctx.textAlign='center';
-  ctx.fillText(ru?'ЦЕНА':'PRICE',0,0);ctx.restore();
+  // Axis labels (подпись «ЦЕНА» убрана: деления и так со знаком $)
   ctx.fillStyle='rgba(100,116,139,0.4)';ctx.font='9px monospace';ctx.textAlign='center';
   ctx.fillText(ru?'ВРЕМЯ':'TIME',pL+cW/2,H-3);
 
   // Update result strip
   var pnlEl=document.getElementById('lp-fs-pnl');
-  if(pnlEl){pnlEl.textContent=(pnl>=0?'+':'')+' $'+Math.abs(pnl).toFixed(0);pnlEl.style.color=pnl>=0?'var(--green)':'var(--red)';}
+  if(pnlEl){pnlEl.textContent=(pnl>=0?'+':'-')+' $'+Math.abs(pnl).toFixed(0);pnlEl.style.color=pnl>=0?'var(--green)':'var(--red)';}
   setEl('lp-fs-fees', fees>0?'+$'+fees.toFixed(0):'$0');
   var ilEl2=document.getElementById('lp-fs-il');
   if(ilEl2){ilEl2.textContent=il>0?'-$'+il.toFixed(0):'$0';ilEl2.style.color=il>0?'var(--red)':'var(--green)';}
@@ -7014,7 +7021,7 @@ function lpInitFsCanvas(){
   if(!canvas||canvas._lpFsInited) return;
   canvas._lpFsInited=true;
 
-  var pL=56,pT=16,pB=38;
+  var pL=44,pT=16,pB=38;
 
   // ── helpers ──────────────────────────────────────────────
   function getRect(){ return canvas.getBoundingClientRect(); }
@@ -7035,7 +7042,7 @@ function lpInitFsCanvas(){
   }
   function xToDays(cx){
     var xr=fsGetXRange();
-    var cW=canvas.clientWidth-pL-14;
+    var cW=canvas.clientWidth-pL-12;
     return lpSliderToDays(xr.min+(cx-pL)/cW*(xr.max-xr.min));
   }
 
@@ -7095,11 +7102,11 @@ function lpInitFsCanvas(){
     var rect=getRect();
     if(_touchMode==='drag-price'&&e.touches.length===1){
       _lpExitPrice=yToPrice(e.touches[0].clientY-rect.top);
-      syncFsSlider(); lpSyncPriceSlider(); lpDrawFsChart();
+      syncFsSlider(); lpSyncPriceSlider(); lpDrawFsChartSoon();
     } else if(_touchMode==='pan'&&e.touches.length===1){
       var tx=e.touches[0].clientX-rect.left;
       var ty=e.touches[0].clientY-rect.top;
-      var cW=canvas.clientWidth-pL-14;
+      var cW=canvas.clientWidth-pL-12;
       var cH=canvas.clientHeight-pT-pB;
       var dxFrac=(tx-_panStartX)/cW;
       var dyFrac=(ty-_panStartY)/cH;
@@ -7117,7 +7124,7 @@ function lpInitFsCanvas(){
       if(scale<0.05)scale=0.05;
       var xRng0=_pinchXMax0-_pinchXMin0;
       var yRng0=_pinchYMax0-_pinchYMin0;
-      var cW=canvas.clientWidth-pL-14;
+      var cW=canvas.clientWidth-pL-12;
       var cH=canvas.clientHeight-pT-pB;
       // Фокус zoom — точка под серединой пальцев
       var xFocus=_pinchXMin0+(_pinchMidX0-pL)/cW*xRng0;
@@ -7177,9 +7184,9 @@ function lpInitFsCanvas(){
     var cx=e.clientX-rect.left, cy=e.clientY-rect.top;
     if(_mouseMode==='drag-price'){
       _lpExitPrice=yToPrice(cy);
-      syncFsSlider(); lpSyncPriceSlider(); lpDrawFsChart();
+      syncFsSlider(); lpSyncPriceSlider(); lpDrawFsChartSoon();
     } else if(_mouseMode==='pan'){
-      var cW=canvas.clientWidth-pL-14;
+      var cW=canvas.clientWidth-pL-12;
       var cH2=canvas.clientHeight-pT-pB;
       var dxFrac=(cx-_mousePanStartX)/cW;
       var dyFrac=(cy-_mousePanStartY)/cH2;
@@ -7208,7 +7215,7 @@ function lpInitFsCanvas(){
     var factor = e.deltaY<0 ? 1.25 : 0.8; // колёсико вверх = zoom in
     var rect=getRect();
     var cx=e.clientX-rect.left, cy=e.clientY-rect.top;
-    var cW=canvas.clientWidth-pL-14;
+    var cW=canvas.clientWidth-pL-12;
     var cH=canvas.clientHeight-pT-pB;
     var xr=fsGetXRange(), yr=fsGetYRange();
     var xFocus=xr.min+(cx-pL)/cW*(xr.max-xr.min);
@@ -11849,6 +11856,8 @@ function _renderWalletSolana(){
   background: #080c18;
 }
 
+#lp-fs-results .lp-fs-val{white-space:nowrap;overflow:hidden;font-variant-numeric:tabular-nums;min-height:1.2em}
+#lp-fs-results > div{min-width:0}
 /* Fullscreen landscape layout */
 @media (orientation: landscape) {
   #lp-fs-header { padding: 4px 12px !important; }
@@ -11888,13 +11897,13 @@ function _renderWalletSolana(){
   </div>
 
   <!-- Chart area — занимает всё доступное пространство -->
-  <div id="lp-fs-chart-area" style="flex:1;display:flex;gap:4px;padding:6px 10px;min-height:0;overflow:hidden;align-items:stretch">
+  <div id="lp-fs-chart-area" style="flex:1;display:flex;gap:2px;padding:6px 8px 6px 4px;min-height:0;overflow:hidden;align-items:stretch">
     <!-- Вертикальный ползунок цены — растягивается на всю высоту -->
-    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;width:34px;min-height:0">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;width:30px;min-height:0">
       <span style="font-size:9px;color:var(--green);font-family:\'Space Mono\',monospace;flex-shrink:0" id="lp-fs-vmax">↑</span>
       <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0;overflow:hidden">
         <input type="range" id="lp_fs_price_slider" min="0" max="1000" value="500"
-          style="-webkit-appearance:slider-vertical;appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:28px;height:100%;min-height:80px;accent-color:var(--orange);cursor:pointer;touch-action:pan-x;display:block"
+          style="-webkit-appearance:slider-vertical;appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:26px;height:100%;min-height:80px;accent-color:var(--orange);cursor:pointer;touch-action:pan-x;display:block"
           oninput="lpFsPriceSlider()">
       </div>
       <span style="font-size:9px;color:var(--red);font-family:\'Space Mono\',monospace;flex-shrink:0" id="lp-fs-vmin">↓</span>
@@ -11932,7 +11941,7 @@ function _renderWalletSolana(){
   </div>
 
   <!-- Results strip — компактный, 4 ячейки -->
-  <div id="lp-fs-results" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;padding:0 10px 10px;flex-shrink:0">
+  <div id="lp-fs-results" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:0 10px 10px;flex-shrink:0">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px;text-align:center">
       <div style="font-size:9px;color:var(--muted2);font-family:\'Space Mono\',monospace;margin-bottom:2px" id="lp-fs-pnl-lbl">P&L</div>
       <div class="lp-fs-val" id="lp-fs-pnl" style="font-family:\'Space Mono\',monospace;font-size:13px;font-weight:700;color:var(--green)">—</div>
