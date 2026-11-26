@@ -1275,6 +1275,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <div class="wallet-chip" id="wchip-gmx">🟢 GMX</div>
         <div class="wallet-chip" id="wchip-merkl">⭐ Merkl</div>
         <div class="wallet-chip" id="wchip-compound">🔵 Compound</div>
+        <div class="wallet-chip" id="wchip-euler">🌀 Euler</div>
         <div class="wallet-chip" id="wchip-morpho">🦋 Morpho</div>
         <div class="wallet-chip" id="wchip-solana">🟣 Solana</div>
       </div>
@@ -4486,6 +4487,8 @@ function renderPositions(){
     _renderWalletUniPositions(poolsEl, poolsTotEl);
     _renderWalletGMXPositions(poolsEl, poolsTotEl);
     _renderWalletMorphoPositions(poolsEl, poolsTotEl);
+    if(typeof _renderWalletCompoundPositions === 'function') _renderWalletCompoundPositions(poolsEl, poolsTotEl);
+    if(typeof _renderWalletEulerPositions === 'function') _renderWalletEulerPositions(poolsEl, poolsTotEl);
     _renderWalletSolana();
   }
 }
@@ -8497,6 +8500,8 @@ async function walletLoad(opts){
   _walletGMXPositions   = [];
   _walletGMXPools       = [];
   if(typeof _walletMorphoPositions !== 'undefined') _walletMorphoPositions = [];
+  if(typeof _walletCompoundPositions !== 'undefined') _walletCompoundPositions = [];
+  if(typeof _walletEulerPositions !== 'undefined') _walletEulerPositions = [];
   if(typeof _walletMerklRewards   !== 'undefined') _walletMerklRewards    = [];
 
   // ── Сброс Aave данных — обязательно до загрузки нового кошелька ──
@@ -8526,7 +8531,7 @@ async function walletLoad(opts){
   setEl('lbl-wallet-load-btn', wt('loading_btn'));
 
   // Сбрасываем чипы (все включая Solana)
-  ['aave','uniswap','gmx','merkl','compound','morpho','solana'].forEach(function(id){
+  ['aave','uniswap','gmx','merkl','compound','euler','morpho','solana'].forEach(function(id){
     walletSetChip(id, 'loading');
   });
 
@@ -8551,9 +8556,11 @@ async function walletLoad(opts){
       _wl('merkl',   walletLoadMerkl),
       _wl('uniswap', walletLoadUniswap),
       _wl('gmx',     walletLoadGMX),
-      _wl('morpho',  walletLoadMorpho)
+      _wl('morpho',  walletLoadMorpho),
+      _wl('compound', walletLoadCompound),
+      _wl('euler',   function(a){ return walletLoadEuler(a, _auto); })
     ]);
-    var aaveOk = _res[0], merklOk = _res[1], uniOk = _res[2], gmxOk = _res[3], morphoOk = _res[4];
+    var aaveOk = _res[0], merklOk = _res[1], uniOk = _res[2], gmxOk = _res[3], morphoOk = _res[4], compoundOk = _res[5], eulerOk = _res[6];
     // авто-режим: источник упал (ошибки сети), а раньше позиции были — оставляем прежние, не затираем пустотой
     if(_keep){
       if(_walletUniErrs > 0 && !_walletUniPositions.length && _keep.uni.length){ _walletUniPositions = _keep.uni; uniOk = true; walletSetChip('uniswap','active'); }
@@ -8562,20 +8569,19 @@ async function walletLoad(opts){
       try{ renderPositions(); }catch(e){}
     }
 
-    // Compound — позже
-    walletSetChip('compound','skip');
+    // Compound v3 и Euler v2 грузятся выше (walletLoadCompound / walletLoadEuler)
 
     // ── Показываем нативный баланс EVM кошелька всегда ──────────────
     // Если есть протоколы — баланс как дополнение, если нет — как основное
-    var anyProtocol = aaveOk || uniOk || gmxOk || morphoOk || merklOk;
+    var anyProtocol = aaveOk || uniOk || gmxOk || morphoOk || merklOk || compoundOk || eulerOk;
     if(_walletEVMData){
       _renderWalletEVM(_walletEVMData, anyProtocol);
     }
 
-    if(dot) dot.style.background = (aaveOk||merklOk||uniOk||gmxOk) ? 'var(--green)' : (!anyProtocol && _walletEVMData ? 'var(--accent)' : 'var(--orange)');
+    if(dot) dot.style.background = (aaveOk||merklOk||uniOk||gmxOk||compoundOk||eulerOk) ? 'var(--green)' : (!anyProtocol && _walletEVMData ? 'var(--accent)' : 'var(--orange)');
   } else {
     // Solana — скрываем все EVM чипы
-    ['aave','uniswap','gmx','merkl','compound','morpho'].forEach(function(id){ walletSetChip(id,'skip'); });
+    ['aave','uniswap','gmx','merkl','compound','euler','morpho'].forEach(function(id){ walletSetChip(id,'skip'); });
     walletSetChip('solana', 'loading');
     var solOk = await walletLoadSolana(addr);
     walletSetChip('solana', solOk ? 'active' : 'error');
@@ -12642,7 +12648,7 @@ async function alTest(){
     s+=R(26,40,188,26,9,'rgba(255,255,255,.05)')+T(36,57,L('0x… или адрес Solana','0x… or Solana address'),9,C.mu,'start',500);
     s+=R(222,40,72,26,9,C.gr+'33',C.gr)+T(258,57,L('Загрузить','Load'),9.5,'#eafff6','middle',700)+HL(222,40,72,26,9,C.go);
     s+=CH(26,76,44,'Aave',C.vi)+CH(76,76,58,'Uniswap',C.vi)+CH(140,76,40,'GMX',C.gr)+CH(186,76,48,'Merkl',C.or)+CH(240,76,54,'Compound',C.cy);
-    s+=CH(26,98,54,'Morpho',C.bl)+CH(86,98,50,'Solana',C.gr);
+    s+=CH(26,98,54,'Morpho',C.bl)+CH(86,98,50,'Solana',C.gr)+CH(142,98,46,'Euler',C.or);
     s+=T(26,128,L('Учитывать Uniswap/GMX в стоимости портфеля','Count Uniswap/GMX in portfolio value'),8.2,C.mu,'start',500)+TOG(272,119,true,24,13);
     return s;
   };
@@ -12823,8 +12829,8 @@ async function alTest(){
       {a:A.tabs,t:L('Шесть вкладок','Six tabs'),
        d:L('<b>Главная</b> — сводка, <b>Позиции</b> — залог, займ, пулы, <b>Журнал</b> — записи и P&amp;L, <b>Стратегия</b> — симуляторы, <b>Алерты</b> — пуш, <b>Инструкция</b> — эта страница.','<b>Home</b> — summary, <b>Positions</b> — collateral, loan, pools, <b>Journal</b> — entries and P&amp;L, <b>Strategy</b> — simulators, <b>Alerts</b> — push, <b>Guide</b> — this page.')},
       {a:A.wallet,t:L('Способ 1: подключить кошелёк','Option 1: connect a wallet'),
-       d:L('<b>Главная → Подключить кошелёк.</b> Вставь адрес (0x… или Solana) и нажми «Загрузить». Приложение подтянет позиции Aave, Uniswap, GMX, Merkl, Compound, Morpho и Solana. Только чтение, транзакции не отправляются.','<b>Home → Connect wallet.</b> Paste an address (0x… or Solana) and tap “Load”. The app pulls positions from Aave, Uniswap, GMX, Merkl, Compound, Morpho and Solana. Read-only — no transactions are sent.'),
-       tip:L('Переключатель под полем решает, входят ли пулы Uniswap/GMX в стоимость портфеля. Загруженные EVM-адреса использует и сервер алертов.','The switch under the field decides whether Uniswap/GMX pools count toward portfolio value. Saved EVM addresses are also used by the alert server.')},
+       d:L('<b>Главная → Подключить кошелёк.</b> Вставь адрес (0x… или Solana) и нажми «Загрузить». Приложение подтянет позиции Aave, Uniswap, GMX, Merkl, Compound v3, Euler v2, Morpho и Solana. Только чтение, транзакции не отправляются.','<b>Home → Connect wallet.</b> Paste an address (0x… or Solana) and tap “Load”. The app pulls positions from Aave, Uniswap, GMX, Merkl, Compound v3, Euler v2, Morpho and Solana. Read-only — no transactions are sent.'),
+       tip:L('Compound v3 читается на Ethereum, Arbitrum, Base, Optimism и Polygon. Euler v2 — на Ethereum, Base и Arbitrum, и только займы (позиции с долгом, суб-аккаунты 0–255). Переключатель под полем решает, входят ли пулы Uniswap/GMX в стоимость портфеля.','Compound v3 is read on Ethereum, Arbitrum, Base, Optimism and Polygon. Euler v2 on Ethereum, Base and Arbitrum, borrow positions only (accounts with debt, sub-accounts 0–255). The switch under the field decides whether Uniswap/GMX pools count toward portfolio value.')},
       {a:A.manual,t:L('Способ 2: ввести вручную','Option 2: enter manually'),
        d:L('<b>Позиции → ⚙️ Настройки:</b> добавь активы залога и пулы, задай долю каждого в % (в сумме 100%) и порог ликвидации, нажми «Сохранить». Потом впиши количество токенов в карточке «Залог Aave» и сумму в поле «Займ».','<b>Positions → ⚙️ Settings:</b> add collateral assets and pools, set each share in % (total 100%) and the liquidation threshold, then “Save”. Then enter token quantities in the “Aave collateral” card and the amount in the “Loan” field.')},
       {a:A.hf,t:L('Первая проверка: Health Factor','First check: Health Factor'),
@@ -12951,5 +12957,299 @@ async function alTest(){
 .sp-field .sa-pct-wrap input{flex:1;text-align:left}
 .settings-sheet .sheet-body{overflow-x:hidden}
 </style>
+<!-- ═══════════════ Compound v3 + Euler v2: загрузка позиций по адресу кошелька ═══════════════ -->
+<script>
+/* Адреса: официальные репозитории compound-finance/comet (deployments, roots.json)
+   и euler-xyz/euler-interfaces (EulerChains.json). Сети — те же публичные RPC, что и у Aave. */
+var _walletCompoundPositions = [];
+var _walletEulerPositions = [];
+var CMP_MARKETS = {
+  ethereum: ['0xc3d688B66703497DAA19211EEdff47f25384cdc3','0x5D409e56D886231aDAf00c8775665AD0f9897b56','0x3Afdc9BCA9213A35503b077a6072F3D0d5AB0840','0xe85Dc543813B8c2CFEaAc371517b925a166a9293','0xA17581A9E3356d9A858b789D68B4d866e593aE94','0x3D0bb1ccaB520A66e607822fC55BC921738fAFE3'],
+  arbitrum: ['0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA','0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf','0xd98Be00b5D27fc98112BdE293e487f8D4cA57d07','0x6f7D514bbD4aFf3BcD1140B7344b32f063dEe486'],
+  base:     ['0x784efeB622244d2348d4F2522f8860B96fbEcE89','0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf','0xb125E6687d4313864e53df431d5425969c15Eb2F','0x2c776041CCFe903071AF44aa147368a9c8EEA518','0x46e6b214b524310239732D51387075E0e70970bf'],
+  optimism: ['0x2e44e174f7D53F0212823acC11C01A11d58c5bCB','0x995E394b8B2437aC8Ce61Ee0bC610D617962B214','0xE36A30D249f7761327fd973001A32010b521b6Fd'],
+  polygon:  ['0xF25212E676D1F7F89Cd72fFEe66158f541246445','0xaeB318360f27748Acb200CE616E389A6C9409a07']
+};
+var CMP_NAMES = {ethereum:'Ethereum', arbitrum:'Arbitrum', base:'Base', optimism:'Optimism', polygon:'Polygon'};
+var EULER_CHAINS = [
+  {key:'ethereum', name:'Ethereum', evc:'0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383'},
+  {key:'base',     name:'Base',     evc:'0x5301c7dD20bD945D2013b48ed0DEE3A284ca8989'},
+  {key:'arbitrum', name:'Arbitrum', evc:'0x6302ef0F34100CDDFb5489fbcB6eE1AA95CD1066'}
+];
+var EULER_USD_UNIT = '0x0000000000000000000000000000000000000348';
+
+function _lnNum(h){ try{ return Number(BigInt(h)); }catch(e){ return 0; } }
+function _lnAddr(h, i){ return '0x' + h.slice(2 + i*64 + 24, 2 + (i+1)*64); }
+function _lnRu(){ try{ return lang === 'ru'; }catch(e){ return true; } }
+
+/* ── Compound v3: все рынки (Comet) одной сети ── */
+async function _cmpChain(key, user){
+  var net = AAVE_NETWORKS[key], comets = CMP_MARKETS[key], out = [], errs = 0;
+  if(!net || !comets) return {pos:out, errs:1};
+  var rpc = net.rpc, ua = _ah(user);
+  // 1) принадлежит ли что-то пользователю: баланс базы, долг, число коллатералов
+  var calls = [];
+  comets.forEach(function(c){
+    calls.push({to:c, data:'0x70a08231'+ua});      // balanceOf
+    calls.push({to:c, data:'0x374c49b4'+ua});      // borrowBalanceOf
+    calls.push({to:c, data:'0xa46fe83b'});         // numAssets
+  });
+  var r = await _rpcBatch(rpc, calls, 12000);
+  var meta = comets.map(function(c,i){ return {c:c, bal:r[i*3], bor:r[i*3+1], n:r[i*3+2], assets:[]}; });
+  meta.forEach(function(m){ if(!m.bal || !m.bor || !m.n) errs++; });
+  var live = meta.filter(function(m){ return m.bal && m.bor && m.n; });
+  // 2) список коллатеральных активов каждого рынка
+  var ic = [];
+  live.forEach(function(m){ m.nA = _lnNum(m.n); for(var i=0;i<m.nA;i++) ic.push({to:m.c, data:'0xc8c7fe6b'+_u256hex(i)}); });
+  var ir = ic.length ? await _rpcBatch(rpc, ic, 12000) : [];
+  var k = 0;
+  live.forEach(function(m){
+    for(var i=0;i<m.nA;i++){
+      var h = ir[k++];
+      if(h && h.length >= 2 + 64*8){
+        m.assets.push({asset:_lnAddr(h,1), feed:_lnAddr(h,2), scale:_lnNum('0x'+_word(h,3)), lcf:_lnNum('0x'+_word(h,5))/1e18, bal:0});
+      } else errs++;
+    }
+  });
+  // 3) балансы коллатерала пользователя
+  var cc = [];
+  live.forEach(function(m){ m.assets.forEach(function(a){ cc.push({to:m.c, data:'0x5c2549ee'+ua+_ah(a.asset)}); }); });
+  var cr = cc.length ? await _rpcBatch(rpc, cc, 12000) : [];
+  k = 0;
+  live.forEach(function(m){ m.assets.forEach(function(a){ var h = cr[k++]; if(h) a.bal = _lnNum(h); else errs++; }); });
+  // 4) подробности только по рынкам, где что-то есть
+  var act = live.filter(function(m){
+    return _lnNum(m.bal) > 0 || _lnNum(m.bor) > 0 || m.assets.some(function(a){ return a.bal > 0; });
+  });
+  if(!act.length) return {pos:out, errs:errs};
+  var dc = [];
+  act.forEach(function(m){
+    dc.push({to:m.c, data:'0xc55dae63'});            // baseToken
+    dc.push({to:m.c, data:'0xe7dad6bd'});            // baseTokenPriceFeed
+    dc.push({to:m.c, data:'0x44c1e5eb'});            // baseScale
+    m.assets.forEach(function(a){
+      if(a.bal > 0){ dc.push({to:m.c, data:'0x41976e09'+_ah(a.feed)}); dc.push({to:a.asset, data:'0x95d89b41'}); }
+    });
+  });
+  var dr = await _rpcBatch(rpc, dc, 12000);
+  k = 0;
+  act.forEach(function(m){
+    m.baseToken = dr[k] ? _lnAddr(dr[k],0) : null; m.baseFeed = dr[k+1] ? _lnAddr(dr[k+1],0) : null; m.baseScale = dr[k+2] ? _lnNum(dr[k+2]) : 0;
+    k += 3;
+    m.assets.forEach(function(a){
+      if(a.bal > 0){ a.price = dr[k] ? _lnNum(dr[k])/1e8 : 0; a.sym = dr[k+1] ? _decStr(dr[k+1]) : '?'; k += 2; }
+    });
+  });
+  var br = await _rpcBatch(rpc, [].concat.apply([], act.map(function(m){
+    return [{to:m.c, data:'0x41976e09'+_ah(m.baseFeed||'0x'+'0'.repeat(40))}, {to:m.baseToken||m.c, data:'0x95d89b41'}];
+  })), 12000);
+  act.forEach(function(m,i){
+    var bp = br[i*2] ? _lnNum(br[i*2])/1e8 : 0, bsym = br[i*2+1] ? _decStr(br[i*2+1]) : '?';
+    if(!bp || !m.baseScale){ errs++; return; }
+    var supplyUSD = _lnNum(m.bal)/m.baseScale*bp, borrowUSD = _lnNum(m.bor)/m.baseScale*bp;
+    var colUSD = 0, weighted = 0, cols = [];
+    m.assets.forEach(function(a){
+      if(a.bal <= 0) return;
+      var usd = a.bal/a.scale*a.price;
+      colUSD += usd; weighted += usd*a.lcf; cols.push({sym:a.sym, usd:usd});
+    });
+    if(supplyUSD < 0.01 && borrowUSD < 0.01 && colUSD < 0.01) return;
+    out.push({net:CMP_NAMES[key]||key, market:bsym, supplyUSD:supplyUSD, borrowUSD:borrowUSD, colUSD:colUSD,
+      hf:(borrowUSD > 0.01 ? weighted/borrowUSD : 0), cols:cols});
+  });
+  return {pos:out, errs:errs};
+}
+
+async function walletLoadCompound(addr){
+  var chip = document.getElementById('wchip-compound');
+  if(chip) chip.innerHTML = '🔵 Compound <span style="font-size:9px;color:var(--accent)">⏳ scan...</span>';
+  var keys = Object.keys(CMP_MARKETS);
+  var res = await Promise.all(keys.map(function(k){ return _cmpChain(k, addr).catch(function(e){ console.warn('[Compound]', k, e); return {pos:[], errs:1}; }); }));
+  var pos = [], errs = 0;
+  res.forEach(function(x){ pos = pos.concat(x.pos); errs += x.errs; });
+  if(!(errs > 0 && !pos.length)) _walletCompoundPositions = pos;   // сбой сети ≠ «позиций нет»: прежнее не затираем
+  renderPositions();
+  if(chip){
+    if(pos.length){
+      var tot = pos.reduce(function(s,p){ return s + p.colUSD + p.supplyUSD; }, 0);
+      chip.innerHTML = '🔵 Compound <span style="color:var(--green);font-weight:700">'+pos.length+' поз'+(tot>0.01?' · $'+tot.toFixed(0):'')+'</span>';
+    } else {
+      chip.innerHTML = '🔵 Compound <span style="color:var(--muted2)">'+(errs>0?'нет ответа сети':'нет позиций')+'</span>';
+    }
+  }
+  return pos.length > 0;
+}
+
+/* ── Euler v2: суб-аккаунты 0…255 → контроллеры (займы) → залог и HF ── */
+function _eulerCacheGet(owner){ try{ return JSON.parse(localStorage.getItem('defi_euler_subs_'+owner.toLowerCase())||'null'); }catch(e){ return null; } }
+function _eulerCacheSet(owner, obj){ try{ localStorage.setItem('defi_euler_subs_'+owner.toLowerCase(), JSON.stringify(obj)); }catch(e){} }
+async function _eulerChain(ch, owner, ids){
+  var net = AAVE_NETWORKS[ch.key], out = [], errs = 0;
+  if(!net) return {pos:out, errs:1};
+  var rpc = net.rpc, evc = ch.evc, base = BigInt(owner);
+  function subAddr(i){ return '0x' + (base ^ BigInt(i)).toString(16).padStart(40,'0'); }
+  if(!ids){ ids = []; for(var q=0;q<256;q++) ids.push(q); }                      // полный скан суб-аккаунтов 0…255
+  var calls = ids.map(function(id){ return {to:evc, data:'0xfd6046d7'+_ah(subAddr(id))}; });   // getControllers(sub)
+  var r = await _rpcBatch(rpc, calls, 12000);
+  if(r.some(function(x){ return !x; })) errs++;
+  var pairs = [], found = [];
+  r.forEach(function(h,i){
+    if(!h || h.length < 2+64*2) return;
+    var n = _lnNum('0x'+_word(h,1)), id = ids[i];
+    if(n > 0) found.push(id);
+    for(var j=0;j<n && j<4;j++) pairs.push({id:id, sub:subAddr(id), V:_lnAddr(h,2+j)});
+  });
+  if(!pairs.length) return {pos:out, errs:errs, found:found};
+  // B) по каждому займу: коллатерали, ликвидность, долг, актив, единица учёта, оракул
+  var bc = [];
+  pairs.forEach(function(p){
+    var sa = _ah(p.sub);
+    bc.push({to:evc, data:'0xa4d25d1e'+sa});                              // getCollaterals
+    bc.push({to:p.V, data:'0xa824bf67'+sa+_u256hex(1)});                  // accountLiquidity(sub,true)
+    bc.push({to:p.V, data:'0xd283e75f'+sa});                              // debtOf
+    bc.push({to:p.V, data:'0x38d52e0f'});                                 // asset
+    bc.push({to:p.V, data:'0x3e833364'});                                 // unitOfAccount
+    bc.push({to:p.V, data:'0x7dc0d1d0'});                                 // oracle
+  });
+  var br = await _rpcBatch(rpc, bc, 12000);
+  var live = [];
+  pairs.forEach(function(p,i){
+    var cols = br[i*6], liq = br[i*6+1], debt = br[i*6+2], asset = br[i*6+3], unit = br[i*6+4], orc = br[i*6+5];
+    if(!liq || liq.length < 2+64*2 || !debt || !asset || !unit){ errs++; return; }
+    p.collV = _lnNum('0x'+_word(liq,0)); p.liabV = _lnNum('0x'+_word(liq,1));
+    if(!(p.liabV > 0)) return;                                           // нет долга — это не займ
+    p.debtRaw = _lnNum(debt); p.asset = _lnAddr(asset,0); p.unit = _lnAddr(unit,0).toLowerCase(); p.oracle = orc ? _lnAddr(orc,0) : null;
+    p.cols = [];
+    if(cols && cols.length >= 2+64*2){ var n = _lnNum('0x'+_word(cols,1)); for(var j=0;j<n && j<12;j++) p.cols.push({V:_lnAddr(cols,2+j)}); }
+    live.push(p);
+  });
+  if(!live.length) return {pos:out, errs:errs, found:found};
+  // C) доли в коллатеральных волтах и их активы
+  var cc = [];
+  live.forEach(function(p){ p.cols.forEach(function(c){ cc.push({to:c.V, data:'0x70a08231'+_ah(p.sub)}); cc.push({to:c.V, data:'0x38d52e0f'}); }); });
+  var cr = cc.length ? await _rpcBatch(rpc, cc, 12000) : [];
+  var k = 0;
+  live.forEach(function(p){ p.cols.forEach(function(c){ c.sharesBig = cr[k] ? BigInt(cr[k]) : 0n; c.shares = Number(c.sharesBig); c.asset = cr[k+1] ? _lnAddr(cr[k+1],0) : null; k += 2; }); p.cols = p.cols.filter(function(c){ return c.shares > 0 && c.asset; }); });
+  // D) цены (getQuote в единице учёта), суммы активов, символы и decimals
+  var tokens = {};
+  live.forEach(function(p){
+    tokens[p.asset.toLowerCase()] = 1;
+    if(p.unit !== EULER_USD_UNIT) tokens[p.unit] = 1;
+    p.cols.forEach(function(c){ tokens[c.asset.toLowerCase()] = 1; });
+  });
+  var tk = Object.keys(tokens), dc = [];
+  tk.forEach(function(t){ dc.push({to:t, data:'0x95d89b41'}); dc.push({to:t, data:'0x313ce567'}); });
+  live.forEach(function(p){ p.cols.forEach(function(c){
+    dc.push({to:p.oracle || c.V, data:'0xae68676c'+_u256hex(c.sharesBig)+_ah(c.V)+_ah(p.unit)});   // getQuote(shares, vault, unit)
+    dc.push({to:c.V, data:'0x07a2d13a'+_u256hex(c.sharesBig)});                                   // convertToAssets
+  }); });
+  var dr = await _rpcBatch(rpc, dc, 12000);
+  var sym = {}, dec = {};
+  tk.forEach(function(t,i){ sym[t] = dr[i*2] ? _decStr(dr[i*2]) : '?'; dec[t] = dr[i*2+1] ? _lnNum(dr[i*2+1]) : 18; });
+  k = tk.length*2;
+  live.forEach(function(p){ p.cols.forEach(function(c){ c.quote = dr[k] ? _lnNum(dr[k]) : null; c.amtRaw = dr[k+1] ? _lnNum(dr[k+1]) : 0; k += 2; }); });
+  live.forEach(function(p){
+    var unitUsd;                                                           // множитель «значение в единице учёта → USD»
+    if(p.unit === EULER_USD_UNIT) unitUsd = 1e-18;
+    else { var up = _uniKnownUsd(sym[p.unit]||''); unitUsd = up ? up / Math.pow(10, dec[p.unit]||18) : 0; }
+    var da = p.asset.toLowerCase(), ds = sym[da] || '?', dd = dec[da] || 18;
+    var cols = p.cols.map(function(c){
+      var ca = c.asset.toLowerCase();
+      return {sym: sym[ca]||'?', usd: (unitUsd && c.quote != null) ? c.quote*unitUsd : 0, amt: c.amtRaw/Math.pow(10, dec[ca]||18)};
+    });
+    var colUSD = cols.reduce(function(s,c){ return s + c.usd; }, 0);
+    var debtUSD = unitUsd ? p.liabV*unitUsd : 0;
+    out.push({net:ch.name, sub:p.id, debtSym:ds, debtAmt:p.debtRaw/Math.pow(10,dd), debtUSD:debtUSD, colUSD:colUSD,
+      hf: p.collV/p.liabV, cols:cols, usdOk: !!unitUsd});
+  });
+  return {pos:out, errs:errs, found:found};
+}
+
+async function walletLoadEuler(addr, auto){
+  var chip = document.getElementById('wchip-euler');
+  if(chip) chip.innerHTML = '🌀 Euler <span style="font-size:9px;color:var(--accent)">⏳ scan...</span>';
+  // ручная загрузка — полный скан 256 суб-аккаунтов; фоновая — только известные и первые 10 (меньше запросов к RPC)
+  var cache = _eulerCacheGet(addr) || {};
+  var res = await Promise.all(EULER_CHAINS.map(function(ch){
+    var ids = null;
+    if(auto && cache[ch.key]){ var set = {}; for(var i=0;i<10;i++) set[i] = 1; cache[ch.key].forEach(function(x){ set[x] = 1; }); ids = Object.keys(set).map(Number); }
+    return _eulerChain(ch, addr, ids).catch(function(e){ console.warn('[Euler]', ch.key, e); return {pos:[], errs:1}; });
+  }));
+  var pos = [], errs = 0, nc = {};
+  res.forEach(function(x,i){ pos = pos.concat(x.pos); errs += x.errs; if(x.found && !x.errs) nc[EULER_CHAINS[i].key] = x.found; else if(cache[EULER_CHAINS[i].key]) nc[EULER_CHAINS[i].key] = cache[EULER_CHAINS[i].key]; });
+  _eulerCacheSet(addr, nc);
+  if(!(errs > 0 && !pos.length)) _walletEulerPositions = pos;
+  renderPositions();
+  if(chip){
+    if(pos.length){
+      var tot = pos.reduce(function(s,p){ return s + p.colUSD; }, 0);
+      chip.innerHTML = '🌀 Euler <span style="color:var(--green);font-weight:700">'+pos.length+' поз'+(tot>0.01?' · $'+tot.toFixed(0):'')+'</span>';
+    } else {
+      chip.innerHTML = '🌀 Euler <span style="color:var(--muted2)">'+(errs>0?'нет ответа сети':'нет позиций')+'</span>';
+    }
+  }
+  return pos.length > 0;
+}
+
+/* ── Отрисовка: те же карточки, что у Morpho ── */
+function _lendCards(poolsEl, poolsTotEl, list, cfg){
+  if(!list.length || !poolsEl) return;
+  var ru = _lnRu(), total = 0;
+  var sep = document.createElement('div');
+  sep.style.cssText = 'margin:12px 0 8px;display:flex;align-items:center;gap:8px';
+  sep.innerHTML = '<div style="flex:1;height:1px;background:'+cfg.line+'"></div>'+
+    '<span style="font-size:10px;color:'+cfg.color+';font-family:\'Space Mono\',monospace;font-weight:700;text-transform:uppercase;letter-spacing:1px">'+cfg.icon+' '+cfg.title+'</span>'+
+    '<div style="flex:1;height:1px;background:'+cfg.line+'"></div>';
+  poolsEl.appendChild(sep);
+  var usd = function(v, ok){ return (ok === false) ? '—' : (v > 0.01 ? '$'+v.toFixed(2) : '—'); };
+  list.forEach(function(p){
+    var colUSD = p.colUSD || 0, supply = p.supplyUSD || 0, debt = p.borrowUSD != null ? p.borrowUSD : (p.debtUSD || 0);
+    total += supply;
+    var hfColor = p.hf <= 0 ? 'var(--muted2)' : p.hf < 1.2 ? 'var(--red)' : p.hf < 1.5 ? '#f59e0b' : 'var(--green)';
+    var hfStr = p.hf > 0 ? p.hf.toFixed(2) : '—';
+    var tiles = [[ru?'ЗАЛОГ':'COLLATERAL', usd(colUSD), 'var(--orange)', p.cols.map(function(c){ return c.sym; }).join(', ') || '—'],
+                 [ru?'ЗАЙМ':'BORROW', usd(debt, p.usdOk), debt>0.01?'var(--red)':'var(--muted2)', cfg.debtSub(p)]];
+    if(cfg.showSupply) tiles.push(['SUPPLY', usd(supply), 'var(--green)', p.market || '']);
+    var card = document.createElement('div');
+    card.style.cssText = 'background:var(--surface2);border:1px solid '+cfg.line+';border-radius:12px;padding:12px 14px;margin-bottom:8px';
+    card.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+        '<div style="display:flex;align-items:center;gap:8px;min-width:0"><span style="font-size:16px">'+cfg.icon+'</span><div style="min-width:0">'+
+          '<div style="font-size:14px;font-weight:700">'+cfg.name(p)+'</div>'+
+          '<div style="font-size:10px;color:var(--muted2);font-family:\'Space Mono\',monospace">'+cfg.sub(p)+'</div></div></div>'+
+        '<div style="text-align:right"><div style="font-size:9px;color:var(--muted2)">HEALTH</div>'+
+          '<div style="font-family:\'Space Mono\',monospace;font-size:16px;font-weight:800;color:'+hfColor+'">'+hfStr+'</div></div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:repeat('+tiles.length+',minmax(0,1fr));gap:6px">'+
+      tiles.map(function(t){
+        return '<div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:7px 10px;min-width:0">'+
+          '<div style="font-size:9px;color:var(--muted2);margin-bottom:2px">'+t[0]+'</div>'+
+          '<div style="font-family:\'Space Mono\',monospace;font-size:11px;font-weight:700;color:'+t[2]+'">'+t[1]+'</div>'+
+          '<div style="font-size:9px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t[3]+'</div></div>';
+      }).join('')+'</div>';
+    poolsEl.appendChild(card);
+  });
+  if(poolsTotEl && total > 0){
+    var cur = parseFloat((poolsTotEl.textContent||'0').replace(/[^0-9.\-]/g,''))||0;
+    poolsTotEl.textContent = '$'+(cur+total).toFixed(2);
+  }
+}
+function _renderWalletCompoundPositions(poolsEl, poolsTotEl){
+  _lendCards(poolsEl, poolsTotEl, _walletCompoundPositions || [], {
+    icon:'🔵', title:'Compound v3', color:'rgba(90,150,255,0.95)', line:'rgba(80,140,255,0.28)', showSupply:true,
+    name:function(p){ return p.market; }, sub:function(p){ return 'Compound v3 · '+p.net; },
+    debtSub:function(p){ return p.market; }
+  });
+}
+function _renderWalletEulerPositions(poolsEl, poolsTotEl){
+  _lendCards(poolsEl, poolsTotEl, _walletEulerPositions || [], {
+    icon:'🌀', title:'Euler v2', color:'rgba(255,170,90,0.95)', line:'rgba(255,150,70,0.28)', showSupply:false,
+    name:function(p){ return (p.cols.length ? p.cols.map(function(c){ return c.sym; }).join('+') : '—')+' → '+p.debtSym; },
+    sub:function(p){ return 'Euler v2 · '+p.net+(p.sub ? ' · sub #'+p.sub : ''); },
+    debtSub:function(p){ return p.debtAmt.toFixed(p.debtAmt<1?4:2)+' '+p.debtSym; }
+  });
+}
+</script>
+
 </body>
 </html>
