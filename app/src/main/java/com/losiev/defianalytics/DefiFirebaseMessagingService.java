@@ -26,6 +26,7 @@ import java.util.Map;
 public class DefiFirebaseMessagingService extends FirebaseMessagingService {
 
     static final String CHANNEL_ID = "defi_alerts";
+    static final String CHANNEL_SILENT = "defi_alerts_silent";
     private static final String PREFS = "DefiPushPrefs";
 
     @Override
@@ -48,10 +49,11 @@ public class DefiFirebaseMessagingService extends FirebaseMessagingService {
         }
         if (title == null) title = "DeFi Analytics";
         if (body == null) body = "";
-        show(title, body, tag);
+        String snd = data != null ? data.get("sound") : null;
+        show(title, body, tag, !"0".equals(snd));
     }
 
-    private void show(String title, String body, String tag) {
+    private void show(String title, String body, String tag, boolean sound) {
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (nm == null) return;
 
@@ -63,6 +65,15 @@ public class DefiFirebaseMessagingService extends FirebaseMessagingService {
             ch.setVibrationPattern(new long[]{0, 250, 250, 250});
             ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             nm.createNotificationChannel(ch);
+
+            // Звук задаётся на уровне канала (Android 8+), поэтому для алертов «без звука» — отдельный тихий канал
+            NotificationChannel quiet = new NotificationChannel(
+                    CHANNEL_SILENT, "DeFi alerts (silent)", NotificationManager.IMPORTANCE_DEFAULT);
+            quiet.setDescription("Alerts without sound");
+            quiet.setSound(null, null);
+            quiet.enableVibration(false);
+            quiet.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            nm.createNotificationChannel(quiet);
         }
 
         Intent intent = new Intent(this, MainActivity.class);
@@ -70,14 +81,14 @@ public class DefiFirebaseMessagingService extends FirebaseMessagingService {
         PendingIntent pi = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        Notification n = new NotificationCompat.Builder(this, CHANNEL_ID)
+        Notification n = new NotificationCompat.Builder(this, sound ? CHANNEL_ID : CHANNEL_SILENT)
                 .setSmallIcon(R.drawable.ic_stat_alert)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setPriority(sound ? NotificationCompat.PRIORITY_HIGH : NotificationCompat.PRIORITY_DEFAULT)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setDefaults(sound ? NotificationCompat.DEFAULT_ALL : 0)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(true)
                 .setContentIntent(pi)

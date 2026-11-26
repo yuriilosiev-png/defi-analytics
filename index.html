@@ -12403,8 +12403,8 @@ function alRender(){
   alRenderList();
   var note=alEl('al-note');
   if(note) note.textContent=ru
-    ? 'Сервер проверяет алерты каждые 5 минут, даже когда приложение закрыто. HF считается по сохранённым EVM-кошелькам (минимум среди сетей Aave, где есть долг). Пока HF ниже порога, напоминание приходит раз в 3 часа; алерт «перезаряжается», когда HF поднимается выше порога на 0.05. Ценовой алерт срабатывает один раз при пересечении уровня.'
-    : 'The server checks alerts every 5 minutes, even when the app is closed. HF uses your saved EVM wallets (lowest across Aave networks with debt). While HF stays below the threshold a reminder comes every 3 hours; the alert re-arms when HF rises 0.05 above it. A price alert fires once when the level is crossed.';
+    ? 'Сервер проверяет алерты каждые 5 минут, даже когда приложение закрыто. HF считается по сохранённым EVM-кошелькам (минимум среди сетей Aave, где есть долг). У каждого алерта свой режим: «один раз» — после пуша молчит, пока не выключишь и не включишь его; «каждый раз» — снова взводится, когда HF поднялся на 0.05 выше порога (цена отошла от уровня на 0.5%). Звук включается галочкой у каждого алерта.'
+    : 'The server checks alerts every 5 minutes, even when the app is closed. HF uses your saved EVM wallets (lowest across Aave networks with debt). Each alert has its own mode: “once” stays quiet after the push until you switch it off and on; “every time” re-arms after HF rises 0.05 above the threshold (price moves 0.5% away from the level). Sound is a per-alert checkbox.';
   var sub=alEl('al-sub'); if(sub) sub.textContent=ru?'Пуш на телефон: падение Health Factor и движение цены':'Phone push: Health Factor drop and price moves';
   var tt=alEl('al-status-title'); if(tt) tt.textContent=ru?'Пуш-уведомления':'Push notifications';
   var pd=alEl('al-push-desc'); if(pd) pd.textContent=ru?'Получайте важные сигналы в реальном времени':'Get important signals in real time';
@@ -12414,9 +12414,10 @@ function alRender(){
 }
 function alDescribe(a){
   var ru=alRu();
-  if(a.type==='hf') return {t:'Health Factor <\u00a0'+a.below, s:ru?'Падение ниже порога':'Drops below threshold'};
+  var tail=' · '+(a.rep==='once'?(ru?'один раз':'once'):(ru?'каждый раз':'every time'))+(a.snd===false?' · '+(ru?'без звука':'silent'):' · 🔔');
+  if(a.type==='hf') return {t:'Health Factor <\u00a0'+a.below, s:(ru?'Падение ниже порога':'Drops below threshold')+tail};
   var p=a.price>=1000?Math.round(a.price).toLocaleString('en-US'):String(a.price);
-  return {t:a.asset+(a.dir==='above'?' ≥ $':' ≤ $')+p, s:a.dir==='above'?(ru?'Рост до уровня':'Rises to level'):(ru?'Падение до уровня':'Falls to level')};
+  return {t:a.asset+(a.dir==='above'?' ≥ $':' ≤ $')+p, s:(a.dir==='above'?(ru?'Рост до уровня':'Rises to level'):(ru?'Падение до уровня':'Falls to level'))+tail};
 }
 function alRenderList(){
   var box=alEl('al-list'); if(!box) return;
@@ -12467,6 +12468,9 @@ function alRenderForm(){
     h+='<div class="hxal-row">$<input id="al-f-price" type="number" inputmode="decimal" step="any" min="0" placeholder="'+(cp?Math.round(cp):'')+'" value="'+(f.price||'')+'"></div>';
     h+='<div class="hxal-hint">'+(cp?(ru?'Сейчас ':'Now ')+f.asset+' ≈ $'+(cp>=1000?Math.round(cp).toLocaleString('en-US'):cp.toFixed(2)):(ru?'Текущая цена недоступна':'Current price unavailable'))+'</div>';
   }
+  h+='<div class="hxal-row"><select id="al-f-rep"><option value="once"'+(f.rep==='once'?' selected':'')+'>'+(ru?'Сработать один раз':'Fire once')+'</option><option value="every"'+(f.rep!=='once'?' selected':'')+'>'+(ru?'Каждый раз при пересечении':'Every time it crosses')+'</option></select></div>';
+  h+='<label class="hxal-row" style="gap:8px;cursor:pointer"><input id="al-f-snd" type="checkbox"'+(f.snd===false?'':' checked')+' style="width:18px;height:18px;flex:none"> '+(ru?'Звук уведомления':'Notification sound')+'</label>';
+  h+='<div class="hxal-hint">'+(ru?'Один раз: после срабатывания алерт замолкает, пока не выключишь и не включишь его снова. Каждый раз: снова взводится, когда значение вернулось за порог (HF +0.05, цена 0.5%).':'Once: after firing the alert stays quiet until you switch it off and on again. Every time: it re-arms after the value moves back past the level (HF +0.05, price 0.5%).')+'</div>';
   h+='<div class="hxal-btns"><button class="hxal-btn main" onclick="alFormSave()">'+(ru?'Сохранить':'Save')+'</button></div>';
   box.innerHTML=h;
 }
@@ -12485,9 +12489,10 @@ function alFormSave(){
     if(!(pv>0)){ alMsg(ru?'Введи цену':'Enter a price','err'); return; }
     a={id:id,on:true,type:'price',asset:asset,dir:dir,price:pv};
   }
+  a.rep=((alEl('al-f-rep')||{}).value==='once')?'once':'every'; a.snd=!!(alEl('al-f-snd')||{checked:true}).checked; a.ver=1;
   _al.alerts.push(a); alSave(); _al.form=null; alEl('al-form').style.display='none'; alMsg('',''); alRender(); alSyncSoon();
 }
-function alToggle(id){ _al.alerts.forEach(function(a){ if(a.id===id) a.on=!a.on; }); alSave(); alRender(); alSyncSoon(); }
+function alToggle(id){ _al.alerts.forEach(function(a){ if(a.id===id){ a.on=!a.on; a.ver=(a.ver||0)+1; } }); alSave(); alRender(); alSyncSoon(); }
 function alDelete(id){ _al.alerts=_al.alerts.filter(function(a){ return a.id!==id; }); alSave(); alRender(); alSyncSoon(); }
 /* ─── подключение пуша ─── */
 function alEnable(){
@@ -12883,7 +12888,7 @@ async function alTest(){
        d:L('<b>«+ Добавить» → Цена актива.</b> Выбери монету (BTC, ETH, SOL, BNB, AVAX, LINK, AAVE, UNI, ARB, OP, POL), направление «упадёт до» или «вырастет до» и уровень в $.','<b>“+ Add” → Asset price.</b> Pick a coin (BTC, ETH, SOL, BNB, AVAX, LINK, AAVE, UNI, ARB, OP, POL), a direction — “falls to” or “rises to” — and a level in $.'),
        tip:L('Переключатель в строке отключает алерт, ✕ удаляет его. Максимум 20 алертов.','The switch on a row disables the alert, ✕ deletes it. Maximum 20 alerts.')},
       {a:A.rules,t:L('Когда приходит пуш','When a push arrives'),
-       d:L('<b>HF:</b> пуш при падении ниже порога, дальше напоминание <b>каждые 3 часа</b>, пока HF ниже. Алерт перевзводится, когда HF поднимется на <b>0.05</b> выше порога. <b>Цена:</b> один пуш при пересечении уровня.','<b>HF:</b> a push when it drops below the threshold, then a reminder <b>every 3 hours</b> while it stays below. The alert re-arms once HF rises <b>0.05</b> above the threshold. <b>Price:</b> one push when the level is crossed.')},
+       d:L('У каждого алерта два выбора. <b>Режим:</b> «один раз» — после пуша алерт молчит, пока не выключишь и не включишь его; «каждый раз» — взводится снова, когда HF поднялся на <b>0.05</b> выше порога (цена отошла от уровня на <b>0.5%</b>), и шлёт новый пуш при следующем пересечении. <b>Звук:</b> галочка у алерта; без неё уведомление приходит тихо.','Every alert has two choices. <b>Mode:</b> “once” — after the push the alert stays quiet until you switch it off and on; “every time” — it re-arms when HF rises <b>0.05</b> above the threshold (price moves <b>0.5%</b> away from the level) and pushes again on the next crossing. <b>Sound:</b> a checkbox per alert; without it the notification arrives silently.'),
       {a:A.trouble,t:L('Если пуш не приходит','If push does not arrive'),
        d:L('Смотри индикаторы наверху вкладки «Алерты»: красный или жёлтый показывает, что именно не так. Подсказки слева направо — на схеме.','Check the indicators at the top of the “Alerts” tab: red or amber shows what is wrong. The fixes are on the diagram.'),
        tip:L('После исправления нажми «Отправить тест».','After fixing it, tap “Send test”.')}

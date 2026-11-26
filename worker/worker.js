@@ -38,6 +38,7 @@ const ASSET_SYMBOL = { BTC:'BTCUSDT', ETH:'ETHUSDT', SOL:'SOLUSDT', BNB:'BNBUSDT
 const HF_REPEAT_MS   = 3 * 3600 * 1000;   // пока HF ниже порога — напоминание раз в 3 часа
 const HF_REARM_GAP   = 0.05;              // HF должен подняться выше порога на эту величину, чтобы алерт «перезарядился»
 const MAX_ALERTS     = 20;
+const PRICE_REARM_PCT = 0.005;            // режим «каждый раз»: цена должна отойти от уровня на 0.5%, чтобы алерт снова взвёлся (без спама на границе)
 const MAX_WALLETS    = 5;
 
 const CORS = {
@@ -52,6 +53,14 @@ async function subKey(token) {
   return 'sub:' + [...new Uint8Array(buf)].slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Режим срабатывания: once — один раз (до ручного перевзвода), every — каждый раз при новом пересечении,
+// remind — только для HF: напоминание каждые 3 часа, пока ниже порога. Без поля — прежнее поведение.
+function cleanRep(r, type) {
+  if (r === 'once' || r === 'every') return r;
+  if (r === 'remind' && type === 'hf') return r;
+  return type === 'hf' ? 'remind' : 'every';
+}
+function cleanVer(v) { v = Math.floor(Number(v)); return v > 0 && v < 1e9 ? v : 0; }
 function cleanAlerts(list) {
   const out = [];
   (Array.isArray(list) ? list : []).slice(0, MAX_ALERTS).forEach(a => {
@@ -59,16 +68,19 @@ function cleanAlerts(list) {
     const id = String(a.id || '').slice(0, 40); if (!id) return;
     if (a.type === 'hf') {
       const below = Number(a.below); if (!(below > 1 && below < 10)) return;
-      out.push({ id, on: a.on !== false, type: 'hf', below });
+      out.push({ id, on: a.on !== false, type: 'hf', below, rep: cleanRep(a.rep, 'hf'), snd: a.snd !== false, ver: cleanVer(a.ver) });
     } else if (a.type === 'price') {
       const asset = String(a.asset || '').toUpperCase(); if (!ASSET_SYMBOL[asset]) return;
       const dir = a.dir === 'below' ? 'below' : 'above';
       const price = Number(a.price); if (!(price > 0)) return;
-      out.push({ id, on: a.on !== false, type: 'price', asset, dir, price });
+      out.push({ id, on: a.on !== false, type: 'price', asset, dir, price, rep: cleanRep(a.rep, 'price'), snd: a.snd !== false, ver: cleanVer(a.ver) });
     }
   });
   return out;
 }
+
+function repMode(a) { return a.rep || (a.type === 'hf' ? 'remind' : 'every'); }
+function id_changed(prevVer, a) { return prevVer[a.id] !== undefined && prevVer[a.id] !== (a.ver || 0); }
 
 // ───────────────────────── HTTP ─────────────────────────
 async function handleFetch(request, env) {
@@ -93,8 +105,14 @@ async function handleFetch(request, env) {
       fired: (prev && prev.fired) || {},      // состояние срабатываний переносим, чтобы синхронизация не вызывала повторов
       updated: Date.now(),
     };
+    // Перевзвод: пользователь переключил/поправил алерт (ver изменился) или удалил его — забываем прежнее срабатывание
+    const prevVer = {}; ((prev && prev.alerts) || []).forEach(a => { prevVer[a.id] = a.ver || 0; });
+    const ids = new Set(sub.alerts.map(a => a.id));
+    Object.keys(sub.fired).forEach(id => { if (!ids.has(id)) delete sub.fired[id]; });
+    sub.alerts.forEach(a => { if (id_changed(prevVer, a)) delete sub.fired[a.id]; });
     await env.DEFI_KV.put(key, JSON.stringify(sub));
-    return json({ ok: true, alerts: sub.alerts.length, wallets: wallets.length });
+    const latched = sub.alerts.filter(a => repMode(a) === 'once' && sub.fired[a.id] !== undefined).map(a => a.id);
+    return json({ ok: true, alerts: sub.alerts.length, wallets: wallets.length, latched });
   }
   if (url.pathname === '/unsubscribe') {
     await env.DEFI_KV.delete(key);
@@ -103,7 +121,7 @@ async function handleFetch(request, env) {
   if (url.pathname === '/test') {
     const sub = await env.DEFI_KV.get(key, 'json');
     const ru = !sub || sub.lang !== 'en';
-    const r = await sendPush(env, token, ru ? 'Тест' : 'Test', ru ? 'Пуш-уведомления DeFi Analytics работают' : 'DeFi Analytics push notifications work', 'test');
+    const r = await sendPush(env, token, ru ? 'Тест' : 'Test', ru ? 'Пуш-уведомления DeFi Analytics работают' : 'DeFi Analytics push notifications work', 'test', body.sound !== false);
     return json({ ok: r.ok, status: r.status, detail: r.ok ? undefined : String(r.text || '').slice(0, 300) }, r.ok ? 200 : 502);
   }
   return json({ ok: false, error: 'not_found' }, 404);
@@ -138,13 +156,13 @@ async function getAccessToken(env) {
   return _tokenCache;
 }
 // data-only + priority HIGH: баннер рисует само приложение (так же, как в P2)
-async function sendPush(env, token, title, body, tag) {
+async function sendPush(env, token, title, body, tag, snd) {
   try {
     const at = await getAccessToken(env);
     const r = await fetch('https://fcm.googleapis.com/v1/projects/' + at.project + '/messages:send', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + at.token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: { token, data: { title, body, tag: tag || '' }, android: { priority: 'HIGH' } } }),
+      body: JSON.stringify({ message: { token, data: { title, body, tag: tag || '', sound: snd === false ? '0' : '1' }, android: { priority: 'HIGH' } } }),
     });
     const text = await r.text();
     return { ok: r.ok, status: r.status, text, gone: r.status === 404 || /UNREGISTERED|NOT_FOUND/.test(text) };
@@ -212,26 +230,31 @@ function evaluate(sub, ctx, now) {
   const fmt = n => n >= 1000 ? n.toLocaleString('en-US', { maximumFractionDigits: 0 }) : String(+n.toFixed(2));
   sub.alerts.forEach(a => {
     if (!a.on) { delete sub.fired[a.id]; return; }
+    const mode = repMode(a);
     if (a.type === 'hf') {
       if (ctx.hf == null) return;                       // нет данных — состояние не трогаем
       if (ctx.hf.hf < a.below) {
         const last = sub.fired[a.id];
-        if (last === undefined || now - last >= HF_REPEAT_MS) {
+        if (last === undefined || (mode === 'remind' && now - last >= HF_REPEAT_MS)) {
           sub.fired[a.id] = now;
-          msgs.push({ tag: 'hf_' + a.id, title: ru ? '⚠️ Health Factor ниже ' + a.below : '⚠️ Health Factor below ' + a.below,
+          msgs.push({ tag: 'hf_' + a.id, snd: a.snd !== false, title: ru ? '⚠️ Health Factor ниже ' + a.below : '⚠️ Health Factor below ' + a.below,
             body: (ru ? 'Сейчас HF ' : 'HF is now ') + ctx.hf.hf.toFixed(2) + ' (' + ctx.hf.net + ')' });
         }
-      } else if (ctx.hf.hf >= a.below + HF_REARM_GAP) { delete sub.fired[a.id]; }
+      } else if (mode !== 'once' && ctx.hf.hf >= a.below + HF_REARM_GAP) { delete sub.fired[a.id]; }
     } else if (a.type === 'price') {
       const p = ctx.prices[a.asset]; if (!p) return;
       const hit = a.dir === 'above' ? p >= a.price : p <= a.price;
       if (hit) {
         if (sub.fired[a.id] === undefined) {
           sub.fired[a.id] = now;
-          msgs.push({ tag: 'px_' + a.id, title: a.asset + (a.dir === 'above' ? ' ≥ $' : ' ≤ $') + fmt(a.price),
+          msgs.push({ tag: 'px_' + a.id, snd: a.snd !== false, title: a.asset + (a.dir === 'above' ? ' ≥ $' : ' ≤ $') + fmt(a.price),
             body: (ru ? 'Цена сейчас $' : 'Price is now $') + fmt(p) });
         }
-      } else { delete sub.fired[a.id]; }
+      } else if (mode !== 'once') {
+        // отошла от уровня на PRICE_REARM_PCT — снова взводим
+        const away = a.dir === 'above' ? p <= a.price * (1 - PRICE_REARM_PCT) : p >= a.price * (1 + PRICE_REARM_PCT);
+        if (away) delete sub.fired[a.id];
+      }
     }
   });
   return msgs;
@@ -261,7 +284,7 @@ async function runCron(env) {
     const msgs = evaluate(sub, { prices, hf }, now);
     let gone = false;
     for (const m of msgs) {
-      const r = await sendPush(env, sub.token, m.title, m.body, m.tag);
+      const r = await sendPush(env, sub.token, m.title, m.body, m.tag, m.snd);
       if (r.gone) { gone = true; break; }
       if (!r.ok) { const id = m.tag.replace(/^(hf|px)_/, ''); delete sub.fired[id]; }   // не доставили — повторим на следующем тике
     }
