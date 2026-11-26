@@ -12935,5 +12935,21 @@ async function alTest(){
 })();
 </script>
 
+<style id="hxfit-style">
+/* Настройки: ничего не вылезает за границы карточек */
+.sa-row,.sp-row{box-sizing:border-box;max-width:100%;overflow:hidden}
+.sa-top,.sp-top{min-width:0}
+.sa-top>.sa-name,.sp-top>.sp-name{min-width:0;width:0}
+.sa-top>span,.sp-top>span{min-width:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.sa-top>.sa-pct-wrap,.sa-top>.sa-del,.sp-top>.sa-del,.sp-top>button{flex-shrink:0}
+.sa-pct-wrap{box-sizing:border-box;max-width:100%}
+.sa-pct-wrap input{background:none!important;border:none!important;padding:0!important;min-width:0;width:44px}
+.sp-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+.sp-field{min-width:0}
+.sp-field input,.sp-field select{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.sp-field .sa-pct-wrap{width:100%;display:flex}
+.sp-field .sa-pct-wrap input{flex:1;text-align:left}
+.settings-sheet .sheet-body{overflow-x:hidden}
+</style>
 </body>
 </html>
