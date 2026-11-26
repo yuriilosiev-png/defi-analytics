@@ -12263,19 +12263,19 @@ function jrnPick(k){
 .hxal-row{display:flex;align-items:center;gap:8px;font-size:14px;color:#c9d6ff}
 .hxal-row input,.hxal-row select{flex:1;min-width:0;padding:11px 12px;border-radius:14px;border:1px solid rgba(120,150,255,.35);background:#080c2c;color:#fff;font-size:16px;font-weight:700;outline:none}
 .hxal-hint{font-size:12px;color:#8b9bc4}
-.hxal-item{position:relative;display:flex;align-items:center;gap:9px;padding:11px 10px 11px 15px;margin-top:10px;border-radius:22px;background:linear-gradient(135deg,rgba(18,24,78,.85),rgba(8,12,44,.9));border:1px solid rgba(120,150,255,.22);box-shadow:0 0 14px rgba(90,110,255,.15)}
+.hxal-item{position:relative;display:flex;align-items:center;gap:8px;padding:11px 9px 11px 14px;margin-top:10px;border-radius:22px;background:linear-gradient(135deg,rgba(18,24,78,.85),rgba(8,12,44,.9));border:1px solid rgba(120,150,255,.22);box-shadow:0 0 14px rgba(90,110,255,.15)}
 .hxal-item::before{content:'';position:absolute;left:-1px;top:10px;bottom:10px;width:5px;border-radius:4px;background:linear-gradient(180deg,#27ff9c,#12b5a5);box-shadow:0 0 12px rgba(39,255,156,.9)}
 .hxal-item.alt::before{background:linear-gradient(180deg,#ff8de0,#a05cff);box-shadow:0 0 12px rgba(200,110,255,.9)}
 .hxal-item.off{opacity:.55}
-.hxal-ico{width:38px;height:38px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(255,120,150,.45))}
+.hxal-ico{width:36px;height:36px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(255,120,150,.45))}
 .hxal-item .t{flex:1;min-width:0}
-.hxal-item .t b{display:block;font-size:16.5px;white-space:nowrap;color:#fff;line-height:1.2}
-.hxal-item .t small{font-size:12px;color:#9fb0d8}
-.hxal-sw{position:relative;width:54px;height:32px;border-radius:16px;background:#2a3158;flex-shrink:0;border:none;transition:.2s;box-shadow:inset 0 2px 5px rgba(0,0,0,.45)}
-.hxal-sw::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#d6dcf5);transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.hxal-item .t b{display:block;font-size:16px;white-space:normal;overflow-wrap:anywhere;color:#fff;line-height:1.2}
+.hxal-item .t small{display:block;margin-top:2px;line-height:1.25;font-size:12px;color:#9fb0d8}
+.hxal-sw,.hxal-del{margin:0}.hxal-sw{position:relative;width:50px;height:30px;border-radius:15px;background:#2a3158;flex-shrink:0;border:none;transition:.2s;box-shadow:inset 0 2px 5px rgba(0,0,0,.45)}
+.hxal-sw::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#d6dcf5);transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 .hxal-sw.on{background:linear-gradient(180deg,#22d98a,#0fa866);box-shadow:0 0 16px rgba(34,240,154,.6),inset 0 2px 5px rgba(0,60,30,.3)}
-.hxal-sw.on::after{left:25px}
-.hxal-del{width:40px;height:40px;border-radius:14px;border:1.5px solid rgba(255,64,100,.75);background:rgba(255,40,90,.10);color:#ff3d6e;font-size:19px;font-weight:700;flex-shrink:0;box-shadow:0 0 14px rgba(255,50,100,.45),inset 0 0 10px rgba(255,50,100,.15)}
+.hxal-sw.on::after{left:23px}
+.hxal-del{width:36px;height:36px;border-radius:14px;border:1.5px solid rgba(255,64,100,.75);background:rgba(255,40,90,.10);color:#ff3d6e;font-size:19px;font-weight:700;flex-shrink:0;box-shadow:0 0 14px rgba(255,50,100,.45),inset 0 0 10px rgba(255,50,100,.15)}
 .hxal-empty{padding:20px 8px;text-align:center;font-size:14px;color:#8b9bc4}
 .hxal-info{display:flex;align-items:flex-start;gap:12px;box-shadow:0 0 0 1.5px rgba(130,80,255,.65),0 0 30px rgba(120,60,255,.35),inset 0 0 40px rgba(130,70,255,.18);background:linear-gradient(145deg,rgba(60,28,130,.7),rgba(10,14,56,.88))}
 .hxal-bolt{width:40px;height:50px;flex-shrink:0;margin-top:2px}
@@ -12355,7 +12355,7 @@ function alRender(){
 }
 function alDescribe(a){
   var ru=alRu();
-  if(a.type==='hf') return {t:'Health Factor < '+a.below, s:ru?'Падение ниже порога':'Drops below threshold'};
+  if(a.type==='hf') return {t:'Health Factor <\u00a0'+a.below, s:ru?'Падение ниже порога':'Drops below threshold'};
   var p=a.price>=1000?Math.round(a.price).toLocaleString('en-US'):String(a.price);
   return {t:a.asset+(a.dir==='above'?' ≥ $':' ≤ $')+p, s:a.dir==='above'?(ru?'Рост до уровня':'Rises to level'):(ru?'Падение до уровня':'Falls to level')};
 }
