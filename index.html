@@ -9946,14 +9946,20 @@ function _gmxPrice(v, dec){
   if(/^-?\d+$/.test(t) && t.replace('-','').length >= 12){ return (dec > 0) ? parseFloat(t)/Math.pow(10, 30-dec) : null; }
   var n = parseFloat(t); return isFinite(n) ? n : null;
 }
-async function _gmxTokenMaps(oracle){
+async function _gmxTokenMaps(oracle, chainKey){
   var out = {sym:{}, dec:{}, idx:{}};
-  try{
-    var r1 = await fetch(oracle + '/tokens', {signal: _abortAfter(8000)});
-    if(r1.ok){ var j1 = await r1.json(); (j1.tokens || j1 || []).forEach(function(t){ if(t && t.address){ var a = t.address.toLowerCase(); out.sym[a] = t.symbol; out.dec[a] = t.decimals; } }); }
-    var r2 = await fetch(oracle + '/markets', {signal: _abortAfter(8000)});
-    if(r2.ok){ var j2 = await r2.json(); (j2.markets || j2 || []).forEach(function(m){ if(m && m.marketToken && m.indexToken) out.idx[m.marketToken.toLowerCase()] = m.indexToken.toLowerCase(); }); }
-  }catch(e){}
+  // домен gmxinfra.io у GMX менялся: пробуем хранителя gmxapi.io и запасные хосты
+  var hosts = (chainKey ? _gmxKeepers(chainKey) : []).concat([oracle]);
+  for(var i = 0; i < hosts.length; i++){
+    try{
+      var r1 = await fetch(hosts[i] + '/tokens', {signal: _abortAfter(8000)});
+      if(!r1.ok) continue;
+      var j1 = await r1.json(); (j1.tokens || j1 || []).forEach(function(t){ if(t && t.address){ var a = t.address.toLowerCase(); out.sym[a] = t.symbol; out.dec[a] = t.decimals; } });
+      var r2 = await fetch(hosts[i] + '/markets', {signal: _abortAfter(8000)});
+      if(r2.ok){ var j2 = await r2.json(); (j2.markets || j2 || []).forEach(function(m){ if(m && m.marketToken && m.indexToken) out.idx[m.marketToken.toLowerCase()] = m.indexToken.toLowerCase(); }); }
+      break;
+    }catch(e){}
+  }
   return out;
 }
 // возвращает список сетей, по которым API ответил (даже пустым массивом) — по ним старый субграф не нужен
@@ -9972,7 +9978,7 @@ async function _gmxFetchPositionsRest(addrLower){
     if(arr === null){ _walletGMXErrs++; return; }
     handled.push(ch.name);
     if(!arr.length) return;
-    var mp = await _gmxTokenMaps(ch.oracle);
+    var mp = await _gmxTokenMaps(ch.oracle, ch.name.toLowerCase());
     arr.forEach(function(p){
       var sizeUSD = _gmxNum(p.sizeInUsd);
       if(sizeUSD < 0.01) return;
@@ -10006,7 +10012,7 @@ async function walletLoadGMX(addr){
   var handledNets = await _gmxFetchPositionsRest(addrLower).catch(function(){ return []; });
   await Promise.all([
     _gmxFetchPositionsSubgraph(addrLower, handledNets),
-    _gmxFetchGMPools(addrLower)
+    _gmxLoadPools(addrLower)
   ]);
 
   var totalPos   = _walletGMXPositions.length;
@@ -10166,12 +10172,12 @@ function _renderWalletGMXPositions(poolsEl, poolsTotEl){
         '<div style="display:flex;align-items:center;gap:8px">'+
           '<span style="font-size:16px">🟢</span>'+
           '<div>'+
-            '<div style="font-size:14px;font-weight:700">GM '+p.sym+'</div>'+
+            '<div style="font-size:14px;font-weight:700">'+(p.type==='GM'?'GM ':'')+p.sym+'</div>'+
             '<div style="font-size:10px;color:var(--muted2);font-family:\'Space Mono\',monospace">'+p.net+' · '+p.type+'</div>'+
           '</div>'+
         '</div>'+
         '<div style="font-family:\'Space Mono\',monospace;font-size:14px;font-weight:700;color:var(--orange)">'+
-          '$'+p.valueUSD.toFixed(2)+
+          (p.usdOk===false?'—':'$'+p.valueUSD.toFixed(2))+
         '</div>'+
       '</div>';
     poolsEl.appendChild(card);
@@ -13299,6 +13305,155 @@ function _renderWalletEulerPositions(poolsEl, poolsTotEl){
     sub:function(p){ return 'Euler v2 · '+p.net+(p.sub ? ' · sub #'+p.sub : ''); },
     debtSub:function(p){ return p.debtAmt.toFixed(p.debtAmt<1?4:2)+' '+p.debtSym; }
   });
+}
+/* ═══ GMX v2: GM и GLV токены кошелька ончейн (Arbitrum, Avalanche) ═══
+   Список рынков и GLV читаем из Reader/GlvReader, балances — balanceOf, цены токенов — /prices/tickers хранителя GMX,
+   стоимость токена — Reader.getMarketTokenPrice / GlvReader.getGlvTokenPrice (так же считает сам GMX). */
+var GMX2 = {
+  arbitrum:  {name:'Arbitrum',  reader:'0x470fbC46bcC0f16532691Df360A07d8Bf5ee0789', glvReader:'0x2C670A23f1E798184647288072e84054938B5497', ds:'0xFD70de6b91282D8017aA4E741e9Ae325CAb992d8'},
+  avalanche: {name:'Avalanche', reader:'0x62Cb8740E6986B29dC671B2EB596676f60590A5B', glvReader:'0x5C6905A3002f989E1625910ba1793d40a031f947', ds:'0x2F0b22339414ADeD7D5F06f9D604c7fF5b2fe3f6'}
+};
+// GMX v1 (GLP): fsGLP — застейканные GLP, GLP — на кошельке; цена — GlpManager.getPrice(false) (USD × 1e30 за 1 GLP)
+var GMX_GLP = {
+  arbitrum:  {glp:'0x4277f8F2c384827B5273592FF7CeBd9f2C1ac258', fs:'0x1aDDD80E6039594eE970E5872D247bf0414C8903', mgr:'0x3963FfC9dff443c2A94f21b129D429891E32ec18'},
+  avalanche: {glp:'0x01234181085565ed162a948b6a5e88758CD7c7b8', fs:'0x9e295B5B976a184B14aD8cd72413aD846C299660', mgr:'0xD152c7F25db7F4B95b7658323c5F33d176818EE4'}
+};
+async function _gmxGlp(key, user){
+  var g = GMX_GLP[key], net = AAVE_NETWORKS[key]; if(!g || !net) return {pos:[], errs:1};
+  var ua = _ah(user);
+  var r = await _rpcBatch(net.rpc, [
+    {to:g.fs,  data:'0x70a08231'+ua}, {to:g.glp, data:'0x70a08231'+ua}, {to:g.mgr, data:'0xe245b5af'+_u256hex(0)}
+  ], 15000);
+  if(!r[0] && !r[1]) return {pos:[], errs:1};
+  var bal = (r[0] ? BigInt(r[0]) : 0n) + (r[1] ? BigInt(r[1]) : 0n);
+  if(bal <= 0n) return {pos:[], errs:0};
+  var amt = Number(bal) / 1e18, px = r[2] ? Number(BigInt(r[2])) / 1e30 : 0;
+  return {pos:[{net:GMX2[key].name, sym:'GLP', valueUSD:amt*px, amount:amt, type:'GLP', usdOk:px > 0}], errs:r[2] ? 0 : 1};
+}
+var GMX_PNL_TRADERS = '0xab15365d3aa743e766355e2557c230d8f943e195dc84d9b2b05928a07b635ee1';   // keccak256(abi.encode("MAX_PNL_FACTOR_FOR_TRADERS"))
+function _gmxKeepers(key){ return ['https://'+key+'-keeper.gmxapi.io', 'https://'+key+'-api.gmxinfra2.io', 'https://'+key+'-api.gmxinfra.io']; }
+// цены оракула GMX: {адрес(lowercase): {min:BigInt, max:BigInt, sym}} — формат тот же, что принимает Reader (USD × 10^(30−decimals))
+async function _gmxTickers(key){
+  var hosts = _gmxKeepers(key);
+  for(var i = 0; i < hosts.length; i++){
+    try{
+      var r = await fetch(hosts[i] + '/prices/tickers', {signal: _abortAfter(10000)});
+      if(!r.ok) continue;
+      var j = await r.json(), arr = Array.isArray(j) ? j : (j && (j.tickers || j.data)) || [];
+      var map = {};
+      arr.forEach(function(t){
+        if(!t || !t.tokenAddress || t.minPrice == null || t.maxPrice == null) return;
+        try{ map[String(t.tokenAddress).toLowerCase()] = {min:BigInt(t.minPrice), max:BigInt(t.maxPrice), sym:t.tokenSymbol || '?'}; }catch(e){}
+      });
+      if(Object.keys(map).length) return map;
+    }catch(e){}
+  }
+  return null;
+}
+function _gmxWords(h){ return (h && h.length > 2) ? (h.slice(2).match(/.{64}/g) || []) : []; }
+function _gmxAddrW(w){ return '0x' + w.slice(24); }
+// tuple[] из статических адресов (per слов на элемент)
+function _gmxTupleList(h, per){
+  var w = _gmxWords(h); if(w.length < 2) return [];
+  var off = Number(BigInt('0x'+w[0])) / 32, n = Number(BigInt('0x'+w[off])), out = [];
+  for(var i = 0; i < n; i++){ var it = w.slice(off+1+i*per, off+1+(i+1)*per); if(it.length === per) out.push(it.map(_gmxAddrW)); }
+  return out;
+}
+var _GMX_ZERO = '0x0000000000000000000000000000000000000000';
+async function _gmx2Chain(key, user, tick){
+  var cfg = GMX2[key], net = AAVE_NETWORKS[key], out = [], errs = 0;
+  if(!cfg || !net) return {pos:out, errs:1};
+  var rpc = net.rpc, ua = _ah(user), ds = _ah(cfg.ds);
+  var r0 = await _rpcBatch(rpc, [
+    {to:cfg.reader,    data:'0xce3264bf'+ds+_u256hex(0)+_u256hex(500)},       // Reader.getMarkets(ds, 0, 500)
+    {to:cfg.glvReader, data:'0xa645bde4'+ds+_u256hex(0)+_u256hex(50)}         // GlvReader.getGlvs(ds, 0, 50)
+  ], 15000);
+  if(!r0[0]) errs++;
+  var markets = r0[0] ? _gmxTupleList(r0[0], 4) : [];       // [marketToken, indexToken, longToken, shortToken]
+  var glvs    = r0[1] ? _gmxTupleList(r0[1], 3) : [];       // [glvToken, longToken, shortToken]
+  var toks = markets.map(function(m){ return m[0]; }).concat(glvs.map(function(g){ return g[0]; }));
+  if(!toks.length) return {pos:out, errs:errs};
+  var br = await _rpcBatch(rpc, toks.map(function(t){ return {to:t, data:'0x70a08231'+ua}; }), 15000);
+  if(br.some(function(x){ return !x; })) errs++;
+  var held = [];
+  toks.forEach(function(t, i){
+    if(!br[i]) return; var bal = BigInt(br[i]); if(bal <= 0n) return;
+    if(i < markets.length) held.push({kind:'GM', m:markets[i], bal:bal}); else held.push({kind:'GLV', g:glvs[i-markets.length], bal:bal});
+  });
+  if(!held.length) return {pos:out, errs:errs};
+  if(!tick){ errs++; tick = {}; }
+  var T = function(a){ return tick[String(a).toLowerCase()] || null; };
+  var pr = function(p){ return _u256hex(p.min) + _u256hex(p.max); };
+  // GLV: нужен список рынков
+  var gi = held.filter(function(x){ return x.kind === 'GLV'; });
+  if(gi.length){
+    var ir = await _rpcBatch(rpc, gi.map(function(x){ return {to:cfg.glvReader, data:'0x4015e2c2'+ds+_ah(x.g[0])}; }), 15000);
+    gi.forEach(function(x, i){
+      var w = _gmxWords(ir[i]); if(w.length < 5) { errs++; return; }
+      var t0 = 1, off = Number(BigInt('0x'+w[t0+3])) / 32 + t0, n = Number(BigInt('0x'+w[off])); x.markets = [];
+      for(var k = 0; k < n; k++) x.markets.push(_gmxAddrW(w[off+1+k]));
+    });
+  }
+  // цены: GM — getMarketTokenPrice, GLV — getGlvTokenPrice (min и max → среднее)
+  var calls = [], plan = [];
+  held.forEach(function(x){
+    if(x.kind === 'GM'){
+      var idxA = x.m[1] === _GMX_ZERO ? x.m[2] : x.m[1];
+      var pi = T(idxA), pl = T(x.m[2]), ps = T(x.m[3]);
+      x.sym = (pi ? pi.sym : '?') + ' [' + (pl ? pl.sym : '?') + '-' + (ps ? ps.sym : '?') + ']';
+      if(!(pi && pl && ps)){ x.noPrice = true; return; }
+      [false, true].forEach(function(mx){
+        calls.push({to:cfg.reader, data:'0x095ce6c5'+ds+x.m.map(_ah).join('')+pr(pi)+pr(pl)+pr(ps)+GMX_PNL_TRADERS.slice(2)+_u256hex(mx ? 1 : 0)});
+        plan.push(x);
+      });
+    } else {
+      var pl2 = T(x.g[1]), ps2 = T(x.g[2]);
+      x.sym = 'GLV [' + (pl2 ? pl2.sym : '?') + '-' + (ps2 ? ps2.sym : '?') + ']';
+      var mk = x.markets || [], idxP = mk.map(function(a){
+        var m = markets.filter(function(q){ return q[0].toLowerCase() === a.toLowerCase(); })[0];
+        var ia = m ? (m[1] === _GMX_ZERO ? m[2] : m[1]) : null; return ia ? T(ia) : null;
+      });
+      if(!mk.length || !pl2 || !ps2 || idxP.some(function(p){ return !p; })){ x.noPrice = true; return; }
+      [false, true].forEach(function(mx){
+        var head = ds + _u256hex(9*32) + _u256hex(9*32 + 32*(1+mk.length)) + pr(pl2) + pr(ps2) + _ah(x.g[0]) + _u256hex(mx ? 1 : 0);
+        var arr1 = _u256hex(mk.length) + mk.map(_ah).join('');
+        var arr2 = _u256hex(mk.length) + idxP.map(pr).join('');
+        calls.push({to:cfg.glvReader, data:'0x52384a78'+head+arr1+arr2});
+        plan.push(x);
+      });
+    }
+  });
+  var pres = calls.length ? await _rpcBatch(rpc, calls, 15000) : [];
+  held.forEach(function(x){ x.sum = 0n; x.cnt = 0; });
+  plan.forEach(function(x, i){
+    var h = pres[i]; if(!h || h.length < 66){ errs++; return; }
+    var v = _sint(_word(h, 0)); if(v > 0n){ x.sum += v; x.cnt++; }
+  });
+  held.forEach(function(x){
+    var amt = Number(x.bal) / 1e18, usd = 0, ok = false;
+    if(x.cnt > 0){ usd = amt * (Number(x.sum / BigInt(x.cnt)) / 1e30); ok = true; }
+    if(ok && usd < 0.01) return;
+    out.push({net:cfg.name, sym:x.sym || '?', valueUSD:usd, amount:amt, type:x.kind, usdOk:ok});
+  });
+  return {pos:out, errs:errs};
+}
+// пишет в _walletGMXPools; found=true если что-то нашли; если сеть не ответила — вызывающий включит старый REST
+async function _gmx2All(addrLower){
+  var keys = Object.keys(GMX2), res = await Promise.all(keys.map(async function(k){
+    var tick = await _gmxTickers(k);
+    var a = {pos:[], errs:1}, b = {pos:[], errs:0};
+    try{ a = await _gmx2Chain(k, addrLower, tick); }catch(e){ console.warn('[GMX2]', k, e); }
+    try{ b = await _gmxGlp(k, addrLower); }catch(e){ console.warn('[GLP]', k, e); }
+    return {pos:a.pos.concat(b.pos), errs:a.errs + b.errs};
+  }));
+  var found = false, errs = 0;
+  res.forEach(function(r){ errs += r.errs; r.pos.forEach(function(p){ found = true; _walletGMXPools.push(p); }); });
+  return {found:found, errs:errs};
+}
+async function _gmxLoadPools(addrLower){
+  var r = {found:false, errs:1};
+  try{ r = await _gmx2All(addrLower); }catch(e){ console.warn('[GMX2]', e); }
+  if(!r.found && r.errs > 0) await _gmxFetchGMPools(addrLower);       // старый REST — запасной путь
 }
 </script>
 
