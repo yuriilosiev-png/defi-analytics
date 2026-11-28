@@ -3396,6 +3396,11 @@ function renderSettingsSheet(){
   setEl('sht-assets-lbl','📊 '+(ru?'Активы в залоге Aave':'Aave Collateral Assets'));
   setEl('sht-pools-lbl','🏊 '+(ru?'Рабочие пулы':'Liquidity Pools'));
   setEl('sht-save','💾 '+(ru?'Сохранить':'Save'));
+  setEl('sht-about-lbl','ℹ️ '+(ru?'О приложении':'About'));
+  setEl('sht-about-txt',ru
+    ? 'DeFi Analytics — информационный инструмент, а не финансовый, инвестиционный или юридический совет. HF, цены ликвидации, симуляции и стоимость позиций — оценки по данным третьих сторон, они могут быть неточными или запаздывать. Пуш-уведомления могут прийти с задержкой или не прийти, не полагайся на них как на единственную защиту от ликвидации. Приложение только читает публичные данные, ключи и сид-фразы не нужны. Важные решения проверяй в официальных интерфейсах протоколов.'
+    : 'DeFi Analytics is an informational tool, not financial, investment or legal advice. HF, liquidation prices, simulations and position values are estimates based on third-party data and may be inaccurate or delayed. Push notifications may be delayed or not delivered; do not rely on them as your only protection against liquidation. The app only reads public data; it never needs keys or seed phrases. Verify important decisions in the official protocol interfaces.');
+  setEl('sht-about-pp',ru?'Политика конфиденциальности':'Privacy policy');
 }
 
 function capAt100(arr,idx,val,key){
@@ -11857,6 +11862,11 @@ function _renderWalletSolana(){
         <button class="btn-add-item" onclick="shtAddPool('custom')">✏️ Custom</button>
       </div>
       <div id="sht-pool-sum" class="sum-badge sum-ok" style="margin-top:8px">= 100%</div>
+    </div>
+    <div class="sheet-section">
+      <div class="sheet-sec-title" id="sht-about-lbl">ℹ️ О приложении</div>
+      <div id="sht-about-txt" style="font-size:12px;line-height:1.55;color:var(--muted2);overflow-wrap:anywhere"></div>
+      <a id="sht-about-pp" href="https://yuriilosiev-png.github.io/defi-analytics/privacy-policy.html" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:12px;color:var(--accent)">Политика конфиденциальности</a>
     </div>
   </div>
   <button class="sheet-save" id="sht-save" onclick="saveSettings()">💾 Сохранить</button>
