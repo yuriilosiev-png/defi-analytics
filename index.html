@@ -9865,6 +9865,8 @@ async function walletLoadUniswap(addr){
   // 1) v3 напрямую из контракта NonfungiblePositionManager (работает в APK, без ключей)
   var onchain = [];
   try{ onchain = await _uniV3LoadOnchain(addr); }catch(e){ _walletUniErrs++; }
+  // 1b) v4: NFT PositionManager (ошибки поиска не считаем сбоем Uniswap — v3 грузится независимо)
+  try{ onchain = onchain.concat(await _uniV4LoadOnchain(addr)); }catch(e){ console.warn('[UniV4]', e); }
   var have = {}; onchain.forEach(function(p){ have[p.net+':'+p.id] = 1; });
 
   // 2) Oku (неофициальный; из APK обычно блокируется CORS): пробуем одну сеть, если не отвечает — остальные пропускаем.
@@ -13454,6 +13456,134 @@ async function _gmxLoadPools(addrLower){
   var r = {found:false, errs:1};
   try{ r = await _gmx2All(addrLower); }catch(e){ console.warn('[GMX2]', e); }
   if(!r.found && r.errs > 0) await _gmxFetchGMPools(addrLower);       // старый REST — запасной путь
+}
+/* ═══ Uniswap v4: LP-позиции кошелька ончейн (Ethereum, Arbitrum, Base, Optimism, Polygon) ═══
+   v4 — это NFT PositionManager без перечисления, поэтому ID позиций берём из Blockscout (держатель NFT),
+   запасной путь — логи Transfer. Дальше всё читаем из контрактов: PositionManager + StateView. */
+var UNI_V4 = {
+  ethereum: {pm:'0xbd216513d74c8cf14cf4747e6aaa6420ff64ee9e', sv:'0x7ffe42c4a5deea5b0fec41c94c136cf115597227', bs:'eth.blockscout.com',      native:'ETH'},
+  arbitrum: {pm:'0xd88f38f930b7952f2db2432cb002e7abbf3dd869', sv:'0x76fd297e2d437cd7f76d50f01afe6160f86e9990', bs:'arbitrum.blockscout.com', native:'ETH'},
+  base:     {pm:'0x7c5f5a4bbd8fd63184577525326123b519429bdc', sv:'0xa3c0c9b65bad0b08107aa264b0f3db444b867a71', bs:'base.blockscout.com',     native:'ETH'},
+  optimism: {pm:'0x3c3ea4b57a46241e54610e5f022e5c45859a1017', sv:'0xc18a3169788f4f75a170290584eca6395c75ecdb', bs:'optimism.blockscout.com', native:'ETH'},
+  polygon:  {pm:'0x1ec2ebf4f37e7363fdfe3551602425af0b3ceef9', sv:'0x5ea1bd7974c8a611cbab0bdcafcb1d9cc9b3ba5a', bs:'polygon.blockscout.com',  native:'POL'}
+};
+/* keccak256 (SHA-3 до стандартизации, как в Ethereum) — нужен для poolId = keccak256(abi.encode(PoolKey)) */
+var _KECCAK_RC = [0x1n,0x8082n,0x800000000000808an,0x8000000080008000n,0x808bn,0x80000001n,0x8000000080008081n,0x8000000000008009n,0x8an,0x88n,0x80008009n,0x8000000an,0x8000808bn,0x800000000000008bn,0x8000000000008089n,0x8000000000008003n,0x8000000000008002n,0x8000000000000080n,0x800an,0x800000008000000an,0x8000000080008081n,0x8000000000008080n,0x80000001n,0x8000000080008008n];
+var _KECCAK_ROT = [[0,36,3,41,18],[1,44,10,45,2],[62,6,43,15,61],[28,55,25,21,56],[27,20,39,8,14]];
+function _keccak256(bytes){
+  var M = (1n<<64n) - 1n, rate = 136, i, j, x, y;
+  var rot = function(v, n){ n = BigInt(n); return n === 0n ? v : (((v << n) | (v >> (64n - n))) & M); };
+  var len = bytes.length, padded = new Uint8Array(Math.ceil((len + 1) / rate) * rate);
+  padded.set(bytes); padded[len] ^= 0x01; padded[padded.length - 1] ^= 0x80;
+  var A = []; for(i = 0; i < 25; i++) A.push(0n);
+  for(var off = 0; off < padded.length; off += rate){
+    for(i = 0; i < rate / 8; i++){ var lane = 0n; for(j = 7; j >= 0; j--) lane = (lane << 8n) | BigInt(padded[off + i*8 + j]); A[i] ^= lane; }
+    for(var rd = 0; rd < 24; rd++){
+      var C = [], D = [], B = [];
+      for(x = 0; x < 5; x++) C[x] = A[x] ^ A[x+5] ^ A[x+10] ^ A[x+15] ^ A[x+20];
+      for(x = 0; x < 5; x++) D[x] = C[(x+4)%5] ^ rot(C[(x+1)%5], 1);
+      for(x = 0; x < 5; x++) for(y = 0; y < 5; y++) A[x+5*y] ^= D[x];
+      for(x = 0; x < 5; x++) for(y = 0; y < 5; y++) B[y + 5*((2*x + 3*y) % 5)] = rot(A[x+5*y], _KECCAK_ROT[x][y]);
+      for(x = 0; x < 5; x++) for(y = 0; y < 5; y++) A[x+5*y] = B[x+5*y] ^ ((~B[(x+1)%5+5*y] & M) & B[(x+2)%5+5*y]);
+      A[0] ^= _KECCAK_RC[rd];
+    }
+  }
+  var out = '';
+  for(i = 0; i < 4; i++) for(j = 0; j < 8; j++) out += Number((A[i] >> BigInt(8*j)) & 0xffn).toString(16).padStart(2,'0');
+  return out;
+}
+function _hexBytes(h){ h = h.replace(/^0x/,''); var u = new Uint8Array(h.length/2); for(var i = 0; i < u.length; i++) u[i] = parseInt(h.substr(i*2,2),16); return u; }
+// ID позиций v4: Blockscout (токены держателя по коллекции) → запасной путь: логи Transfer(→owner)
+async function _uniV4Ids(ch, cfg, owner){
+  var ids = {}, ok = false, next = '';
+  try{
+    for(var pg = 0; pg < 6; pg++){
+      var r = await fetch('https://'+cfg.bs+'/api/v2/tokens/'+cfg.pm+'/instances?holder_address_hash='+owner+next, {signal:_abortAfter(10000)});
+      if(!r.ok) break;
+      var j = await r.json(); ok = true;
+      (j.items || []).forEach(function(it){ if(it && it.id != null){ try{ ids[BigInt(it.id).toString()] = 1; }catch(e){} } });
+      var np = j.next_page_params; if(!np) break;
+      next = '&' + Object.keys(np).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(np[k]); }).join('&');
+    }
+  }catch(e){}
+  if(!ok){
+    for(var i = 0; i < ch.rpc.length && !ok; i++){
+      try{
+        var lr = await fetch(ch.rpc[i], {method:'POST', headers:{'Content-Type':'application/json'}, signal:_abortAfter(15000),
+          body:JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getLogs', params:[{fromBlock:'0x0', toBlock:'latest', address:cfg.pm,
+            topics:['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', null, '0x'+_ah(owner)]}]})});
+        var lj = await lr.json();
+        if(Array.isArray(lj.result)){ ok = true; lj.result.forEach(function(l){ if(l.topics && l.topics[3]) ids[BigInt(l.topics[3]).toString()] = 1; }); }
+      }catch(e){}
+    }
+  }
+  return {ids:Object.keys(ids).slice(0, 80).map(function(x){ return BigInt(x); }), ok:ok};
+}
+async function _uniV4Chain(ch, cfg, owner){
+  var out = [], idr = await _uniV4Ids(ch, cfg, owner);
+  if(!idr.ids.length) return {pos:out, errs:idr.ok ? 0 : 1};
+  var ids = idr.ids, ua = owner.toLowerCase(), rpc = ch.rpc;
+  var oh = await _rpcBatch(rpc, ids.map(function(id){ return {to:cfg.pm, data:'0x6352211e'+_u256hex(id)}; }), 12000);
+  var mine = ids.filter(function(id, i){ return oh[i] && _wAddr(_word(oh[i],0)).toLowerCase() === ua; });      // NFT мог уйти к другому
+  if(!mine.length) return {pos:out, errs:0};
+  var ic = []; mine.forEach(function(id){ ic.push({to:cfg.pm, data:'0x7ba03aad'+_u256hex(id)}); ic.push({to:cfg.pm, data:'0x1efeed33'+_u256hex(id)}); });
+  var ir = await _rpcBatch(rpc, ic, 12000), errs = 0, poss = [];
+  mine.forEach(function(id, i){
+    var h = ir[i*2], lq = ir[i*2+1];
+    if(!h || h.length < 2+64*6 || !lq){ errs++; return; }
+    var liq = BigInt(lq); if(liq === 0n) return;
+    var info = BigInt('0x'+_word(h,5));
+    var tl = Number(BigInt.asIntN(24, info >> 8n)), tu = Number(BigInt.asIntN(24, info >> 32n));
+    var key = [0,1,2,3,4].map(function(k){ return _word(h,k); }).join('');
+    poss.push({id:id, c0:_wAddr(_word(h,0)), c1:_wAddr(_word(h,1)), fee:Number(BigInt('0x'+_word(h,2))), hooks:_wAddr(_word(h,4)),
+               tl:tl, tu:tu, liq:Number(liq), pid:'0x'+_keccak256(_hexBytes(key))});
+  });
+  if(!poss.length) return {pos:out, errs:errs};
+  var pools = {}; poss.forEach(function(q){ pools[q.pid] = 1; });
+  var pk = Object.keys(pools);
+  var sr = await _rpcBatch(rpc, pk.map(function(p){ return {to:cfg.sv, data:'0xc815641c'+p.slice(2)}; }), 12000);
+  pk.forEach(function(p, i){
+    var h = sr[i]; if(!h || h.length < 2+64*2){ errs++; return; }
+    pools[p] = {sqrtP:Number(BigInt('0x'+_word(h,0)))/Math.pow(2,96), tick:Number(_sint(_word(h,1))), lpFee:Number(BigInt('0x'+_word(h,3)))};
+  });
+  // токены (адрес 0x0 = нативная монета сети)
+  var Z = '0x0000000000000000000000000000000000000000', toks = [], seen = {};
+  poss.forEach(function(q){ [q.c0, q.c1].forEach(function(a){ var l = a.toLowerCase(); if(!seen[l]){ seen[l] = {addr:a, sym:cfg.native, dec:18}; if(l !== Z) toks.push(l); } }); });
+  var tc = []; toks.forEach(function(l){ tc.push({to:l, data:'0x95d89b41'}); tc.push({to:l, data:'0x313ce567'}); });
+  var th = tc.length ? await _rpcBatch(rpc, tc, 12000) : [];
+  toks.forEach(function(l, i){ seen[l].sym = _decStr(th[i*2]) || '?'; seen[l].dec = th[i*2+1] ? Number(BigInt(th[i*2+1])) : 18; });
+  var unk = toks.filter(function(l){ return !_uniKnownUsd(seen[l].sym); }), cgp = {};
+  if(unk.length){
+    try{ var rr = await fetch('https://api.coingecko.com/api/v3/simple/token_price/'+ch.cg+'?contract_addresses='+unk.join(',')+'&vs_currencies=usd', {signal:_abortAfter(9000)}); if(rr.ok) cgp = await rr.json(); }catch(e){}
+  }
+  var usdOf = function(l){ var k = _uniKnownUsd(seen[l].sym); if(k) return k; var c = cgp[l]; return (c && c.usd) ? c.usd : 0; };
+  poss.forEach(function(q){
+    var pl = pools[q.pid]; if(!pl || !pl.sqrtP){ return; }
+    var a = seen[q.c0.toLowerCase()], b = seen[q.c1.toLowerCase()];
+    var amt = _uniAmounts(q.liq, pl.sqrtP, pl.tick, q.tl, q.tu);
+    var am0 = amt[0]/Math.pow(10,a.dec), am1 = amt[1]/Math.pow(10,b.dec);
+    var ratio = pl.sqrtP*pl.sqrtP * Math.pow(10, a.dec - b.dec);
+    var u0 = usdOf(q.c0.toLowerCase()), u1 = usdOf(q.c1.toLowerCase());
+    if(!u0 && u1 && ratio > 0) u0 = u1*ratio;
+    if(!u1 && u0 && ratio > 0) u1 = u0/ratio;
+    var lo = _tickToPrice(q.tl, a.dec, b.dec), hi = _tickToPrice(q.tu, a.dec, b.dec), cur = ratio;
+    var s0 = a.sym.toUpperCase(), s1 = b.sym.toUpperCase(), dep0 = am0, dep1 = am1;
+    if(UNI_STABLES[s0] && !UNI_STABLES[s1]){ var t = lo; lo = 1/hi; hi = 1/t; cur = 1/ratio; var ts = s0; s0 = s1; s1 = ts; var ta = dep0; dep0 = dep1; dep1 = ta; }
+    var dyn = (q.fee & 0x800000) !== 0;
+    out.push({id:String(q.id), net:ch.name, ver:'v4', sym0:s0, sym1:s1, fee:(dyn ? pl.lpFee : q.fee)/1e6,
+              priceLow:lo, priceHigh:hi, priceCur:cur, inRange:(pl.tick >= q.tl && pl.tick < q.tu),
+              valueUSD:am0*u0 + am1*u1, fees:0, dep0:dep0, dep1:dep1, src:'onchain', hooks:q.hooks !== Z});
+  });
+  return {pos:out, errs:errs};
+}
+var _walletUniV4Errs = 0;
+async function _uniV4LoadOnchain(owner){
+  _walletUniV4Errs = 0;
+  var res = await Promise.all(UNI_V3_CHAINS.filter(function(ch){ return UNI_V4[ch.name]; }).map(function(ch){
+    return _uniV4Chain(ch, UNI_V4[ch.name], owner).catch(function(e){ console.warn('[UniV4]', ch.name, e); return {pos:[], errs:1}; });
+  }));
+  var all = []; res.forEach(function(r){ _walletUniV4Errs += r.errs; all = all.concat(r.pos); });
+  return all;
 }
 </script>
 
