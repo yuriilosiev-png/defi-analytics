@@ -101,6 +101,7 @@ async function handleFetch(request, env) {
     const sub = {
       token, wallets,
       alerts: cleanAlerts(body.alerts),
+      hints: cleanHints(body.hints, wallets),
       lang: body.lang === 'en' ? 'en' : 'ru',
       fired: (prev && prev.fired) || {},      // состояние срабатываний переносим, чтобы синхронизация не вызывала повторов
       updated: Date.now(),
@@ -172,7 +173,11 @@ async function sendPush(env, token, title, body, tag, snd) {
 }
 
 // ───────────────────────── данные ─────────────────────────
+// Бесплатный тариф: 50 подзапросов на запуск. Считаем свои и не выходим за 44 (остаток — на пуши).
+let _subreq = 0; const SUBREQ_MAX = 44;
+function resetBudget() { _subreq = 0; }
 async function fetchJson(url, ms = 6000, init) {
+  if (++_subreq > SUBREQ_MAX) throw new Error('budget');
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
   try { const r = await fetch(url, { ...(init || {}), signal: ctl.signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
   finally { clearTimeout(t); }
@@ -222,6 +227,116 @@ async function getHealthFactor(wallet) {
   return act.reduce((m, x) => (x.hf < m.hf ? x : m));
 }
 
+// ───────────────────────── HF остальных протоколов ─────────────────
+// Приложение присылает подсказки (hints) по каждому кошельку: где у него реально есть позиции.
+// Так воркер не сканирует 256 суб-аккаунтов Euler и все рынки Compound, а проверяет только нужное.
+//   hints[wallet] = { m:1, c:[{k:'arbitrum', a:'0xComet'}], e:[{k:'ethereum', s:'0xSub', v:'0xVault'}] }
+const ADDR_RE = /^0x[0-9a-fA-F]{40}$/;
+function cleanHints(h, wallets) {
+  const out = {}; if (!h || typeof h !== 'object') return out;
+  wallets.forEach(w => {
+    const x = h[w] || h[w.toLowerCase()]; if (!x || typeof x !== 'object') return;
+    const o = {};
+    if (x.m) o.m = 1;
+    const c = (Array.isArray(x.c) ? x.c : []).filter(i => i && AAVE_NETWORKS[i.k] && ADDR_RE.test(String(i.a))).slice(0, 8).map(i => ({ k: i.k, a: String(i.a) }));
+    const e = (Array.isArray(x.e) ? x.e : []).filter(i => i && AAVE_NETWORKS[i.k] && ADDR_RE.test(String(i.s)) && ADDR_RE.test(String(i.v))).slice(0, 8).map(i => ({ k: i.k, s: String(i.s), v: String(i.v) }));
+    if (c.length) o.c = c; if (e.length) o.e = e;
+    if (o.m || o.c || o.e) out[w.toLowerCase()] = o;
+  });
+  return out;
+}
+const hx = (h, i) => BigInt('0x' + h.slice(2 + i * 64, 2 + (i + 1) * 64));
+const hxAddr = (h, i) => '0x' + h.slice(2 + i * 64 + 24, 2 + (i + 1) * 64);
+const pad32 = a => a.slice(2).toLowerCase().padStart(64, '0');
+const u256 = n => BigInt(n).toString(16).padStart(64, '0');
+const ZERO_ADDR = '0x' + '0'.repeat(40);
+async function rpcBatch(rpcs, calls) {
+  const res = new Array(calls.length).fill(null);
+  for (let from = 0; from < calls.length; from += 25) {
+    const part = calls.slice(from, from + 25);
+    for (const url of rpcs) {
+      try {
+        const j = await fetchJson(url, 8000, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(part.map((c, i) => ({ jsonrpc: '2.0', id: i, method: 'eth_call', params: [{ to: c.to, data: c.data }, 'latest'] }))) });
+        if (Array.isArray(j)) {
+          let got = false;
+          j.forEach(r => { if (r && r.result && r.result !== '0x' && part[r.id]) { res[from + r.id] = r.result; got = true; } });
+          if (got) break;
+        }
+      } catch (e) { if (e && e.message === 'budget') return res; }
+    }
+  }
+  return res;
+}
+
+// Compound v3: HF = Σ(коллатерал_USD × liquidateCollateralFactor) / долг_USD  (по каждому рынку-Comet)
+async function hfCompound(rb, key, wallet, comets) {
+  const rpc = AAVE_NETWORKS[key].rpc, ua = pad32(wallet), out = [];
+  const r1 = await rb(rpc, comets.flatMap(c => [
+    { to: c, data: '0x374c49b4' + ua }, { to: c, data: '0xa46fe83b' }, { to: c, data: '0xe7dad6bd' }, { to: c, data: '0x44c1e5eb' }]));
+  const ms = [];
+  comets.forEach((c, i) => {
+    const bor = r1[i * 4], n = r1[i * 4 + 1], feed = r1[i * 4 + 2], sc = r1[i * 4 + 3];
+    if (!bor || !n || !feed || !sc) return;
+    if (hx(bor, 0) === 0n) return;                                      // нет долга
+    ms.push({ c, bor: Number(hx(bor, 0)), n: Number(hx(n, 0)), feed: hxAddr(feed, 0), scale: Number(hx(sc, 0)), assets: [] });
+  });
+  if (!ms.length) return out;
+  const c2 = [];
+  ms.forEach(m => { c2.push({ to: m.c, data: '0x41976e09' + pad32(m.feed) }); for (let i = 0; i < m.n; i++) c2.push({ to: m.c, data: '0xc8c7fe6b' + u256(i) }); });
+  const r2 = await rb(rpc, c2); let k = 0;
+  ms.forEach(m => {
+    m.basePrice = r2[k] ? Number(hx(r2[k], 0)) / 1e8 : 0; k++;
+    for (let i = 0; i < m.n; i++) { const h = r2[k++]; if (h && h.length >= 2 + 64 * 8) m.assets.push({ asset: hxAddr(h, 1), feed: hxAddr(h, 2), scale: Number(hx(h, 3)), lcf: Number(hx(h, 5)) / 1e18 }); }
+  });
+  const c3 = [];
+  ms.forEach(m => m.assets.forEach(a => { c3.push({ to: m.c, data: '0x5c2549ee' + ua + pad32(a.asset) }); c3.push({ to: m.c, data: '0x41976e09' + pad32(a.feed) }); }));
+  const r3 = c3.length ? await rb(rpc, c3) : []; k = 0;
+  ms.forEach(m => {
+    let w = 0; m.assets.forEach(a => { const b = r3[k], p = r3[k + 1]; k += 2; if (b && p) w += Number(hx(b, 0)) / a.scale * (Number(hx(p, 0)) / 1e8) * a.lcf; });
+    const debt = m.bor / m.scale * m.basePrice;
+    if (debt > 0.01 && m.basePrice > 0) out.push({ net: 'Compound ' + AAVE_NETWORKS[key].name, hf: w / debt });
+  });
+  return out;
+}
+// Euler v2: accountLiquidity(sub, true) → (collateralValue, liabilityValue) в единице учёта; HF = coll / liab
+async function hfEuler(rb, key, items) {
+  const rpc = AAVE_NETWORKS[key].rpc;
+  const r = await rb(rpc, items.map(i => ({ to: i.v, data: '0xa824bf67' + pad32(i.s) + u256(1) })));
+  const out = [];
+  r.forEach(h => { if (!h || h.length < 2 + 128) return; const coll = hx(h, 0), liab = hx(h, 1); if (liab > 0n) out.push({ net: 'Euler ' + AAVE_NETWORKS[key].name, hf: Number(coll) / Number(liab) }); });
+  return out;
+}
+const MORPHO_GQL = 'https://blue-api.morpho.org/graphql';
+const MORPHO_QUERY = 'query($addr:String!){userByAddress(address:$addr){marketPositions{market{uniqueKey lltv collateralAsset{symbol decimals priceUsd} loanAsset{symbol decimals priceUsd}}collateral borrowAssets supplyAssets}}}';
+async function hfMorpho(wallet, fetchFn = fetchJson) {
+  const j = await fetchFn(MORPHO_GQL, 8000, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: MORPHO_QUERY, variables: { addr: wallet } }) });
+  const mp = j && j.data && j.data.userByAddress && j.data.userByAddress.marketPositions; const out = [];
+  (mp || []).forEach(x => {
+    const m = x.market || {}, ca = m.collateralAsset || {}, la = m.loanAsset || {};
+    const col = parseFloat(x.collateral || 0) / Math.pow(10, parseInt(ca.decimals || 18)) * parseFloat(ca.priceUsd || 0);
+    const bor = parseFloat(x.borrowAssets || 0) / Math.pow(10, parseInt(la.decimals || 18)) * parseFloat(la.priceUsd || 0);
+    if (col > 0 && bor > 0.01) out.push({ net: 'Morpho', hf: col * (parseFloat(m.lltv || 0) / 1e18) / bor });
+  });
+  return out;
+}
+// Минимальный HF по всем протоколам кошелька: Aave (все сети) + то, что показали подсказки приложения
+async function getAllHealth(wallet, hint, rb = rpcBatch, morphoFetch = fetchJson) {
+  const all = [];
+  try { const a = await getHealthFactor(wallet); if (a) all.push(a); } catch (e) {}
+  if (hint) {
+    const jobs = [];
+    if (hint.m) jobs.push(hfMorpho(wallet, morphoFetch));
+    const byC = {}; (hint.c || []).forEach(i => { (byC[i.k] = byC[i.k] || []).push(i.a); });
+    Object.keys(byC).forEach(k => jobs.push(hfCompound(rb, k, wallet, byC[k])));
+    const byE = {}; (hint.e || []).forEach(i => { (byE[i.k] = byE[i.k] || []).push(i); });
+    Object.keys(byE).forEach(k => jobs.push(hfEuler(rb, k, byE[k])));
+    (await Promise.all(jobs.map(p => p.catch(() => [])))).forEach(l => l.forEach(x => all.push(x)));
+  }
+  const ok = all.filter(x => x && isFinite(x.hf) && x.hf > 0);
+  return ok.length ? ok.reduce((m, x) => (x.hf < m.hf ? x : m)) : null;
+}
+
 // ───────────────────────── проверка алертов (cron) ─────────────────────────
 // Чистая функция: решает, что слать, и обновляет sub.fired. Вынесена отдельно для проверки.
 function evaluate(sub, ctx, now) {
@@ -261,6 +376,7 @@ function evaluate(sub, ctx, now) {
 }
 
 async function runCron(env) {
+  resetBudget();
   const list = await env.DEFI_KV.list({ prefix: 'sub:' });
   const subs = [];
   for (const k of list.keys) { const s = await env.DEFI_KV.get(k.name, 'json'); if (s && s.alerts && s.alerts.length) subs.push({ key: k.name, sub: s }); }
@@ -274,7 +390,10 @@ async function runCron(env) {
   }));
   const prices = await getPrices([...assets]);
   const hfByWallet = {};
-  for (const w of wallets) { try { hfByWallet[w] = await getHealthFactor(w); } catch (e) { hfByWallet[w] = null; } }
+  for (const w of wallets) {
+    const hint = (subs.map(x => x.sub.hints && x.sub.hints[w]).find(Boolean)) || null;
+    try { hfByWallet[w] = await getAllHealth(w, hint); } catch (e) { hfByWallet[w] = null; }
+  }
 
   const now = Date.now();
   for (const { key, sub } of subs) {
@@ -297,4 +416,4 @@ export default {
   fetch: (request, env) => handleFetch(request, env),
   scheduled: (event, env, ctx) => ctx.waitUntil(runCron(env)),
 };
-export { evaluate, cleanAlerts };
+export { evaluate, cleanAlerts, cleanHints, hfCompound, hfEuler, hfMorpho, getAllHealth, rpcBatch };

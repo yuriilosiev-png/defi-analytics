@@ -2693,7 +2693,7 @@ function selectProto(proto, save){
   if(pTitle && info) pTitle.textContent = info.logo + ' ' + info.name + ' — ' + t('proto_collateral_lbl');
   var qSub = document.getElementById('qm_proto_lbl');
   if(qSub && info) qSub.textContent = info.name;
-  calc();
+  if(!_applyLendAcct()) calc();
 }
 
 function getProtoThresh(name){
@@ -4129,17 +4129,18 @@ function calc(){
 
   // ── Override из контракта Aave (getUserAccountData) ──────────
   // Если есть точные данные из блокчейна — используем их вместо расчёта
-  if(_aaveContractAcct && selectedProto === 'aave'){
-    if(_aaveContractAcct.totalCollUSD > 0){
-      aaveTotal = _aaveContractAcct.totalCollUSD;
+  var _acct = _lendAcct(selectedProto);
+  if(_acct){
+    if(_acct.totalCollUSD > 0){
+      aaveTotal = _acct.totalCollUSD;
     }
-    if(_aaveContractAcct.hf !== null && _aaveContractAcct.hf !== undefined && _aaveContractAcct.hf < 900){
-      hf = _aaveContractAcct.hf;
+    if(_acct.hf !== null && _acct.hf !== undefined && _acct.hf < 900){
+      hf = _acct.hf;
     }
     // Используем долг из контракта если поле loan пустое или отличается сильно
-    if(_aaveContractAcct.totalDebtUSD > 0 && loan < 1){
+    if(_acct.totalDebtUSD > 0 && loan < 1){
       var loanEl2 = document.getElementById('loan');
-      if(loanEl2){ loanEl2.value = _aaveContractAcct.totalDebtUSD.toFixed(2); }
+      if(loanEl2){ loanEl2.value = _acct.totalDebtUSD.toFixed(2); }
     }
   }
 
@@ -5471,10 +5472,13 @@ function updateSim(){
   // ── Если есть реальные данные из контракта — используем их как базу ──
   var contractCollateral = 0;
   var contractHF = null;
-  if(_aaveContractAcct && selectedProto === 'aave'){
-    if(_aaveContractAcct.totalCollUSD > 0) contractCollateral = _aaveContractAcct.totalCollUSD;
-    if(_aaveContractAcct.hf !== null && _aaveContractAcct.hf !== undefined && _aaveContractAcct.hf < 900)
-      contractHF = _aaveContractAcct.hf;
+  var _sAcct = _lendAcct(selectedProto);
+  var liveNonAave = false;
+  if(_sAcct){
+    if(_sAcct.totalCollUSD > 0) contractCollateral = _sAcct.totalCollUSD;
+    if(_sAcct.hf !== null && _sAcct.hf !== undefined && _sAcct.hf < 900)
+      contractHF = _sAcct.hf;
+    liveNonAave = (selectedProto !== 'aave' && contractHF !== null);
   }
   // Базовый залог: контрактный если есть, иначе расчётный
   var baseCollateral = contractCollateral > 0 ? contractCollateral : aaveTotal;
@@ -5498,7 +5502,10 @@ function updateSim(){
 
   // Пересчитываем симулированный HF
   var simHF;
-  if(pct === 0 && baseHF !== null){
+  if(liveNonAave){
+    // Morpho / Compound / Euler: HF из данных кошелька, падение всего залога на pct% → HF масштабируется линейно
+    simHF = loan > 0 ? baseHF * factor : Infinity;
+  } else if(pct === 0 && baseHF !== null){
     // При нулевом падении — показываем реальный HF из контракта
     simHF = baseHF;
   } else {
@@ -5537,11 +5544,12 @@ function updateSim(){
   const btcPrice = livePrices[btcCgId]||0;
   const btcQty   = parseFloat((S.assets.find(a=>a.name.toLowerCase()==='btc')||{}).aaveQty)||0;
   // Для Euler: учитываем borrow factor в расчёте цены ликвидации
-  var eulerBF = (selectedProto==='euler') ? 0.97 : 1.0;
+  var eulerBF = (selectedProto==='euler' && !liveNonAave) ? 0.97 : 1.0;
+  if(liveNonAave && baseCollateral > 0 && loan > 0) effThresh = baseHF * loan / baseCollateral;   // средневзвешенный порог ликвидации из HF
   const liqBtc = btcQty>0&&loan>0&&effThresh>0 ? (loan*eulerBF/(effThresh*btcQty)) : 0;
 
   // До ликвидации — % который ещё можно упасть (от реального залога)
-  var adjLoan = loan * (selectedProto==='euler' ? 0.97 : 1.0);
+  var adjLoan = loan * eulerBF;
   const liqCollateral = adjLoan>0&&effThresh>0 ? adjLoan/effThresh : 0;
   const dropToLiq = baseCollateral>0&&liqCollateral>0
     ? Math.max(0,(baseCollateral-liqCollateral)/baseCollateral*100) : 0;
@@ -10251,11 +10259,12 @@ async function walletLoadMorpho(addr){
         key: m.uniqueKey ? m.uniqueKey.slice(0,8) : '?'
       });
     });
+    _alHint(addr, 'm', _walletMorphoPositions.some(function(p){ return p.borrowUSD > 0.01; }));
   }catch(e){
     console.log('[Morpho] error:', e.message);
   }
 
-  renderPositions();
+  renderPositions(); _applyLendAcct();
 
   var totalFound = _walletMorphoPositions.length;
   var totalUSD = _walletMorphoPositions.reduce(function(s,p){
@@ -12403,8 +12412,8 @@ function alRender(){
   alRenderList();
   var note=alEl('al-note');
   if(note) note.textContent=ru
-    ? 'Сервер проверяет алерты каждые 5 минут, даже когда приложение закрыто. HF считается по сохранённым EVM-кошелькам (минимум среди сетей Aave, где есть долг). У каждого алерта свой режим: «один раз» — после пуша молчит, пока не выключишь и не включишь его; «каждый раз» — снова взводится, когда HF поднялся на 0.05 выше порога (цена отошла от уровня на 0.5%). Звук включается галочкой у каждого алерта.'
-    : 'The server checks alerts every 5 minutes, even when the app is closed. HF uses your saved EVM wallets (lowest across Aave networks with debt). Each alert has its own mode: “once” stays quiet after the push until you switch it off and on; “every time” re-arms after HF rises 0.05 above the threshold (price moves 0.5% away from the level). Sound is a per-alert checkbox.';
+    ? 'Сервер проверяет алерты каждые 5 минут, даже когда приложение закрыто. HF считается по сохранённым EVM-кошелькам: минимум среди Aave (все сети) и позиций Morpho, Compound v3, Euler v2, которые приложение нашло при загрузке кошелька. У каждого алерта свой режим: «один раз» — после пуша молчит, пока не выключишь и не включишь его; «каждый раз» — снова взводится, когда HF поднялся на 0.05 выше порога (цена отошла от уровня на 0.5%). Звук включается галочкой у каждого алерта.'
+    : 'The server checks alerts every 5 minutes, even when the app is closed. HF uses your saved EVM wallets: the lowest across Aave (all networks) and the Morpho, Compound v3 and Euler v2 positions the app found when the wallet was loaded. Each alert has its own mode: “once” stays quiet after the push until you switch it off and on; “every time” re-arms after HF rises 0.05 above the threshold (price moves 0.5% away from the level). Sound is a per-alert checkbox.';
   var sub=alEl('al-sub'); if(sub) sub.textContent=ru?'Пуш на телефон: падение Health Factor и движение цены':'Phone push: Health Factor drop and price moves';
   var tt=alEl('al-status-title'); if(tt) tt.textContent=ru?'Пуш-уведомления':'Push notifications';
   var pd=alEl('al-push-desc'); if(pd) pd.textContent=ru?'Получайте важные сигналы в реальном времени':'Get important signals in real time';
@@ -12528,7 +12537,7 @@ async function alSync(verbose){
   try{
     var ctl=new AbortController(); var to=setTimeout(function(){ctl.abort();},12000);
     var r=await fetch(DEFI_WORKER_URL+'/sync',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
-      body:JSON.stringify({token:_al.token,wallets:alEvmWallets(),alerts:_al.alerts,lang:ru?'ru':'en'})});
+      body:JSON.stringify({token:_al.token,wallets:alEvmWallets(),alerts:_al.alerts,hints:_alHints(),lang:ru?'ru':'en'})});
     clearTimeout(to);
     var j=await r.json();
     if(!r.ok||!j.ok) throw new Error(j.error||('HTTP '+r.status));
@@ -12883,7 +12892,7 @@ async function alTest(){
        d:L('Нажми большой переключатель «Пуш-уведомления» и разреши уведомления. Когда индикаторы позеленеют, нажми <b>«Отправить тест»</b> — на телефон должно прийти уведомление.','Tap the big “Push notifications” switch and allow notifications. When the indicators turn green, tap <b>“Send test”</b> — a notification should arrive on your phone.'),
        tip:L('Выключатель останавливает проверку алертов на сервере, пока ты не включишь его снова.','Switching it off stops the server from checking your alerts until you switch it on again.')},
       {a:A.alhf,t:L('Алерт на Health Factor','Health Factor alert'),
-       d:L('<b>«+ Добавить» → Health Factor.</b> Укажи порог (от 1 до 10) и сохрани. Подставляется текущий HF минус 0.3. Сервер берёт <b>минимальный HF среди сетей Aave</b>, где у тебя есть долг.','<b>“+ Add” → Health Factor.</b> Set a threshold (1 to 10) and save. It defaults to your current HF minus 0.3. The server uses the <b>lowest HF across Aave networks</b> where you have debt.')},
+       d:L('<b>«+ Добавить» → Health Factor.</b> Укажи порог (от 1 до 10) и сохрани. Подставляется текущий HF минус 0.3. Сервер берёт <b>минимальный HF</b> среди Aave (все сети) и Morpho, Compound v3, Euler v2, где у тебя есть долг. Позиции не-Aave сервер узнаёт после загрузки кошелька в приложении.','<b>“+ Add” → Health Factor.</b> Set a threshold (1 to 10) and save. It defaults to your current HF minus 0.3. The server uses the <b>lowest HF</b> across Aave (all networks) and Morpho, Compound v3, Euler v2 where you have debt. The server learns non-Aave positions after you load the wallet in the app.')},
       {a:A.alprice,t:L('Алерт на цену актива','Asset price alert'),
        d:L('<b>«+ Добавить» → Цена актива.</b> Выбери монету (BTC, ETH, SOL, BNB, AVAX, LINK, AAVE, UNI, ARB, OP, POL), направление «упадёт до» или «вырастет до» и уровень в $.','<b>“+ Add” → Asset price.</b> Pick a coin (BTC, ETH, SOL, BNB, AVAX, LINK, AAVE, UNI, ARB, OP, POL), a direction — “falls to” or “rises to” — and a level in $.'),
        tip:L('Переключатель в строке отключает алерт, ✕ удаляет его. Максимум 20 алертов.','The switch on a row disables the alert, ✕ deletes it. Maximum 20 alerts.')},
@@ -12968,6 +12977,37 @@ async function alTest(){
    и euler-xyz/euler-interfaces (EulerChains.json). Сети — те же публичные RPC, что и у Aave. */
 var _walletCompoundPositions = [];
 var _walletEulerPositions = [];
+/* ── подсказки серверу алертов: где у кошелька есть займы (Morpho / Compound / Euler) ── */
+function _alHints(){ try{ return JSON.parse(localStorage.getItem('defi_al_hints')||'{}')||{}; }catch(e){ return {}; } }
+function _alHint(addr, part, val){
+  try{
+    var a = String(addr||'').toLowerCase(); if(!/^0x[0-9a-f]{40}$/.test(a)) return;
+    var m = _alHints(); m[a] = m[a] || {};
+    if(val === true || (val && val.length)) m[a][part] = val; else delete m[a][part];
+    localStorage.setItem('defi_al_hints', JSON.stringify(m));
+    if(typeof alSyncSoon === 'function' && typeof _al !== 'undefined' && _al && _al.token) alSyncSoon();
+  }catch(e){}
+}
+/* ── единый «аккаунт займа» протокола для калькулятора и симулятора падения ── */
+function _lendAcct(proto){
+  if(proto === 'aave') return _aaveContractAcct || null;
+  var list = proto === 'morpho' ? _walletMorphoPositions : proto === 'compound' ? _walletCompoundPositions : proto === 'euler' ? _walletEulerPositions : [];
+  var col = 0, debt = 0, w = 0;
+  (list || []).forEach(function(p){
+    var d = p.borrowUSD != null ? p.borrowUSD : (p.debtUSD || 0);
+    if(d > 0.01 && p.hf > 0){ col += p.colUSD || 0; debt += d; w += p.hf * d; }
+  });
+  if(debt <= 0) return null;
+  return {totalCollUSD:col, totalDebtUSD:debt, hf:w/debt, live:true};
+}
+function _applyLendAcct(){
+  if(selectedProto === 'aave') return false;
+  var a = _lendAcct(selectedProto); if(!a) return false;
+  var el = document.getElementById('loan');
+  if(el){ el.value = a.totalDebtUSD.toFixed(2); try{ sSet('defi_loan', el.value); }catch(e){} }
+  try{ calc(); }catch(e){}
+  return true;
+}
 var CMP_MARKETS = {
   ethereum: ['0xc3d688B66703497DAA19211EEdff47f25384cdc3','0x5D409e56D886231aDAf00c8775665AD0f9897b56','0x3Afdc9BCA9213A35503b077a6072F3D0d5AB0840','0xe85Dc543813B8c2CFEaAc371517b925a166a9293','0xA17581A9E3356d9A858b789D68B4d866e593aE94','0x3D0bb1ccaB520A66e607822fC55BC921738fAFE3'],
   arbitrum: ['0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA','0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf','0xd98Be00b5D27fc98112BdE293e487f8D4cA57d07','0x6f7D514bbD4aFf3BcD1140B7344b32f063dEe486'],
@@ -13059,7 +13099,7 @@ async function _cmpChain(key, user){
       colUSD += usd; weighted += usd*a.lcf; cols.push({sym:a.sym, usd:usd});
     });
     if(supplyUSD < 0.01 && borrowUSD < 0.01 && colUSD < 0.01) return;
-    out.push({net:CMP_NAMES[key]||key, market:bsym, supplyUSD:supplyUSD, borrowUSD:borrowUSD, colUSD:colUSD,
+    out.push({net:CMP_NAMES[key]||key, chain:key, comet:m.c, market:bsym, supplyUSD:supplyUSD, borrowUSD:borrowUSD, colUSD:colUSD,
       hf:(borrowUSD > 0.01 ? weighted/borrowUSD : 0), cols:cols});
   });
   return {pos:out, errs:errs};
@@ -13072,8 +13112,11 @@ async function walletLoadCompound(addr){
   var res = await Promise.all(keys.map(function(k){ return _cmpChain(k, addr).catch(function(e){ console.warn('[Compound]', k, e); return {pos:[], errs:1}; }); }));
   var pos = [], errs = 0;
   res.forEach(function(x){ pos = pos.concat(x.pos); errs += x.errs; });
-  if(!(errs > 0 && !pos.length)) _walletCompoundPositions = pos;   // сбой сети ≠ «позиций нет»: прежнее не затираем
-  renderPositions();
+  if(!(errs > 0 && !pos.length)){
+    _walletCompoundPositions = pos;   // сбой сети ≠ «позиций нет»: прежнее не затираем
+    _alHint(addr, 'c', pos.filter(function(p){ return p.borrowUSD > 0.01 && p.comet; }).map(function(p){ return {k:p.chain, a:p.comet}; }));
+  }
+  renderPositions(); _applyLendAcct();
   if(chip){
     if(pos.length){
       var tot = pos.reduce(function(s,p){ return s + p.colUSD + p.supplyUSD; }, 0);
@@ -13164,7 +13207,7 @@ async function _eulerChain(ch, owner, ids){
     });
     var colUSD = cols.reduce(function(s,c){ return s + c.usd; }, 0);
     var debtUSD = unitUsd ? p.liabV*unitUsd : 0;
-    out.push({net:ch.name, sub:p.id, debtSym:ds, debtAmt:p.debtRaw/Math.pow(10,dd), debtUSD:debtUSD, colUSD:colUSD,
+    out.push({net:ch.name, chainKey:ch.key, subAddr:p.sub, vault:p.V, sub:p.id, debtSym:ds, debtAmt:p.debtRaw/Math.pow(10,dd), debtUSD:debtUSD, colUSD:colUSD,
       hf: p.collV/p.liabV, cols:cols, usdOk: !!unitUsd});
   });
   return {pos:out, errs:errs, found:found};
@@ -13183,8 +13226,11 @@ async function walletLoadEuler(addr, auto){
   var pos = [], errs = 0, nc = {};
   res.forEach(function(x,i){ pos = pos.concat(x.pos); errs += x.errs; if(x.found && !x.errs) nc[EULER_CHAINS[i].key] = x.found; else if(cache[EULER_CHAINS[i].key]) nc[EULER_CHAINS[i].key] = cache[EULER_CHAINS[i].key]; });
   _eulerCacheSet(addr, nc);
-  if(!(errs > 0 && !pos.length)) _walletEulerPositions = pos;
-  renderPositions();
+  if(!(errs > 0 && !pos.length)){
+    _walletEulerPositions = pos;
+    _alHint(addr, 'e', pos.filter(function(p){ return p.vault; }).map(function(p){ return {k:p.chainKey, s:p.subAddr, v:p.vault}; }));
+  }
+  renderPositions(); _applyLendAcct();
   if(chip){
     if(pos.length){
       var tot = pos.reduce(function(s,p){ return s + p.colUSD; }, 0);
